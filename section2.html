@@ -712,23 +712,24 @@ function formatCountry(option) {
    INIT SELECT2 (FIXED ORDER ISSUE)
 ========================= */
 function initSelect2() {
-
-        if (!window.jQuery || !$.fn.select2) {
-            console.warn("Select2 not ready, retrying...");
-            setTimeout(initSelect2, 100);
-            return;
-        }
-
-        $('#location').select2({
-            placeholder: "Search your country",
-            allowClear: true,
-            templateResult: formatCountry,
-            templateSelection: (option) => option.text || option.id,
-            width: "100%"
-        });
+    if (!window.jQuery || !$.fn.select2) {
+        setTimeout(initSelect2, 100);
+        return;
     }
 
-    initSelect2();
+    $('#location').select2({
+        placeholder: "Search your country",
+        allowClear: true,
+        templateResult: formatCountry,
+        templateSelection: (option) => option.text || option.id,
+        width: "100%"
+    });
+}
+
+    window.addEventListener("load", () => {
+    initSelect2();          // safe Select2 init
+    autoDetectCountry();    // now actually runs
+});
 
 /* =========================
    AUTO DETECT COUNTRY (SAFE)
