@@ -5,19 +5,28 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>AvalonFlow – Signup</title>
 
-        <!-- Favicon as .ico -->
+        <!-- Favicon -->
 <link rel="icon" href="/favicon.png" type="image/png" sizes="48x48">
 
-        <!-- Structured Data for Logo -->
-    <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "Organization",
-      "name": "AvalonFlow",
-      "url": "https://avalonflow.site",
-      "logo": "https://avalonFlow.site/favicon.png"
-    }
+<!-- Structured Data for SEO -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "AvalonFlow",
+  "url": "https://avalonflow.site",
+  "logo": "https://avalonflow.site/favicon.png"
+}
 </script>
+
+<!-- jQuery (required for Select2) -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<!-- Select2 CSS -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+
+<!-- Select2 JS -->
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
 <style>
 *, *::before, *::after {
@@ -462,12 +471,78 @@ header .logo-card img {
     <input id="email" type="email" placeholder="Enter your email address">
   </div>
 
-  <!-- Location -->
-  <div class="glass-card payment-method">
-    <h3>🌆 City/Country</h3>
-    <p style="font-style:italic; font-weight:bold;">This helps us personalize your experience.</p>
-    <input id="location" placeholder="Enter your location">
-  </div>
+<!-- Password -->
+<div class="glass-card payment-method">
+  <h3>🔑 Create Password</h3>
+  <input id="password" type="password" placeholder="Create password">
+</div>
+
+<!-- Confirm Password -->
+<div class="glass-card payment-method">
+  <h3>🔒 Confirm Password</h3>
+  <input id="confirmPassword" type="password" placeholder="Re-enter password">
+</div>
+
+<!-- Location -->
+<div class="glass-card payment-method">
+  <h3>🌐 Select Your Country</h3>
+  <p style="font-style:italic; font-weight:bold;">
+    This helps us personalize your experience.
+  </p>
+
+  <select id="location" style="width:100%">
+    <option value="">Select your country</option>
+
+    <!-- North America -->
+    <optgroup label="North America">
+      <option>United States</option>
+      <option>Canada</option>
+      <option>Mexico</option>
+    </optgroup>
+
+    <!-- Europe -->
+    <optgroup label="Europe">
+      <option>United Kingdom</option>
+      <option>Germany</option>
+      <option>France</option>
+      <option>Italy</option>
+      <option>Spain</option>
+    </optgroup>
+
+    <!-- Oceania -->
+    <optgroup label="Oceania">
+      <option>Australia</option>
+      <option>New Zealand</option>
+    </optgroup>
+
+    <!-- South America -->
+    <optgroup label="South America">
+      <option>Brazil</option>
+      <option>Argentina</option>
+      <option>Colombia</option>
+    </optgroup>
+
+    <!-- Africa -->
+    <optgroup label="Africa">
+      <option>Nigeria</option>
+      <option>South Africa</option>
+      <option>Kenya</option>
+      <option>Ghana</option>
+      <option>Egypt</option>
+    </optgroup>
+
+    <!-- Asia -->
+    <optgroup label="Asia">
+      <option>India</option>
+      <option>China</option>
+      <option>Japan</option>
+      <option>Philippines</option>
+      <option>Indonesia</option>
+      <option>UAE</option>
+    </optgroup>
+
+  </select>
+</div>
 
   <!-- Experience -->
   <div class="glass-card payment-method">
@@ -519,80 +594,239 @@ window.addEventListener("DOMContentLoaded", () => {
             setTimeout(() => notification.classList.remove("show"), 3300);
         });
 
-    /* Input elements */
-  const fullName = document.getElementById("fullName");
-  const email = document.getElementById("email");
-  const location = document.getElementById("location");
- 
-  let experience = "";
+    /* =========================
+   INPUT ELEMENTS
+========================= */
+const fullName = document.getElementById("fullName");
+const email = document.getElementById("email");
+const locationEl = document.getElementById("location");
 
-  /* ---------- RESTORE SAVED DATA ---------- */
-  const savedData = JSON.parse(localStorage.getItem("section2Data")) || {};
+let experience = "";
 
-  if (savedData.fullName) fullName.value = savedData.fullName;
-  if (savedData.email) email.value = savedData.email;
-  if (savedData.location) location.value = savedData.location;
-  if (savedData.experience) experience = savedData.experience;
+/* =========================
+   CONTINENT MAPPING
+========================= */
+function getContinent(country) {
+    const map = {
+        "United States": "North America",
+        "Canada": "North America",
+        "Mexico": "North America",
 
-  /* Restore experience button UI */
-  document.querySelectorAll(".option-btn").forEach(btn => {
-    if (btn.dataset.value === experience) {
-      btn.classList.add("active");
+        "United Kingdom": "Europe",
+        "Germany": "Europe",
+        "France": "Europe",
+        "Italy": "Europe",
+        "Spain": "Europe",
+
+        "Australia": "Oceania",
+        "New Zealand": "Oceania",
+
+        "Brazil": "South America",
+        "Argentina": "South America",
+        "Colombia": "South America",
+
+        "Nigeria": "Africa",
+        "South Africa": "Africa",
+        "Kenya": "Africa",
+        "Ghana": "Africa",
+        "Egypt": "Africa",
+
+        "India": "Asia",
+        "China": "Asia",
+        "Japan": "Asia",
+        "Philippines": "Asia",
+        "Indonesia": "Asia",
+        "UAE": "Asia"
+    };
+
+    return map[country] || "Unknown";
+}
+
+/* =========================
+   FLAGS
+========================= */
+function getFlag(country) {
+    const flags = {
+        "United States": "🇺🇸",
+        "Canada": "🇨🇦",
+        "Mexico": "🇲🇽",
+        "United Kingdom": "🇬🇧",
+        "Germany": "🇩🇪",
+        "France": "🇫🇷",
+        "Italy": "🇮🇹",
+        "Spain": "🇪🇸",
+        "Australia": "🇦🇺",
+        "New Zealand": "🇳🇿",
+        "Brazil": "🇧🇷",
+        "Argentina": "🇦🇷",
+        "Colombia": "🇨🇴",
+        "Nigeria": "🇳🇬",
+        "South Africa": "🇿🇦",
+        "Kenya": "🇰🇪",
+        "Ghana": "🇬🇭",
+        "Egypt": "🇪🇬",
+        "India": "🇮🇳",
+        "China": "🇨🇳",
+        "Japan": "🇯🇵",
+        "Philippines": "🇵🇭",
+        "Indonesia": "🇮🇩",
+        "UAE": "🇦🇪"
+    };
+
+    return flags[country] || "🌍";
+}
+
+/* =========================
+   SELECT2 PREMIUM FORMAT
+========================= */
+function formatCountry(option) {
+    if (!option.id) return option.text;
+
+    const country = option.text;
+    const flag = getFlag(country);
+    const continent = getContinent(country);
+
+    return $(`
+        <span>
+            <span style="margin-right:8px;">${flag}</span>
+            <strong>${country}</strong>
+            <span style="opacity:0.6; font-size:12px;"> — ${continent}</span>
+        </span>
+    `);
+}
+
+/* =========================
+   INIT SELECT2
+========================= */
+function initSelect2() {
+    $('#location').select2({
+        placeholder: "Search your country",
+        allowClear: true,
+        templateResult: formatCountry,
+        templateSelection: formatCountry,
+        width: "100%"
+    });
+}
+
+/* =========================
+   AUTO DETECT COUNTRY
+========================= */
+async function autoDetectCountry() {
+    try {
+        const res = await fetch("https://ipapi.co/json/");
+        const data = await res.json();
+
+        const country = data.country_name;
+        if (!country) return;
+
+        $('#location').val(country).trigger('change');
+
+        const continent = getContinent(country);
+        localStorage.setItem("country", country);
+        localStorage.setItem("continent", continent);
+
+    } catch (err) {
+        console.log("Auto-detect failed:", err);
     }
-  });
+}
 
-  /* ---------- AUTO-SAVE ON INPUT ---------- */
-  function saveSection2() {
+/* =========================
+   RESTORE SAVED DATA
+========================= */
+const savedData = JSON.parse(localStorage.getItem("section2Data")) || {};
+
+if (savedData.fullName) fullName.value = savedData.fullName;
+if (savedData.email) email.value = savedData.email;
+if (savedData.location) {
+    setTimeout(() => {
+        $('#location').val(savedData.location).trigger('change');
+    }, 300);
+}
+if (savedData.experience) experience = savedData.experience;
+
+/* Restore experience UI */
+document.querySelectorAll(".option-btn").forEach(btn => {
+    if (btn.dataset.value === experience) {
+        btn.classList.add("active");
+    }
+});
+
+/* =========================
+   AUTO SAVE SYSTEM
+========================= */
+function saveSection2() {
     localStorage.setItem("section2Data", JSON.stringify({
-      fullName: fullName.value.trim(),
-      email: email.value.trim(),
-      location: location.value.trim(),
-      experience
+        fullName: fullName.value.trim(),
+        email: email.value.trim(),
+        location: $('#location').val(),
+        experience
     }));
-  }
+}
 
-  fullName.addEventListener("input", saveSection2);
-  email.addEventListener("input", saveSection2);
-  location.addEventListener("input", saveSection2);
+fullName.addEventListener("input", saveSection2);
+email.addEventListener("input", saveSection2);
+$('#location').on("change", saveSection2);
 
-  /* ---------- EXPERIENCE BUTTONS ---------- */
-  document.querySelectorAll(".option-btn").forEach(btn => {
+/* =========================
+   EXPERIENCE BUTTONS
+========================= */
+document.querySelectorAll(".option-btn").forEach(btn => {
     btn.onclick = () => {
-      experience = btn.dataset.value;
+        experience = btn.dataset.value;
 
-      document.querySelectorAll(".option-btn")
-        .forEach(b => b.classList.remove("active"));
+        document.querySelectorAll(".option-btn")
+            .forEach(b => b.classList.remove("active"));
 
-      btn.classList.add("active");
-      saveSection2(); // persist experience immediately
-    };
-  });
-
-  /* ---------- NAVIGATION ---------- */
-  document.getElementById("prevBtn").onclick = () => {
-    window.location.href = "https://avalonflow.site/"; // Section 1
-  };
-
-  document.getElementById("nextBtn").onclick=()=>{
-        let hasError=false;
-        const inputs=[fullName,email,location];
-        inputs.forEach(input=>{
-            if(!input.value.trim()){
-                hasError=true;
-                input.closest(".payment-method").classList.add("warning");
-                setTimeout(()=>input.closest(".payment-method").classList.remove("warning"),2200);
-            }
-        });
-        if(!experience){
-            hasError=true;
-            const experienceCard=document.querySelector(".payment-method:nth-of-type(4)");
-            experienceCard.classList.add("warning");
-            setTimeout(()=>experienceCard.classList.remove("warning"),2200);
-        }
-        if(hasError) return;
+        btn.classList.add("active");
         saveSection2();
-        window.location.href="https://link.avalonflow.site/section3";
     };
+});
+
+/* =========================
+   NAVIGATION
+========================= */
+document.getElementById("prevBtn").onclick = () => {
+    window.location.href = "https://avalonflow.site/";
+};
+
+document.getElementById("nextBtn").onclick = () => {
+    let hasError = false;
+
+    const inputs = [fullName, email, locationEl];
+
+    inputs.forEach(input => {
+        if (!$(input).val()?.trim()) {
+            hasError = true;
+            input.closest(".payment-method").classList.add("warning");
+
+            setTimeout(() =>
+                input.closest(".payment-method").classList.remove("warning"),
+                2200
+            );
+        }
+    });
+
+    if (!experience) {
+        hasError = true;
+        const expCard = document.querySelector(".payment-method:nth-of-type(4)");
+
+        expCard.classList.add("warning");
+        setTimeout(() => expCard.classList.remove("warning"), 2200);
+    }
+
+    if (hasError) return;
+
+    saveSection2();
+
+    window.location.href = ""; // adjust if needed
+};
+
+/* =========================
+   BOOTSTRAP
+========================= */
+window.addEventListener("DOMContentLoaded", () => {
+    initSelect2();
+    autoDetectCountry();
 });
 
 /* ---------- FINGERPRINT ---------- */
