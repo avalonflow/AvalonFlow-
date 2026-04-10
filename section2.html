@@ -873,6 +873,7 @@ function getFingerprint() {
 if (localStorage.getItem("formSubmitted") === "true") {
     window.location.href = "after-submission";
 }
+}); // ✅ THIS WAS MISSING (CRITICAL FIX)
 </script>
 
 </body>
