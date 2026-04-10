@@ -592,7 +592,11 @@ window.addEventListener("DOMContentLoaded", () => {
             notification.textContent = "Welcome! Let’s get started.";
             setTimeout(() => notification.classList.add("show"), 300);
             setTimeout(() => notification.classList.remove("show"), 3300);
-        });
+          /* ---------- INIT CORE ---------- */
+    initSelect2();
+    autoDetectCountry();
+
+});
 
     /* =========================
    INPUT ELEMENTS
@@ -726,10 +730,6 @@ function initSelect2() {
     });
 }
 
-    window.addEventListener("load", () => {
-    initSelect2();          // safe Select2 init
-    autoDetectCountry();    // now actually runs
-});
 
 /* =========================
    AUTO DETECT COUNTRY (SAFE)
