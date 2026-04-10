@@ -677,7 +677,8 @@ function getFlag(country) {
 }
 
 /* =========================
-   SELECT2 PREMIUM FORMAT
+   SELECT2 FORMAT (FIXED BUG)
+   IMPORTANT: NEVER break selection rendering
 ========================= */
 function formatCountry(option) {
     if (!option.id) return option.text;
@@ -696,20 +697,25 @@ function formatCountry(option) {
 }
 
 /* =========================
-   INIT SELECT2
+   INIT SELECT2 (FIXED ORDER ISSUE)
 ========================= */
 function initSelect2() {
     $('#location').select2({
         placeholder: "Search your country",
         allowClear: true,
         templateResult: formatCountry,
-        templateSelection: formatCountry,
+
+        // 🔥 FIX: selection MUST be plain text (prevents freeze bug)
+        templateSelection: function (option) {
+            return option.text || option.id;
+        },
+
         width: "100%"
     });
 }
 
 /* =========================
-   AUTO DETECT COUNTRY
+   AUTO DETECT COUNTRY (SAFE)
 ========================= */
 async function autoDetectCountry() {
     try {
@@ -719,11 +725,13 @@ async function autoDetectCountry() {
         const country = data.country_name;
         if (!country) return;
 
-        $('#location').val(country).trigger('change');
+        // only set if user hasn't already selected manually
+        if (!$('#location').val()) {
+            $('#location').val(country).trigger('change');
+        }
 
-        const continent = getContinent(country);
         localStorage.setItem("country", country);
-        localStorage.setItem("continent", continent);
+        localStorage.setItem("continent", getContinent(country));
 
     } catch (err) {
         console.log("Auto-detect failed:", err);
@@ -731,24 +739,31 @@ async function autoDetectCountry() {
 }
 
 /* =========================
-   RESTORE SAVED DATA
+   RESTORE SAVED DATA (FIXED SAFE LOAD)
 ========================= */
 const savedData = JSON.parse(localStorage.getItem("section2Data")) || {};
 
-if (savedData.fullName) fullName.value = savedData.fullName;
-if (savedData.email) email.value = savedData.email;
-if (savedData.location) {
-    setTimeout(() => {
-        $('#location').val(savedData.location).trigger('change');
-    }, 300);
-}
-if (savedData.experience) experience = savedData.experience;
+window.addEventListener("DOMContentLoaded", () => {
 
-/* Restore experience UI */
-document.querySelectorAll(".option-btn").forEach(btn => {
-    if (btn.dataset.value === experience) {
-        btn.classList.add("active");
-    }
+    initSelect2();
+
+    setTimeout(() => {
+        if (savedData.location) {
+            $('#location').val(savedData.location).trigger('change');
+        }
+
+        if (savedData.fullName) fullName.value = savedData.fullName;
+        if (savedData.email) email.value = savedData.email;
+        if (savedData.experience) experience = savedData.experience;
+
+        document.querySelectorAll(".option-btn").forEach(btn => {
+            if (btn.dataset.value === experience) {
+                btn.classList.add("active");
+            }
+        });
+
+        autoDetectCountry();
+    }, 200);
 });
 
 /* =========================
@@ -783,7 +798,7 @@ document.querySelectorAll(".option-btn").forEach(btn => {
 });
 
 /* =========================
-   NAVIGATION
+   NAVIGATION (FIXED NULL SAFETY)
 ========================= */
 document.getElementById("prevBtn").onclick = () => {
     window.location.href = "https://avalonflow.site/";
@@ -795,52 +810,55 @@ document.getElementById("nextBtn").onclick = () => {
     const inputs = [fullName, email, locationEl];
 
     inputs.forEach(input => {
-        if (!$(input).val()?.trim()) {
-            hasError = true;
-            input.closest(".payment-method").classList.add("warning");
+        const val = input.value?.trim();
 
-            setTimeout(() =>
-                input.closest(".payment-method").classList.remove("warning"),
-                2200
-            );
+        if (!val) {
+            hasError = true;
+
+            const card = input.closest(".payment-method");
+            if (card) {
+                card.classList.add("warning");
+                setTimeout(() => card.classList.remove("warning"), 2200);
+            }
         }
     });
 
     if (!experience) {
         hasError = true;
-        const expCard = document.querySelector(".payment-method:nth-of-type(4)");
 
-        expCard.classList.add("warning");
-        setTimeout(() => expCard.classList.remove("warning"), 2200);
+        const cards = document.querySelectorAll(".payment-method");
+        const expCard = cards[3]; // FIXED (instead of nth-of-type)
+
+        if (expCard) {
+            expCard.classList.add("warning");
+            setTimeout(() => expCard.classList.remove("warning"), 2200);
+        }
     }
 
     if (hasError) return;
 
     saveSection2();
+    localStorage.setItem("formSubmitted", "true");
 
-    window.location.href = "https://link.avalonflow.site/section3"; // adjust if needed
+    window.location.href = "https://link.avalonflow.site/section3";
 };
 
 /* =========================
-   BOOTSTRAP
+   FINGERPRINT
 ========================= */
-window.addEventListener("DOMContentLoaded", () => {
-    initSelect2();
-    autoDetectCountry();
-});
-
-/* ---------- FINGERPRINT ---------- */
 function getFingerprint() {
-  return btoa(
-    navigator.userAgent +
-    screen.width + screen.height +
-    navigator.language
-  );
+    return btoa(
+        navigator.userAgent +
+        screen.width + screen.height +
+        navigator.language
+    );
 }
 
-/* ---------- BLOCK ACCESS AFTER SUBMISSION ---------- */
+/* =========================
+   BLOCK ACCESS AFTER SUBMISSION
+========================= */
 if (localStorage.getItem("formSubmitted") === "true") {
-  window.location.href = "after-submission";
+    window.location.href = "after-submission";
 }
 </script>
 
