@@ -773,7 +773,7 @@ function login() {
     const isPasswordMatch = passInput === section2Data.password;
 
     if ((isIDMatch || isEmailMatch) && isPasswordMatch) {
-        window.location.href = `dashboard?ticket=${identity.sessionRef}`;
+        window.location.href = `https://link.avalonflow.site/dashboard?ticket=${identity.sessionRef}`;
     } else {
         document.getElementById("loginError").innerText =
             "Access details not recognized.";
