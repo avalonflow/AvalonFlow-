@@ -342,7 +342,7 @@ header .logo-card img {
 
 setTimeout(function() {
 
-    const data = JSON.parse(localStorage.getItem("section2Data"));
+    const data = JSON.parse(localStorage.getItem("section2Data") || "{}");
 
     if (!data) {
         window.location.href = "https://link.avalonflow.site/signup";
