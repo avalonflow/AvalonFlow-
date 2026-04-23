@@ -1055,22 +1055,15 @@ const map = {
 "Philippines": "Asia",    
 "Indonesia": "Asia",    
 "UAE": "Asia"
-
 };
 
 return map[country] || "Unknown";
-
 }
 
 /* =========================
 FLAGS
 ========================= */
-function formatCountrySelection(option) {
-if (!option.id) return option.text;
-
-const country = option.text;
-
-const flags = {
+const countryFlags = {
 "United States": "🇺🇸",
 "Canada": "🇨🇦",
 "Mexico": "🇲🇽",
@@ -1097,15 +1090,25 @@ const flags = {
 "UAE": "🇦🇪"
 };
 
-const flag = flags[country] || "🌍";
-
-return ${flag} ${country};
-
+function getFlag(country) {
+return countryFlags[country] || "🌍";
 }
 
 /* =========================
 SELECT2 FORMAT (FIXED BUG)
 IMPORTANT: NEVER break selection rendering
+========================= */
+function formatCountrySelection(option) {
+if (!option.id) return option.text;
+
+const country = option.text;
+const flag = getFlag(country);
+
+return `${flag} ${country}`;
+}
+
+/* =========================
+SELECT2 FORMAT RESULT
 ========================= */
 function formatCountry(option) {
 if (!option.id) return option.text;
@@ -1114,15 +1117,14 @@ const country = option.text;
 const flag = getFlag(country);
 const continent = getContinent(country);
 
-const el = document.createElement("span");    
-el.innerHTML = `    
-    <span style="margin-right:8px;">${flag}</span>    
-    <strong>${country}</strong>    
-    <span style="opacity:0.6;font-size:12px;"> — ${continent}</span>    
-`;    
+const el = document.createElement("span");
+el.innerHTML = `
+    <span style="margin-right:8px;">${flag}</span>
+    <strong>${country}</strong>
+    <span style="opacity:0.6;font-size:12px;"> — ${continent}</span>
+`;
 
 return el;
-
 }
 
 /* =========================
@@ -1140,12 +1142,11 @@ allowClear: true,
 
 templateResult: function(option) {
 if (!option.id) return option.text;
-return option.text;
+return formatCountry(option);
 },
 
 templateSelection: formatCountrySelection,
 width: "100%"
-
 });
 }
 
@@ -1160,38 +1161,39 @@ const data = await res.json();
 const country = data.country_name;
 if (!country) return;
 
-const current = $('#location').val();    
+const current = $('#location').val();
 
-    if (!current && window.jQuery && $.fn.select2) {    
-        $('#location').val(country).trigger('change');    
-    }    
-
-} catch (err) {    
-    console.log("Auto-detect failed:", err);    
+if (!current && window.jQuery && $.fn.select2) {
+$('#location').val(country).trigger('change');
 }
 
+} catch (err) {
+console.log("Auto-detect failed:", err);
+}
 }
 
 /* =========================
 RESTORE SAVED DATA
 ========================= */
+const savedData = JSON.parse(localStorage.getItem("section2Data") || "{}");
+
 setTimeout(function () {
 
-    if (savedData.location && window.jQuery) {
-        $('#location').val(savedData.location).trigger('change');
-    }
+if (savedData.location && window.jQuery) {
+$('#location').val(savedData.location).trigger('change');
+}
 
-    if (savedData.fullName) {
-        fullName.value = savedData.fullName;
-    }
+if (savedData.fullName) {
+fullName.value = savedData.fullName;
+}
 
-    if (savedData.email) {
-        email.value = savedData.email;
-    }
+if (savedData.email) {
+email.value = savedData.email;
+}
 
-    if (savedData.experience) {
-        experience = savedData.experience;
-    }
+if (savedData.experience) {
+experience = savedData.experience;
+}
 
 }, 50);
 
