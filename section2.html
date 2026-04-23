@@ -1109,23 +1109,26 @@ if (savedData.confirmPassword) confirmPassword.value = savedData.confirmPassword
    AUTO SAVE SYSTEM
 ========================= */
 function saveSection2() {
-    localStorage.setItem("section2Data", JSON.stringify({
-        fullName: fullName.value.trim(),
-        email: email.value.trim(),
-        password: password.value.trim(),
-        confirmPassword: confirmPassword.value.trim(),
-        location: window.jQuery ? $('#location').val() : locationEl.value,
-        experience
-    }));
+    const data = {
+        fullName: fullName.value?.trim() || "",
+        email: email.value?.trim() || "",
+        password: password.value || "",
+        confirmPassword: confirmPassword.value || "",
+        location: window.jQuery ? $('#location').val() : locationEl.value || "",
+        experience: experience || ""
+    };
+
+    localStorage.setItem("section2Data", JSON.stringify(data));
 }
 
-fullName.addEventListener("blur", saveSection2);
-email.addEventListener("blur", saveSection2);
-password.addEventListener("blur", saveSection2);
-confirmPassword.addEventListener("blur", saveSection2);
+[fullName, email, password, confirmPassword].forEach(el => {
+    if (el) {
+        el.addEventListener("input", saveSection2);
+    }
+});
 
 if (window.jQuery) {
-    $('#location').on("change", saveSection2);
+    $('#location').on("change input", saveSection2);
 }
 
 /* =========================
