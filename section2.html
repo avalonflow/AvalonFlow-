@@ -718,18 +718,28 @@ window.addEventListener("DOMContentLoaded", () => {
 
         /* ---------- Notification ---------- */
         window.addEventListener("load", () => {
-            const notification = document.getElementById("planNotification");
-            notification.textContent = "Welcome! Let’s get started.";
-            setTimeout(() => notification.classList.add("show"), 300);
-            setTimeout(() => notification.classList.remove("show"), 3300);
+    const notification = document.getElementById("planNotification");
+    notification.textContent = "Welcome! Let’s get started.";
+    setTimeout(() => notification.classList.add("show"), 300);
+    setTimeout(() => notification.classList.remove("show"), 3300);
+
+    initSelect2();
+    autoDetectCountry();
+
+    setupStrength("password", "strength-meter", "strength-label", false);
+    setupStrength("confirmPassword", "strength-meter-confirm", "strength-label-confirm", true);
+});
+
 
 function setupStrength(inputId, meterId, labelId, isConfirm = false){
-
     const input = document.getElementById(inputId);
     const meter = document.getElementById(meterId);
     const label = document.getElementById(labelId);
 
-    // create bars once
+    if(!input || !meter || !label) return;
+
+    meter.innerHTML = ""; // prevents duplication bug
+
     for(let i = 0; i < 4; i++){
         const bar = document.createElement("div");
         bar.style.height = "4px";
@@ -753,19 +763,15 @@ function setupStrength(inputId, meterId, labelId, isConfirm = false){
         const fill = Math.min(score, 4);
         const bars = meter.querySelectorAll("div");
 
-        // update bars
         bars.forEach((bar, i) => {
-            if(i < fill){
-                bar.style.background =
-                    fill <= 1 ? "#ff4d4d" :
-                    fill === 2 ? "#ffb84d" :
-                    "#4caf50";
-            } else {
-                bar.style.background = "#e0e0e0";
-            }
+            bar.style.background =
+                i < fill
+                    ? (fill <= 1 ? "#ff4d4d" :
+                       fill === 2 ? "#ffb84d" :
+                       "#4caf50")
+                    : "#e0e0e0";
         });
 
-        // label logic
         if(val.length === 0){
             label.textContent = "";
             return;
@@ -781,10 +787,8 @@ function setupStrength(inputId, meterId, labelId, isConfirm = false){
             fill === 2 ? "#ffb84d" :
             "#4caf50";
 
-        // confirm password override (match check)
         if(isConfirm){
             const password = document.getElementById("password");
-
             if(val !== password.value){
                 text = "Doesn't match password";
                 color = "#ff4d4d";
@@ -796,18 +800,7 @@ function setupStrength(inputId, meterId, labelId, isConfirm = false){
     });
 }
 
-/* =========================
-   INIT
-========================= */
-setupStrength("password", "strength-meter", "strength-label", false);
-
-setupStrength("confirmPassword", "strength-meter-confirm", "strength-label-confirm", true);
-
-          /* ---------- INIT CORE ---------- */
-    initSelect2();
-    autoDetectCountry();
-
-});
+          
 
     /* =========================
    INPUT ELEMENTS
