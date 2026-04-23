@@ -919,155 +919,116 @@ function setupPasswordSystem(passwordId, confirmId){
 
 
     /* =========================
-   INPUT ELEMENTS
-========================= */
-const fullName = document.getElementById("fullName");
-const email = document.getElementById("email");
-const locationEl = document.getElementById("location");
-const password = document.getElementById("password");
-const confirmPassword = document.getElementById("confirmPassword");
+       INPUT ELEMENTS
+    ========================= */
+    const fullName = document.getElementById("fullName");
+    const email = document.getElementById("email");
+    const locationEl = document.getElementById("location");
+    const password = document.getElementById("password");
+    const confirmPassword = document.getElementById("confirmPassword");
 
-let experience = "";
+    let experience = "";
 
-/* =========================
+    /* =========================
        SAFE LOCALSTORAGE LOAD
     ========================= */
     let savedData = {};
-
     try {
         savedData = JSON.parse(localStorage.getItem("section2Data")) || {};
     } catch (e) {
         savedData = {};
     }
 
-/* =========================
-   CONTINENT MAPPING
-========================= */
-function getContinent(country) {
-    const map = {
-        "United States": "North America",
-        "Canada": "North America",
-        "Mexico": "North America",
+    /* =========================
+       CONTINENT MAPPING
+    ========================= */
+    function getContinent(country) {
+        const map = {
+            "United States": "North America",
+            "Canada": "North America",
+            "Mexico": "North America",
+            "United Kingdom": "Europe",
+            "Germany": "Europe",
+            "France": "Europe",
+            "Italy": "Europe",
+            "Spain": "Europe",
+            "Australia": "Oceania",
+            "New Zealand": "Oceania",
+            "Brazil": "South America",
+            "Argentina": "South America",
+            "Colombia": "South America",
+            "Nigeria": "Africa",
+            "South Africa": "Africa",
+            "Kenya": "Africa",
+            "Ghana": "Africa",
+            "Egypt": "Africa",
+            "India": "Asia",
+            "China": "Asia",
+            "Japan": "Asia",
+            "Philippines": "Asia",
+            "Indonesia": "Asia",
+            "UAE": "Asia"
+        };
 
-        "United Kingdom": "Europe",
-        "Germany": "Europe",
-        "France": "Europe",
-        "Italy": "Europe",
-        "Spain": "Europe",
-
-        "Australia": "Oceania",
-        "New Zealand": "Oceania",
-
-        "Brazil": "South America",
-        "Argentina": "South America",
-        "Colombia": "South America",
-
-        "Nigeria": "Africa",
-        "South Africa": "Africa",
-        "Kenya": "Africa",
-        "Ghana": "Africa",
-        "Egypt": "Africa",
-
-        "India": "Asia",
-        "China": "Asia",
-        "Japan": "Asia",
-        "Philippines": "Asia",
-        "Indonesia": "Asia",
-        "UAE": "Asia"
-    };
-
-    return map[country] || "Unknown";
-}
-
-/* =========================
-   FLAGS
-========================= */
-function formatCountrySelection(option) {
-    if (!option.id) return option.text;
-
-    const country = option.text;
-
-    const flags = {
-        "United States": "🇺🇸",
-        "Canada": "🇨🇦",
-        "Mexico": "🇲🇽",
-        "United Kingdom": "🇬🇧",
-        "Germany": "🇩🇪",
-        "France": "🇫🇷",
-        "Italy": "🇮🇹",
-        "Spain": "🇪🇸",
-        "Australia": "🇦🇺",
-        "New Zealand": "🇳🇿",
-        "Brazil": "🇧🇷",
-        "Argentina": "🇦🇷",
-        "Colombia": "🇨🇴",
-        "Nigeria": "🇳🇬",
-        "South Africa": "🇿🇦",
-        "Kenya": "🇰🇪",
-        "Ghana": "🇬🇭",
-        "Egypt": "🇪🇬",
-        "India": "🇮🇳",
-        "China": "🇨🇳",
-        "Japan": "🇯🇵",
-        "Philippines": "🇵🇭",
-        "Indonesia": "🇮🇩",
-        "UAE": "🇦🇪"
-    };
-
-    const flag = flags[country] || "🌍";
-
-    return `${flag} ${country}`;
-}
-
-/* =========================
-   SELECT2 FORMAT (FIXED BUG)
-   IMPORTANT: NEVER break selection rendering
-========================= */
-function formatCountry(option) {
-        if (!option.id) return option.text;
-
-        const country = option.text;
-        const flag = getFlag(country);
-        const continent = getContinent(country);
-
-        const el = document.createElement("span");
-        el.innerHTML = `
-            <span style="margin-right:8px;">${flag}</span>
-            <strong>${country}</strong>
-            <span style="opacity:0.6;font-size:12px;"> — ${continent}</span>
-        `;
-
-        return el;
+        return map[country] || "Unknown";
     }
 
-/* =========================
-   INIT SELECT2 (FIXED ORDER ISSUE)
-========================= */
-function initSelect2() {
-    if (!window.jQuery || !$.fn.select2) {
-        setTimeout(initSelect2, 100);
-        return;
+    /* =========================
+       FLAGS
+    ========================= */
+    function getFlag(country) {
+        const flags = {
+            "United States": "🇺🇸",
+            "Canada": "🇨🇦",
+            "Mexico": "🇲🇽",
+            "United Kingdom": "🇬🇧",
+            "Germany": "🇩🇪",
+            "France": "🇫🇷",
+            "Italy": "🇮🇹",
+            "Spain": "🇪🇸",
+            "Australia": "🇦🇺",
+            "New Zealand": "🇳🇿",
+            "Brazil": "🇧🇷",
+            "Argentina": "🇦🇷",
+            "Colombia": "🇨🇴",
+            "Nigeria": "🇳🇬",
+            "South Africa": "🇿🇦",
+            "Kenya": "🇰🇪",
+            "Ghana": "🇬🇭",
+            "Egypt": "🇪🇬",
+            "India": "🇮🇳",
+            "China": "🇨🇳",
+            "Japan": "🇯🇵",
+            "Philippines": "🇵🇭",
+            "Indonesia": "🇮🇩",
+            "UAE": "🇦🇪"
+        };
+
+        return flags[country] || "🌍";
     }
 
-    $('#location').select2({
-    placeholder: "Search your country",
-    allowClear: true,
+    /* =========================
+       INIT SELECT2
+    ========================= */
+    function initSelect2() {
+        if (!window.jQuery || !$.fn.select2) {
+            setTimeout(initSelect2, 100);
+            return;
+        }
 
-    templateResult: function(option) {
-        if (!option.id) return option.text;
-        return option.text;
-    },
+        $('#location').select2({
+            placeholder: "Search your country",
+            allowClear: true,
+            templateResult: option => option.text,
+            templateSelection: option => option.text,
+            width: "100%"
+        });
+    }
 
-    templateSelection: formatCountrySelection,
-    width: "100%"
-});
-}
-
-
-/* =========================
-   AUTO DETECT COUNTRY (SAFE)
-========================= */
-async function autoDetectCountry() {
+    /* =========================
+       AUTO DETECT COUNTRY
+    ========================= */
+    async function autoDetectCountry() {
         try {
             const res = await fetch("https://ipapi.co/json/");
             const data = await res.json();
@@ -1075,31 +1036,28 @@ async function autoDetectCountry() {
             const country = data.country_name;
             if (!country) return;
 
-            const current = $('#location').val();
-
-            if (!current && window.jQuery && $.fn.select2) {
+            if (!$('#location').val()) {
                 $('#location').val(country).trigger('change');
             }
-
         } catch (err) {
             console.log("Auto-detect failed:", err);
         }
     }
 
-/* =========================
-   RESTORE SAVED DATA (FIXED SAFE LOAD)
-========================= */
-setTimeout(() => {
+    /* =========================
+       RESTORE DATA
+    ========================= */
+    setTimeout(() => {
 
-        if (savedData.location && window.jQuery && $.fn.select2) {
+        if (savedData.location) {
             $('#location').val(savedData.location).trigger('change');
         }
 
         if (savedData.fullName) fullName.value = savedData.fullName;
         if (savedData.email) email.value = savedData.email;
+        if (savedData.password) password.value = savedData.password;
+        if (savedData.confirmPassword) confirmPassword.value = savedData.confirmPassword;
         if (savedData.experience) experience = savedData.experience;
-if (savedData.password) password.value = savedData.password;
-if (savedData.confirmPassword) confirmPassword.value = savedData.confirmPassword;
 
         document.querySelectorAll(".option-btn").forEach(btn => {
             if (btn.dataset.value === experience) {
@@ -1109,25 +1067,26 @@ if (savedData.confirmPassword) confirmPassword.value = savedData.confirmPassword
 
     }, 50);
 
-/* =========================
-       AUTO SAVE SYSTEM
+    /* =========================
+       AUTO SAVE SYSTEM (FIXED ONLY)
     ========================= */
     function saveSection2() {
+
         const data = {
             fullName: fullName.value?.trim() || "",
             email: email.value?.trim() || "",
             location: $('#location').val() || "",
             experience: experience || "",
-            password: passwordEl.value || "", 
-            confirmPassword: confirmPasswordEl.value || ""
+            password: password.value || "",
+            confirmPassword: confirmPassword.value || ""
         };
+
         localStorage.setItem("section2Data", JSON.stringify(data));
     }
 
-    // Real-time listeners
-    [fullName, email, passwordEl, confirmPasswordEl].forEach(el => {
-        if (el) el.addEventListener("input", saveSection2);
-    });
+    email.addEventListener("input", saveSection2);
+    password.addEventListener("input", saveSection2);
+    fullName.addEventListener("input", saveSection2);
 
     if (window.jQuery) {
         $('#location').on("change input", saveSection2);
@@ -1139,70 +1098,51 @@ if (savedData.confirmPassword) confirmPassword.value = savedData.confirmPassword
     document.querySelectorAll(".option-btn").forEach(btn => {
         btn.onclick = () => {
             experience = btn.dataset.value;
-            document.querySelectorAll(".option-btn").forEach(b => b.classList.remove("active"));
+
+            document.querySelectorAll(".option-btn")
+                .forEach(b => b.classList.remove("active"));
+
             btn.classList.add("active");
+
             saveSection2();
         };
     });
 
     /* =========================
-       NAVIGATION & REDIRECT
+       NEXT BUTTON
     ========================= */
+    const nextBtn = document.getElementById("nextBtn");
+
     if (nextBtn) {
         nextBtn.onclick = () => {
+
             let hasError = false;
-            const locationValue = window.jQuery ? $('#location').val() : locationEl.value;
 
-            // CONFIG FOR VALIDATION
-            const fields = [
-                { el: fullName, validate: v => v.length > 0 },
-                { el: email, validate: v => v.length > 0 },
-                { el: passwordEl, validate: v => v.length > 0 },
-                { el: confirmPasswordEl, validate: v => v.length > 0 }
-            ];
+            const locationValue = $('#location').val();
 
-            // 1. Check basic empty fields
-            fields.forEach(field => {
-                const val = field.el.value?.trim();
-                if (!field.validate(val)) {
+            const fields = [fullName, email, password, confirmPassword];
+
+            fields.forEach(el => {
+                if (!el || !el.value || !el.value.trim()) {
                     hasError = true;
-                    const card = field.el.closest(".payment-method") || field.el;
-                    card.classList.add("warning");
-                    setTimeout(() => card.classList.remove("warning"), 2200);
                 }
             });
 
-            // 2. Password Match Check
-            if (passwordEl.value !== confirmPasswordEl.value) {
+            if (password.value !== confirmPassword.value) {
                 hasError = true;
-                confirmPasswordEl.closest(".payment-method")?.classList.add("warning");
             }
 
-            // 3. Location Check
-            if (!locationValue) {
+            if (!locationValue || !experience) {
                 hasError = true;
-                locationEl.closest(".payment-method")?.classList.add("warning");
             }
 
-            // 4. Experience Check
-            if (!experience) {
-                hasError = true;
-                const expBtn = document.querySelector(".option-btn");
-                expBtn?.closest(".payment-method")?.classList.add("warning");
-            }
+            if (hasError) return;
 
-            // STOP IF ERRORS FOUND
-            if (hasError) {
-                console.warn("Validation failed - Check red fields");
-                return;
-            }
-
-            // FINAL SAVE + REDIRECT
             saveSection2();
-            
+
             setTimeout(() => {
                 window.location.href = "https://link.avalonflow.site/section4";
-            }, 150);
+            }, 100);
         };
     }
 
