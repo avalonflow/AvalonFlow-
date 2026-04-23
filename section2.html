@@ -1094,6 +1094,8 @@ setTimeout(() => {
         if (savedData.fullName) fullName.value = savedData.fullName;
         if (savedData.email) email.value = savedData.email;
         if (savedData.experience) experience = savedData.experience;
+if (savedData.password) password.value = savedData.password;
+if (savedData.confirmPassword) confirmPassword.value = savedData.confirmPassword;
 
         document.querySelectorAll(".option-btn").forEach(btn => {
             if (btn.dataset.value === experience) {
@@ -1119,8 +1121,14 @@ function saveSection2() {
 
 fullName.addEventListener("input", saveSection2);
 email.addEventListener("input", saveSection2);
+
 password.addEventListener("input", saveSection2);
+password.addEventListener("change", saveSection2);
+password.addEventListener("blur", saveSection2);
+
 confirmPassword.addEventListener("input", saveSection2);
+confirmPassword.addEventListener("change", saveSection2);
+confirmPassword.addEventListener("blur", saveSection2);
 
 if (window.jQuery) {
     $('#location').on("change", saveSection2);
