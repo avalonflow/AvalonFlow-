@@ -596,16 +596,16 @@ header .logo-card img {
     <input id="email" type="email" placeholder="Enter your email address">
 
     <h3>🔑 Create Password</h3>
-    <input id="password" type="password" placeholder="Create password">
+<input id="password" type="password" placeholder="Create password">
 
-<div id="strength-meter" style="margin-top:6px; display:flex; gap:4px; max-width:200px;"></div>
-<div id="strength-label" style="margin-top:6px; font-size:13px; font-weight:500;"></div>
+<div id="strength-meter-password" style="margin-top:6px; display:flex; gap:4px; max-width:200px;"></div>
+<div id="strength-label-password" style="margin-top:6px; font-size:13px; font-weight:500;"></div>
 
-    <h3>🔒 Confirm Password</h3>
-    <input id="confirmPassword" type="password" placeholder="Re-enter password">
+<h3>🔒 Confirm Password</h3>
+<input id="confirmPassword" type="password" placeholder="Re-enter password">
 
-<div id="strength-meter" style="margin-top:6px; display:flex; gap:4px; max-width:200px;"></div>
-<div id="strength-label" style="margin-top:6px; font-size:13px; font-weight:500;"></div>
+<div id="strength-meter-confirm" style="margin-top:6px; display:flex; gap:4px; max-width:200px;"></div>
+<div id="strength-label-confirm" style="margin-top:6px; font-size:13px; font-weight:500;"></div>
 
     <h3>🌐 Select Your Country</h3>
     <p style="font-style:italic; font-weight:bold;">
@@ -707,53 +707,103 @@ window.addEventListener("DOMContentLoaded", () => {
             setTimeout(() => notification.classList.add("show"), 300);
             setTimeout(() => notification.classList.remove("show"), 3300);
 
-const passwordInput = document.getElementById("password");
-const meter = document.getElementById("strength-meter");
-const label = document.getElementById("strength-label");
+function setupStrength(inputId, meterId, labelId){
 
-// create 4 bars
-for(let i = 0; i < 4; i++){
-    const bar = document.createElement("div");
-    meter.appendChild(bar);
+function addEyeToggle(id){
+
+    const input = document.getElementById(id);
+
+    // wrap input automatically (no HTML change)
+    const wrapper = document.createElement("div");
+    wrapper.className = "input-wrapper";
+
+    input.parentNode.insertBefore(wrapper, input);
+    wrapper.appendChild(input);
+
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "pass-toggle";
+
+    btn.innerHTML = `
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8S1 12 1 12z"/>
+            <circle cx="12" cy="12" r="3"/>
+        </svg>
+    `;
+
+    wrapper.appendChild(btn);
+
+    btn.onclick = function(){
+
+        if(input.type === "password"){
+            input.type = "text";
+        } else {
+            input.type = "password";
+        }
+
+    };
 }
 
-passwordInput.addEventListener("input", () => {
-    const val = passwordInput.value;
-    let score = 0;
+addEyeToggle("password");
+addEyeToggle("confirmPassword");
 
-    if(val.length > 5) score++;
-    if(val.length > 8) score++;
-    if(/[A-Z]/.test(val)) score++;
-    if(/[0-9]/.test(val)) score++;
-    if(/[^A-Za-z0-9]/.test(val)) score++;
 
-    const fill = Math.min(score, 4);
-    const bars = meter.querySelectorAll("div");
+    const input = document.getElementById(inputId);
+    const meter = document.getElementById(meterId);
+    const label = document.getElementById(labelId);
 
-    bars.forEach((bar, i) => {
-        if(i < fill){
-            if(fill <= 1) bar.style.background = "#ff4d4d";
-            else if(fill === 2) bar.style.background = "#ffb84d";
-            else bar.style.background = "#4caf50";
+    // create bars
+    for(let i = 0; i < 4; i++){
+        const bar = document.createElement("div");
+        bar.style.height = "4px";
+        bar.style.flex = "1";
+        bar.style.background = "#e0e0e0";
+        bar.style.borderRadius = "2px";
+        bar.style.transition = "0.2s";
+        meter.appendChild(bar);
+    }
+
+    input.addEventListener("input", () => {
+        const val = input.value;
+        let score = 0;
+
+        if(val.length > 5) score++;
+        if(val.length > 8) score++;
+        if(/[A-Z]/.test(val)) score++;
+        if(/[0-9]/.test(val)) score++;
+        if(/[^A-Za-z0-9]/.test(val)) score++;
+
+        const fill = Math.min(score, 4);
+        const bars = meter.querySelectorAll("div");
+
+        bars.forEach((bar, i) => {
+            if(i < fill){
+                if(fill <= 1) bar.style.background = "#ff4d4d";
+                else if(fill === 2) bar.style.background = "#ffb84d";
+                else bar.style.background = "#4caf50";
+            } else {
+                bar.style.background = "#e0e0e0";
+            }
+        });
+
+        // label
+        if(val.length === 0){
+            label.textContent = "";
+        } else if(fill <= 1){
+            label.textContent = "Weak";
+            label.style.color = "#ff4d4d";
+        } else if(fill === 2){
+            label.textContent = "Medium";
+            label.style.color = "#ffb84d";
         } else {
-            bar.style.background = "#e0e0e0";
+            label.textContent = "Strong";
+            label.style.color = "#4caf50";
         }
     });
+}
 
-    // LABEL
-    if(val.length === 0){
-        label.textContent = "";
-    } else if(fill <= 1){
-        label.textContent = "Weak";
-        label.style.color = "#ff4d4d";
-    } else if(fill === 2){
-        label.textContent = "Medium";
-        label.style.color = "#ffb84d";
-    } else {
-        label.textContent = "Strong";
-        label.style.color = "#4caf50";
-    }
-});
+setupStrength("password", "strength-meter-password", "strength-label-password");
+setupStrength("confirmPassword", "strength-meter-confirm", "strength-label-confirm");
 
           /* ---------- INIT CORE ---------- */
     initSelect2();
