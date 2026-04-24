@@ -575,6 +575,17 @@ header .logo-card img {
   text-shadow: 0 2px 6px rgba(0,0,0,0.4);
 }
 
+.lit-animation{
+background: linear-gradient(90deg,#6b2cd8,#b393ff,#6b2cd8);
+  background-size: 200% auto;
+  animation: gradientShift 6s linear infinite;
+
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+
+  text-shadow: 0 2px 6px rgba(0,0,0,0.4);
+}
+
 @keyframes gradientShift{
   0% { background-position: 0% center; }
   100% { background-position: 200% center; }
@@ -605,25 +616,25 @@ header .logo-card img {
   <!-- ONE BIG CARD ONLY -->
   <div class="glass-card payment-method">
 
-    <h3>👤 Full Name</h3>
+    <h3 class="lit-animation">Full Name</h3>
     <input id="fullName" placeholder="Enter your full name">
 
-    <h3>📧 Email Address</h3>
+    <h3 class="lit-animation">Email Address</h3>
     <input id="email" type="email" placeholder="Enter your email address">
 
-    <h3>🔑 Create Password</h3>
+    <h3 class="lit-animation">Create Password</h3>
 <input id="password" type="password" placeholder="Create password">
 
 <div id="strength-meter-password" style="margin-top:6px; display:flex; gap:4px; max-width:200px;"></div>
 <div id="strength-label-password" style="margin-top:6px; font-size:13px; font-weight:500;"></div>
 
-<h3>🔒 Confirm Password</h3>
+<h3 class="lit-animation">Confirm Password</h3>
 <input id="confirmPassword" type="password" placeholder="Re-enter password">
 
 <div id="strength-meter-confirm" style="margin-top:6px; display:flex; gap:4px; max-width:200px;"></div>
 <div id="strength-label-confirm" style="margin-top:6px; font-size:13px; font-weight:500;"></div>
 
-    <h3>🌐 Select Your Country</h3>
+    <h3 class="lit-animation">Select Your Country</h3>
     <p style="font-style:italic; font-weight:bold;">
       This helps us personalize your experience.
     </p>
@@ -674,7 +685,7 @@ header .logo-card img {
       </optgroup>
     </select>
 
-    <h3>👨‍💻 Familiarity with asset-disposal systems</h3>
+    <h3 class="lit-animation">Familiarity with asset-disposal systems</h3>
     <div style="display:flex; gap:10px; justify-content:center; margin-top:14px;">
       <button class="option-btn" data-value="Beginner">Beginner</button>
       <button class="option-btn" data-value="Intermediate">Intermediate</button>
