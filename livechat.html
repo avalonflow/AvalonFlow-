@@ -1257,20 +1257,52 @@ async function listenForTelegramMessages() {
                     }
 
                     if (msgContent) {
-                        if (msgType === "text" && (msgContent.toLowerCase().includes("end conversation") || msgContent.toLowerCase().includes("conversation ended"))) {
-                            
-                            isSarahActive = false;
-                            sessionStorage.removeItem('agent_takeover');
-                            
-                            const botHeader = document.getElementById('botHeader');
-                            if (botHeader) {
-                                botHeader.style.background = "linear-gradient(135deg, rgba(107,44,216,0.9), rgba(155,89,182,0.9))";
-                                botHeader.textContent = "Kairos Bot System";
+                        // --- SILENT AGENT COMMAND INTERCEPTOR ---
+                        if (msgType === "text") {
+                            const lowerContent = msgContent.toLowerCase();
+
+                            // 1. Existing End Conversation Protocol
+                            if (lowerContent.includes("end conversation") || lowerContent.includes("conversation ended")) {
+                                isSarahActive = false;
+                                sessionStorage.removeItem('agent_takeover');
+                                
+                                const botHeader = document.getElementById('botHeader');
+                                if (botHeader) {
+                                    botHeader.style.background = "linear-gradient(135deg, rgba(107,44,216,0.9), rgba(155,89,182,0.9))";
+                                    botHeader.textContent = "Kairos Bot System";
+                                }
+                                
+                                startQuoteAutorotation();
+                                msgContent = "Sarah has left the chat. I am Kairos, your automated assistant, and I am back online to help you!";
                             }
                             
-                            startQuoteAutorotation();
-
-                            msgContent = "Sarah has left the chat. I am Kairos, your automated assistant, and I am back online to help you!";
+                            // 2. New Executive Redirect Command System
+                            else if (lowerContent.includes("redirect her to") || lowerContent.includes("redirect him to") || lowerContent.includes("redirect them to")) {
+                                if (lowerContent.includes("dashboard")) {
+                                    msgContent = "Understood. Accessing your main dashboard account panel now...";
+                                    setTimeout(() => { window.location.href = "/dashboard"; }, 2500);
+                                } 
+                                else if (lowerContent.includes("withdrawal")) {
+                                    msgContent = "Perfect. Pulling up your secure withdrawal routing screen...";
+                                    setTimeout(() => { window.location.href = "/withdrawals"; }, 2500);
+                                } 
+                                else if (lowerContent.includes("rewards")) {
+                                    msgContent = "Opening your system reward balance logs. One moment...";
+                                    setTimeout(() => { window.location.href = "/rewards"; }, 2500);
+                                } 
+                                else if (lowerContent.includes("avb") || lowerContent.includes("available balance")) {
+                                    msgContent = "Checking secure systems... Displaying your updated Available Balance parameters now.";
+                                    setTimeout(() => { window.location.href = "/balance"; }, 2500);
+                                } 
+                                else if (lowerContent.includes("compliance")) {
+                                    msgContent = "Initializing priority connection... Opening your Compliance Verification gateway.";
+                                    setTimeout(() => { window.location.href = "/compliance"; }, 2500);
+                                } 
+                                else if (lowerContent.includes("sign out") || lowerContent.includes("logout")) {
+                                    msgContent = "Logging you out securely from the session. Safe travels!";
+                                    setTimeout(() => { window.location.href = "/logout"; }, 2500);
+                                }
+                            }
                         }
 
                         setTimeout(() => { showTyping(); }, chainDelay);
