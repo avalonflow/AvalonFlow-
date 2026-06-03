@@ -691,12 +691,23 @@ if (sender === "user") {
     const savedUserPhoto = localStorage.getItem('profilePhoto');
     avatarImg.src = savedUserPhoto ? savedUserPhoto : DEFAULT_AVATAR;
 } else {
-    // Check if the bot message is actually Kairos handing over the chat
+    // Check for handover or wrap-up phrases
     const isTransferringText = content.includes("connect you with Sarah") || 
                                content.includes("Connecting you with Sarah");
+                               
+    // Detect if the conversation is ending
+    const isEndingText = content.toLowerCase().includes("end conversation") || 
+                         content.toLowerCase().includes("conversation ended");
 
-    // FIX: Force Kairos avatar if it's a handover message, even if Sarah is flagged active
-    if (isTransferringText) {
+    if (isEndingText) {
+        // SYSTEM FIX: Fully turn off Sarah's state so Kairos takes over the backend completely
+        isSarahActive = false; 
+        sessionStorage.removeItem('agent_takeover'); // Clear any storage locks if you use them
+        
+        // VISUAL FIX: Show Kairos's face for this closing message
+        avatarImg.src = KAIROS_AVATAR;
+        
+    } else if (isTransferringText) {
         avatarImg.src = KAIROS_AVATAR;
     } else if (isSarahActive) {
         avatarImg.src = SARAH_AVATAR;
@@ -705,6 +716,7 @@ if (sender === "user") {
         avatarImg.src = isSarahText ? SARAH_AVATAR : KAIROS_AVATAR;
     }
 }
+
 
 
 
@@ -1160,6 +1172,24 @@ async function listenForTelegramMessages() {
                     }
 
                     if (msgContent) {
+                        // Check if Sarah sent an exit phrase via the panel
+                        if (msgType === "text" && (msgContent.toLowerCase().includes("end conversation") || msgContent.toLowerCase().includes("conversation ended"))) {
+                            
+                            // SYSTEM RESET: Kill agent state completely
+                            isSarahActive = false;
+                            sessionStorage.removeItem('agent_takeover');
+                            
+                            // UI VISUAL RESET: Restore Kairos theme header styles instantly
+                            const botHeader = document.getElementById('botHeader');
+                            if (botHeader) {
+                                botHeader.style.background = "linear-gradient(135deg, rgba(107,44,216,0.9), rgba(155,89,182,0.9))";
+                                botHeader.textContent = "Kairos Bot System";
+                            }
+                            
+                            // Restart ambient background quotes rotation status
+                            startQuoteAutorotation();
+                        }
+
                         // Keeps multiple arriving incoming messages running smoothly without stalling the main pipeline thread
                         setTimeout(() => { showTyping(); }, chainDelay);
                         chainDelay += 800; 
@@ -1208,8 +1238,19 @@ function initiateKairosConversation() {
             startQuoteAutorotation();
         }, 1000);
     } else {
-        const clearSarahActive = chatHistory.some(m => m.text && m.text.includes("this is Sarah"));
-        if (clearSarahActive) {
+        // Look through history to determine state on reload, checking if the conversation was ended last
+        let lastSarahIndex = -1;
+        let lastEndIndex = -1;
+        
+        chatHistory.forEach((m, idx) => {
+            if (m.text && m.text.includes("this is Sarah")) lastSarahIndex = idx;
+            if (m.text && (m.text.toLowerCase().includes("end conversation") || m.text.toLowerCase().includes("conversation ended"))) {
+                lastEndIndex = idx;
+            }
+        });
+
+        // If Sarah stepped in, and hasn't ended it more recently, restore Sarah panel
+        if (lastSarahIndex > -1 && lastSarahIndex > lastEndIndex) {
             isSarahActive = true; 
             const botHeader = document.getElementById('botHeader');
             if (botHeader) {
@@ -1218,12 +1259,12 @@ function initiateKairosConversation() {
             }
             if (statusText) statusText.textContent = sarahProfile.statusText;
         } else {
-            // Safe fallback to run background text rotation on page reload
+            // Safe fallback to run background text rotation on page reload if Kairos is in control
+            isSarahActive = false;
             startQuoteAutorotation();
         }
     }
 }
-
 
 // Fixed History UI Rendering Parser to safely handle both strings and uploaded attachments on reload
 function loadChatHistory() {
@@ -1234,6 +1275,7 @@ function loadChatHistory() {
         botMessagesContainer.scrollTop = botMessagesContainer.scrollHeight;
     }
 }
+
 
 document.addEventListener('DOMContentLoaded', () => {
     // 1. Initialize user profile picture instantly on load
