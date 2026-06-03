@@ -869,8 +869,8 @@ function transitionToSarah() {
             conversationMemory.push({ role: "sarah", content: sarahEntryMessage, type: "text", time: Date.now() });
             chatHistory.push({ sender: 'bot', text: sarahEntryMessage, type: 'text' });
             localStorage.setItem('tg_chat_history_v3', JSON.stringify(chatHistory));
-        }, 30000);
-    }, 20000);
+        }, 35000);
+    }, 15000);
 }
 
 // ---------- Intent Detection ----------
@@ -898,7 +898,7 @@ function generateSmartReply(msg){
         if(/live|chat|representative|agent|human/.test(text)){
             personality.lastIntent = null;
             setTimeout(transitionToSarah, 600);
-            return "I see. Give me a moment while I connect you with Sarah from our support team...";
+            return "I see. Hold on for a while I connect you with Sarah from our support team...";
         }
         personality.lastIntent = "support";
         return "Do you prefer to email support or live chat with Sarah?";
@@ -1188,6 +1188,9 @@ async function listenForTelegramMessages() {
                             
                             // Restart ambient background quotes rotation status
                             startQuoteAutorotation();
+
+                            // FIX: Override Sarah's command text completely so Kairos introduces himself instead
+                            msgContent = "Sarah has left the chat. I am Kairos, your automated assistant, and I am back online to help you!";
                         }
 
                         // Keeps multiple arriving incoming messages running smoothly without stalling the main pipeline thread
@@ -1244,7 +1247,8 @@ function initiateKairosConversation() {
         
         chatHistory.forEach((m, idx) => {
             if (m.text && m.text.includes("this is Sarah")) lastSarahIndex = idx;
-            if (m.text && (m.text.toLowerCase().includes("end conversation") || m.text.toLowerCase().includes("conversation ended"))) {
+            // Check for either the raw command phrase or the custom system greeting phrase on page reloads
+            if (m.text && (m.text.toLowerCase().includes("end conversation") || m.text.toLowerCase().includes("conversation ended") || m.text.includes("Sarah has left the chat"))) {
                 lastEndIndex = idx;
             }
         });
@@ -1275,6 +1279,7 @@ function loadChatHistory() {
         botMessagesContainer.scrollTop = botMessagesContainer.scrollHeight;
     }
 }
+
 
 
 document.addEventListener('DOMContentLoaded', () => {
