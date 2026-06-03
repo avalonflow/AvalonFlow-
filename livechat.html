@@ -3,82 +3,173 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Live Bot Chat</title>
+    <title>Kairos Bot System</title>
     <style>
+        /* Base page layout for centering the card */
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background-color: #f0f2f5;
+            background-color: #0b0b16;
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
             margin: 0;
         }
-        #chat-container {
-            width: 100%;
-            max-width: 400px;
-            height: 500px;
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
+
+        /* ---------- Kairos Bot (Full UI System) ---------- */
+        #assistantBotCard {
+          width: 100%;
+          max-width: 400px;
+          margin-top: 20px;
+          padding: 18px;
+          z-index: 1;
+
+          background: rgba(20, 20, 35, 0.6);
+          border-radius: 16px;
+          box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+          backdrop-filter: blur(14px);
+          border: 1px solid rgba(255,255,255,0.08);
+          
+          /* Added flex distribution to support the input attachment cleanly */
+          display: flex;
+          flex-direction: column;
+          box-sizing: border-box;
         }
-        #chat-header {
-            background: #0088cc;
-            color: white;
-            padding: 15px;
-            font-weight: bold;
-            text-align: center;
+
+        #botHeader {
+          background: linear-gradient(135deg, rgba(107,44,216,0.9), rgba(155,89,182,0.9));
+          color: #fff;
+          text-align: center;
+          padding: 10px;
+          font-weight: 600;
+          letter-spacing: 0.4px;
+          border-radius: 12px 12px 0 0;
         }
-        #messages-box {
-            flex: 1;
-            padding: 15px;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
+
+        #botMessagesContainer {
+          height: 180px;
+          overflow-y: auto;
+          background: rgba(255,255,255,0.04);
+          backdrop-filter: blur(12px);
+          padding: 10px;
+          border-radius: 0 0 12px 12px;
+          display: flex;
+          flex-direction: column;
+          gap: 2px;
         }
-        .msg {
-            max-width: 75%;
-            padding: 10px 14px;
-            border-radius: 18px;
-            font-size: 14px;
-            line-height: 1.4;
-            word-wrap: break-word;
+
+        /* Messages */
+        .message {
+          animation: fadeSlideIn 0.25s ease forwards;
+          opacity: 0;
+          font-size: 13px;
+          padding: 6px 10px;
+          display: inline-block;
+          max-width: 85%;
+          word-wrap: break-word;
         }
-        .bot-msg {
-            background-color: #e1f3ff;
-            color: #0b2638;
-            align-self: flex-start;
-            border-bottom-left-radius: 4px;
+
+        .bot {
+          text-align: left;
+          color: #c7c7ff;
+          background: rgba(107,44,216,0.12);
+          border-radius: 10px 10px 10px 4px;
+          align-self: flex-start;
         }
-        .system-status {
-            font-size: 11px;
-            color: #8a9aa7;
-            text-align: center;
-            margin: 5px 0;
+
+        .user {
+          text-align: right;
+          color: #fff;
+          background: rgba(155,89,182,0.3);
+          border-radius: 10px 10px 4px 10px;
+          align-self: flex-end;
+        }
+
+        /* Wrap */
+        .msgWrap {
+          display: flex;
+          flex-direction: column;
+          margin-bottom: 6px;
+          width: 100%;
+        }
+
+        /* Animation */
+        @keyframes fadeSlideIn {
+          from { opacity: 0; transform: translateY(6px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Ambient / Status Info */
+        .ambient {
+          text-align: center;
+          color: #aaa;
+          font-size: 11px;
+          opacity: 0.6;
+          margin-bottom: 8px;
+        }
+
+        /* Input Container Structure */
+        .input-area {
+          display: flex;
+          margin-top: 12px;
+          width: 100%;
+        }
+
+        /* Input */
+        #botInput {
+          flex: 1;
+          padding: 8px;
+          border: none;
+          border-radius: 10px;
+          background: rgba(255,255,255,0.08);
+          color: #fff;
+          margin-right: 4px;
+          outline: none;
+          font-size: 13px;
+        }
+        #botInput::placeholder {
+          color: rgba(255,255,255,0.4);
+        }
+
+        /* Button */
+        #botSendBtn {
+          background: linear-gradient(135deg, rgba(107,44,216,0.9), rgba(155,89,182,0.9));
+          border: none;
+          color: #fff;
+          border-radius: 10px;
+          padding: 8px 12px;
+          cursor: pointer;
+          font-size: 13px;
+          font-weight: 600;
+          transition: opacity 0.2s;
+        }
+        #botSendBtn:hover {
+          opacity: 0.9;
         }
     </style>
 </head>
 <body>
 
-<div id="chat-container">
-    <div id="chat-header">Telegram Live Feed</div>
-    <div id="messages-box">
-        <div id="status-text" class="system-status">Connecting to live synchronization...</div>
+<div id="assistantBotCard">
+    <div id="botHeader">Kairos Assistant</div>
+    <div id="botMessagesContainer">
+        <div id="status-text" class="ambient">Connecting synchronization...</div>
+    </div>
+    
+    <div class="input-area">
+        <input type="text" id="botInput" placeholder="Type your message..." autocomplete="off">
+        <button id="botSendBtn">Send</button>
     </div>
 </div>
 
 <script>
-// 1. Configuration
+// 1. Configuration Constants
 const BOT_TOKEN = '8074365555:AAGL7by0c0TJCVutfkPhAZNCXCYopdInn2E';
+const CHAT_ID = '-1003913850436'; 
 
-// 2. Tracking Variables
+// 2. State & Memory Tracking Variables
 let lastUpdateId = parseInt(localStorage.getItem('tg_last_update_id')) || 0;
-// Load previously stored messages or start with an empty array if none exist
-let savedMessages = JSON.parse(localStorage.getItem('tg_chat_history')) || [];
+let chatHistory = JSON.parse(localStorage.getItem('tg_chat_history_v2')) || [];
 
 let baseDelay = 3000;      
 let currentDelay = baseDelay; 
@@ -86,68 +177,107 @@ let maxDelay = 30000;
 let pollingTimer = null;
 
 const statusText = document.getElementById('status-text');
-const messagesBox = document.getElementById('messages-box');
+const messagesContainer = document.getElementById('botMessagesContainer');
+const botInput = document.getElementById('botInput');
+const botSendBtn = document.getElementById('botSendBtn');
 
-// 3. Multi-Tab Protection
+// 3. Prevent Multi-Tab API Flooding
 const currentTabId = Math.random().toString();
 sessionStorage.setItem('active_chat_tab', currentTabId);
 
-// Helper function to draw a message inside the chat box UI
-function appendMessageToUI(text) {
+// Render engine function supporting both structures (sender can be 'bot' or 'user')
+function appendMessageToUI(sender, text) {
+  const msgWrap = document.createElement('div');
+  msgWrap.className = 'msgWrap';
+
   const msgDiv = document.createElement('div');
-  msgDiv.className = 'msg bot-msg';
+  msgDiv.className = `message ${sender}`;
   msgDiv.textContent = text;
-  messagesBox.appendChild(msgDiv);
-  messagesBox.scrollTop = messagesBox.scrollHeight;
+
+  msgWrap.appendChild(msgDiv);
+  messagesContainer.appendChild(msgWrap);
+  
+  // Auto-scroll inside the restricted 180px height
+  messagesContainer.scrollTop = messagesContainer.scrollHeight;
 }
 
-// 4. Load Saved History instantly on Page Load
+// Load memory cache upon visit initialization
 function loadChatHistory() {
-  savedMessages.forEach(msgText => {
-    appendMessageToUI(msgText);
+  chatHistory.forEach(item => {
+    appendMessageToUI(item.sender, item.text);
   });
 }
 
+// 4. Outbound Action: Send Webpage Message to Telegram Channel
+async function handleUserSendMessage() {
+  const messageText = botInput.value.trim();
+  if (!messageText) return;
+
+  // Clear input box immediately for responsive feel
+  botInput.value = '';
+
+  // Render to localized browser UI instantly
+  appendMessageToUI('user', messageText);
+
+  // Commit context array to localStorage cache
+  chatHistory.push({ sender: 'user', text: messageText });
+  localStorage.setItem('tg_chat_history_v2', JSON.stringify(chatHistory));
+
+  try {
+    const sendUrl = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`;
+    await fetch(sendUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chat_id: CHAT_ID,
+        text: messageText
+      })
+    });
+  } catch (error) {
+    console.error('Outbound transmission exception caught.');
+  }
+}
+
+// 5. Inbound Action: Poll updates from Telegram Bot
 async function listenForTelegramMessages() {
   if (sessionStorage.getItem('active_chat_tab') !== currentTabId) {
-    statusText.textContent = "Sync paused (Active in another tab)";
+    statusText.textContent = "Paused (Active in another tab)";
     scheduleNextCheck();
     return;
   }
 
-  const url = `https://api.telegram.org/bot${BOT_TOKEN}/getUpdates?offset=${lastUpdateId + 1}&timeout=20`;
+  const fetchUrl = `https://api.telegram.org/bot${BOT_TOKEN}/getUpdates?offset=${lastUpdateId + 1}&timeout=20`;
 
   try {
-    const response = await fetch(url);
+    const response = await fetch(fetchUrl);
     
     if (response.status === 429) {
-      statusText.textContent = "Rate limit hit. Easing off requests...";
+      statusText.textContent = "Rate limit check. Easing frequency...";
       currentDelay = Math.min(currentDelay * 2, maxDelay); 
       scheduleNextCheck();
       return;
     }
 
-    if (!response.ok) throw new Error('Network synchronization dropped');
+    if (!response.ok) throw new Error('Dropped sync connection');
     
     const data = await response.json();
     
     if (data.ok) {
       currentDelay = baseDelay;
-      statusText.textContent = "Live sync active";
+      statusText.textContent = "Synchronization active";
 
       if (data.result.length > 0) {
         data.result.forEach(update => {
           if (update.message && update.message.text) {
+            
+            // Filter incoming bot responses explicitly if necessary, skipping echoed inputs
             const incomingText = update.message.text;
 
-            // 1. Add it to our UI
-            appendMessageToUI(incomingText);
+            appendMessageToUI('bot', incomingText);
             
-            // 2. Add it to our history array and save to localStorage
-            savedMessages.push(incomingText);
-            localStorage.setItem('tg_chat_history', JSON.stringify(savedMessages));
+            chatHistory.push({ sender: 'bot', text: incomingText });
+            localStorage.setItem('tg_chat_history_v2', JSON.stringify(chatHistory));
             
-            // 3. Update ID tracker
             lastUpdateId = update.update_id;
             localStorage.setItem('tg_last_update_id', lastUpdateId);
           }
@@ -167,15 +297,21 @@ function scheduleNextCheck() {
   pollingTimer = setTimeout(listenForTelegramMessages, currentDelay);
 }
 
-// --- INITIALIZATION ---
+// 6. Action Listeners
+botSendBtn.addEventListener('click', handleUserSendMessage);
+
+botInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    handleUserSendMessage();
+  }
+});
+
 document.addEventListener('DOMContentLoaded', () => {
-  // Load local memory messages onto the page first
   loadChatHistory();
-  
-  // Start pulling new items from the network
   listenForTelegramMessages();
 });
 </script>
 
 </body>
 </html>
+
