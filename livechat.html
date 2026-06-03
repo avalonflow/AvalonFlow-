@@ -570,7 +570,7 @@ function transitionToSarah() {
 
     setTimeout(() => {
         removeTyping();
-        const handoffMessage = "Understood. One moment while I connect you with Sarah from our support team...";
+        const handoffMessage = "Sorry for the delay. Connecting you with Sarah in a bit...";
         addMessage(handoffMessage, "bot");
 
         conversationMemory.push({ role: "bot", content: handoffMessage, type: "text", time: Date.now() });
@@ -644,7 +644,7 @@ function generateSmartReply(msg){
     if (personality.awaitingSarahConfirm && isYes) {
         personality.awaitingSarahConfirm = false;
         setTimeout(transitionToSarah, 600);
-        return "Sorry for the delay. Connecting you with Sarah in a bit...";
+        return "Understood. One moment while I connect you with Sarah from our support team...";
     }
     if (personality.awaitingSarahConfirm && isNo) {
         personality.awaitingSarahConfirm = false;
