@@ -558,6 +558,10 @@ function generateSmartReply(msg){
 
 const text = msg.toLowerCase();
 
+// clean YES/NO checks (FIX #2)
+const isYes = /^(yes|yeah|sure|ok|please)\b/.test(text);
+const isNo = /^(no|not really|nah)\b/.test(text);
+
 // Support follow-up handling
 if(personality.lastIntent === "support"){
 
@@ -576,10 +580,10 @@ if(personality.lastIntent === "support"){
 }
 
 
-    // FAQ FIRST (priority)
-    const faq = findFAQByIntent(msg);
-    if(faq){
-personality.lastIntent = "faq";
+// FAQ FIRST (priority)
+const faq = findFAQByIntent(msg);
+if(faq){
+    personality.lastIntent = "faq";
     const variations = [
         faq.a,
         `${faq.a} Let me know if you want me to walk you through it.`,
@@ -590,81 +594,84 @@ personality.lastIntent = "faq";
     return variations[Math.floor(Math.random()*variations.length)];
 }
 
-    // Memory context
+// Memory context
 const last = conversationMemory
     .slice(-2)
     .map(m => m.content)
     .join(" ")
     .toLowerCase();
 
-    const lastBot = conversationMemory
-        .filter(m => m.role === "bot")
-        .slice(-1)[0]?.content.toLowerCase() || "";
+const lastBot = conversationMemory
+    .filter(m => m.role === "bot")
+    .at(-1)?.content.toLowerCase() || "";
 
 // Sarah handoff confirmation
-if(
-    lastBot.includes("connect you with sarah") &&
-    /yes|yeah|sure|ok|please/.test(msg.toLowerCase())
-){
-    setTimeout(transitionToSarah,600);
-    return "Understood. Connecting you with Sarah now...";
+if (
+  personality.awaitingSarahConfirm &&
+  isYes
+) {
+  personality.awaitingSarahConfirm = false;
+  setTimeout(transitionToSarah, 600);
+  return "Understood. Connecting you with Sarah now...";
 }
 
-// 🔥 CONTEXTUAL UNDERSTANDING (add here)
-    if(last.includes("password") && msg.toLowerCase().includes("not working")){
-        return "Got it—you’re having trouble resetting your password. Are you seeing an error or just not receiving the reset link?";
-    }
+// Context: password issue
+if(last.includes("password") && text.includes("not working")){
+    return "Got it—you’re having trouble resetting your password. Are you seeing an error or just not receiving the reset link?";
+}
 
-const text = msg.toLowerCase();
-
-if(last.includes("ticket") && /not working|failed|error/.test(text)){
+// ticket context
+if(personality.lastIntent === "ticket" && /not working|failed|error/.test(text)){
     return "Is the ticket not generating or are you not seeing it in your dashboard?";
 }
 
-if(last.includes("payment") && msg.includes("delay")){
+// payment delay
+if(last.includes("payment") && text.includes("delay")){
     return "Are you referring to a payout delay or a transaction verification delay?";
 }
 
-    // YES / NO logic
-    if(/yes|yeah|sure|ok/.test(msg)){
-        if(lastBot.includes("ticket")){
-            generateTicket();
-            return "Done. Your support ticket has been created.";
+// YES / NO logic (clean version)
+if(isYes){
+    if(lastBot.includes("ticket")){
+        generateTicket();
+        return "Done. Your support ticket has been created.";
+    }
+}
+
+if(isNo){
+    return "Alright. What would you like help with instead?";
+}
+
+// reward logic
+if(/reward balance|progress|earnings balance|cashback/.test(text)){
+    let unlocked = JSON.parse(localStorage.getItem('unlockedPlans')) || {};
+    let unlockTimes = JSON.parse(localStorage.getItem('unlockTimes')) || {};
+    let res = "Bond progress:\n";
+
+    ['premium','basic','lite','custom'].forEach(plan=>{
+        if(unlocked[plan]){
+            const now = Date.now();
+            const elapsed = now - unlockTimes[plan];
+            const total = plan==='premium'?14*86400000:plan==='basic'?28*86400000:42*86400000;
+            const percent = Math.min(100, Math.round((elapsed/total)*100));
+            res += `${plan}: ${percent}%\n`;
+        } else {
+            res += `${plan}: Locked\n`;
         }
-    }
+    });
 
-    if(/no|not really/.test(msg)){
-        return "Alright. What would you like help with instead?";
-    }
+    return res;
+}
 
-    // Reward logic
-    if(/reward balance|progress|earnings balance|cashback/.test(msg)){
-        let unlocked=JSON.parse(localStorage.getItem('unlockedPlans'))||{};
-        let unlockTimes=JSON.parse(localStorage.getItem('unlockTimes'))||{};
-        let res="Bond progress:\n";
-
-        ['premium','basic','lite','custom'].forEach(plan=>{
-            if(unlocked[plan]){
-                const now=Date.now();
-                const elapsed=now-unlockTimes[plan];
-                const total=plan==='premium'?14*86400000:plan==='basic'?28*86400000:42*86400000;
-                const percent=Math.min(100,Math.round((elapsed/total)*100));
-                res+=`${plan}: ${percent}%\n`;
-            } else res+=`${plan}: Locked\n`;
-        });
-
-        return res;
-    }
-
-    // fallback → SMART follow-up (NOT spam)
-    const followUps = [
+// fallback responses
+const followUps = [
     generateFollowUp(msg),
     "Can you clarify that a bit for me?",
     "I want to make sure I understand—what exactly are you trying to do?",
     "Are you trying to fix something or just exploring?"
 ];
 
-// 🔥 Context-aware continuation (ONLY when user is vague)
+// FAQ short reply handling
 const shortReply = msg.trim().split(" ").length <= 2;
 
 if(personality.lastIntent === "faq" && shortReply){
@@ -672,7 +679,17 @@ if(personality.lastIntent === "faq" && shortReply){
     return "Want me to break that down step-by-step?";
 }
 
-if(personality.lastIntent === "ticket" && /ok|yes|yeah|hmm|alright/.test(msg.toLowerCase())){
+// Sarah decline
+if(
+  personality.awaitingSarahConfirm &&
+  isNo
+){
+    personality.awaitingSarahConfirm = false;
+    return "Alright, let me know what you need help with instead.";
+}
+
+// ticket follow-up
+if(personality.lastIntent === "ticket" && isYes){
     personality.lastIntent = null;
     return "Do you want to track it or describe the issue further?";
 }
@@ -787,13 +804,13 @@ function handleMessage(msg){
         return;
     }
 
-    if(intent.type==='support'){
+    if(intent.type === 'support'){
     personality.lastIntent = "support";
+    personality.awaitingSarahConfirm = true; // ✅ ADD THIS
 
     botReply(
         "I can help with that. Would you like to email support or chat with a live representative?"
     );
-
     return;
 }
 
