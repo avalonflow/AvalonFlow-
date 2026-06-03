@@ -557,7 +557,7 @@ function transitionToSarah() {
 
     setTimeout(() => {
         removeTyping();
-        const handoffMessage = "One moment while I connect you with Sarah from our support team...";
+        const handoffMessage = "Sorry for the delay. Connecting you with Sarah in a bit...";
         addMessage(handoffMessage, "bot");
 
         conversationMemory.push({ role: "bot", content: handoffMessage, type: "text", time: Date.now() });
@@ -622,7 +622,7 @@ function generateSmartReply(msg){
         if(/live|chat|representative|agent|human/.test(text)){
             personality.lastIntent = null;
             setTimeout(transitionToSarah, 600);
-            return "Connecting you with Sarah in a bit...";
+            return "Understood. One moment while I connect you with Sarah from our support team...";
         }
         personality.lastIntent = "support";
         return "Do you prefer to email support or live chat with Sarah?";
@@ -631,7 +631,7 @@ function generateSmartReply(msg){
     if (personality.awaitingSarahConfirm && isYes) {
         personality.awaitingSarahConfirm = false;
         setTimeout(transitionToSarah, 600);
-        return "Understood. One moment while I connect you with Sarah from our support team...";
+        return "Sorry for the delay. Connecting you with Sarah in a bit...";
     }
     if (personality.awaitingSarahConfirm && isNo) {
         personality.awaitingSarahConfirm = false;
