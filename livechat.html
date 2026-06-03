@@ -134,11 +134,7 @@
 }
 
 /* Wrap */
-.msgWrap {
-  display: flex;
-  flex-direction: column;
-  margin-bottom: 6px;
-}
+
 
 /* Animation */
 @keyframes fadeSlideIn {
@@ -217,6 +213,41 @@
   animation: fadeSlideIn 0.3s ease forwards;
 }
 
+/* Flex arrangement for message bubble rows */
+.msgWrap {
+  display: flex;
+  align-items: flex-end; /* Keeps avatar resting at the bottom baseline of long messages */
+  gap: 8px;
+  margin-bottom: 12px;
+  width: 100%;
+  flex-direction: column;
+}
+
+/* Push user layouts to align right */
+.user-wrap {
+  justify-content: flex-end;
+}
+
+/* Premium avatar sizing profile specs */
+.chat-bubble-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0; /* Prevents the browser from compressing the circle layout */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Adjust initial message boundaries to factor avatar space */
+.message {
+  animation: fadeSlideIn 0.25s ease forwards;
+  opacity: 0;
+  font-size: 13px;
+  padding: 8px 12px;
+  display: inline-block;
+  max-width: 75%; /* Slightly trimmed to leave comfortable room for the avatar */
+}
 
 
     </style>
@@ -229,22 +260,21 @@
         <div id="status-text" class="ambient">Connecting synchronization...</div>
     </div>
 
-    <!-- Modern Nested Input Pill Area -->
-    <<div class="input-area">
-    <input type="file" id="botFileInput" style="display: none;"> 
-    
-    <button type="button" id="botAttachBtn" class="icon-btn" onclick="document.getElementById('botFileInput').click()">
-        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-    </button>
+    <div class="input-area">
+        <input type="file" id="botFileInput" style="display: none;"> 
+        
+        <button type="button" id="botAttachBtn" class="icon-btn" onclick="document.getElementById('botFileInput').click()">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+        </button>
 
-    <input type="text" id="botInput" placeholder="Ask Kairos..." autocomplete="off">
-    
-    <button type="button" id="botSendBtn" class="icon-btn send-btn">
-        <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
-    </button>
+        <input type="text" id="botInput" placeholder="Ask Kairos..." autocomplete="off">
+        
+        <button type="button" id="botSendBtn" class="icon-btn send-btn">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+        </button>
+    </div>
 </div>
 
-</div>
 
 
 <script>
@@ -337,10 +367,80 @@ function getTime(){
     return now.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
 }
 
-// ---------- Unified Message Rendering System ----------
+// ---------- Profile Picture Assets & Configuration ----------
+const photoInput = document.getElementById('photoInput');
+const profilePhoto = document.getElementById('profilePhoto');
+const DEFAULT_AVATAR = 'default-avatar.png';
+let isProcessing = false;
+
+// Fixed Profile Avatars for the Bots
+const KAIROS_AVATAR = 'https://api.dicebear.com/7.x/bottts/svg?seed=Kairos&backgroundColor=6b2cd8'; // Premium Bot look
+const SARAH_AVATAR = 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=150&auto=format&fit=crop'; // Professional Representative
+
+// Click event handling to swap or pick image (Labels completely removed)
+profilePhoto.addEventListener('click', () => {
+    if (isProcessing) return;
+    const hasPhoto = localStorage.getItem('profilePhoto');
+    if (hasPhoto) {
+        localStorage.removeItem('profilePhoto');
+        profilePhoto.src = DEFAULT_AVATAR;
+    } else {
+        photoInput.click();
+    }
+});
+
+// Auto-process canvas image transformation
+photoInput.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file || isProcessing) return;
+    isProcessing = true;
+
+    const reader = new FileReader();
+    reader.onload = function(event) {
+        const img = new Image();
+        img.src = event.target.result;
+        img.onload = function() {
+            const canvas = document.createElement('canvas');
+            const size = Math.min(img.width, img.height);
+            canvas.width = size;
+            canvas.height = size;
+
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, (img.width - size) / 2, (img.height - size) / 2, size, size, 0, 0, size, size);
+
+            const finalImage = canvas.toDataURL('image/png');
+            profilePhoto.src = finalImage;
+            localStorage.setItem('profilePhoto', finalImage);
+            photoInput.value = '';
+            setTimeout(() => { isProcessing = false; }, 300);
+        };
+    };
+    reader.readAsDataURL(file);
+});
+
+// Load saved photo initialization on startup
+window.addEventListener('DOMContentLoaded', () => {
+    const saved = localStorage.getItem('profilePhoto');
+    profilePhoto.src = saved ? saved : DEFAULT_AVATAR;
+});
+
+// ---------- Integrated Profile-Aware Message Renderer ----------
 function addMessage(content, sender="bot", status="delivered", type="text"){
     const wrap = document.createElement("div");
-    wrap.className = "msgWrap";
+    wrap.className = `msgWrap ${sender}-wrap`; // Added sender wrapper class for fine flex-alignment
+
+    // Create the visual avatar icon element
+    const avatarImg = document.createElement("img");
+    avatarImg.className = "chat-bubble-avatar";
+    
+    // Assign correct photo source dynamically based on financial reality context
+    if (sender === "user") {
+        const savedUserPhoto = localStorage.getItem('profilePhoto');
+        avatarImg.src = savedUserPhoto ? savedUserPhoto : DEFAULT_AVATAR;
+    } else {
+        // If Sarah has stepped into the active session session, load hers, otherwise default to Kairos
+        avatarImg.src = isSarahActive ? SARAH_AVATAR : KAIROS_AVATAR;
+    }
 
     const msg = document.createElement("div");
     msg.className = `${sender} message`;
@@ -360,23 +460,23 @@ function addMessage(content, sender="bot", status="delivered", type="text"){
         vid.style.borderRadius = "8px";
         vid.style.display = "block";
         msg.appendChild(vid);
-    } else if (type === "document") {
-        const docLink = document.createElement("a");
-        docLink.href = content;
-        docLink.target = "_blank";
-        docLink.textContent = "📄 View Attached Document";
-        docLink.style.color = "#ff4b2b";
-        docLink.style.textDecoration = "underline";
-        msg.appendChild(docLink);
     } else {
         msg.textContent = content;
     }
 
-    wrap.appendChild(msg);
+    // Structural alignment: Bot avatar on left, User avatar on right
+    if (sender === "user") {
+        wrap.appendChild(msg);
+        wrap.appendChild(avatarImg);
+    } else {
+        wrap.appendChild(avatarImg);
+        wrap.appendChild(msg);
+    }
 
     if(sender === "user"){
         const meta = document.createElement("div");
         meta.className = "meta";
+        meta.style.marginRight = "46px"; // Offsets timestamp layout cleanly below the message box
 
         const time = document.createElement("span");
         time.className = "timestamp";
