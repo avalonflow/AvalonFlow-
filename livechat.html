@@ -430,7 +430,7 @@ function transitionToSarah() {
     setTimeout(() => {
         removeTyping();
 
-        const handoffMessage = "One moment while I connect you with Sarah from our support team...";
+        const handoffMessage = "Connecting you with Sarah now...";
         addMessage(handoffMessage, "bot");
 
         conversationMemory.push({
@@ -465,9 +465,9 @@ function transitionToSarah() {
             if(conversationMemory.length > 10){
                 conversationMemory.shift();
             }
-        }, 2500);
+        }, 3500);
 
-    }, 1800);
+    }, 10000);
 }
 
 function removeTyping(){
@@ -613,7 +613,7 @@ function generateSmartReply(msg){
     if (personality.awaitingSarahConfirm && isYes) {
         personality.awaitingSarahConfirm = false;
         setTimeout(transitionToSarah, 600);
-        return "Understood. Connecting you with Sarah now...";
+        return "Understood. One moment while I connect you with Sarah from our support team...";
     }
 
     // Context: password issue
