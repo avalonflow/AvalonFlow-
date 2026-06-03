@@ -456,6 +456,14 @@ header .logo-card img {
     </style>
 </head>
 <body>
+    <!-- Floating Background -->
+    <div id="floating-bg"></div>
+
+<header style="text-align:center; padding:40px 0;">
+  <div class="logo-card">
+    <img src="assets/pictures/imagitool-export (26).jpg" alt="AvalonFlow Logo">
+  </div>
+</header>
 
 <div style="display:none;">
     <img id="profilePhoto" src="default-avatar.png">
@@ -484,8 +492,28 @@ header .logo-card img {
 </div>
 
 
-
+<!-- Sticky Footer -->
+    <footer>
+        © 2026 AvalonFlow • Powered by Centrical™
+    </footer>
 <script>
+        /* ---------- Floating Particles ---------- */
+        const bg = document.getElementById('floating-bg');
+        const colors = ['#6b2cd8','#9b59b6','#8e44ad'];
+        function particle() {
+            const p = document.createElement('div');
+            p.className = 'particle';
+            const s = Math.random()*20+10;
+            p.style.width = s+'px';
+            p.style.height = s+'px';
+            p.style.left = Math.random()*100+'vw';
+            p.style.background = `radial-gradient(circle, ${colors[Math.floor(Math.random()*3)]}, transparent)`;
+            p.style.animationDuration = (Math.random()*20+10)+'s';
+            bg.appendChild(p);
+            setTimeout(()=>p.remove(),30000);
+        }
+        setInterval(particle,800);
+
 // ---------- Configuration Constants ----------
 // ⚠️ WARNING: Move BOT_TOKEN to a secure backend environment as soon as possible!
 const BOT_TOKEN = '8074365555:AAGL7by0c0TJCVutfkPhAZNCXCYopdInn2E';
