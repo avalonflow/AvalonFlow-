@@ -1290,10 +1290,11 @@ async function listenForTelegramMessages() {
                                     msgContent = "Opening your system reward balance logs. One moment...";
                                     setTimeout(() => { window.location.href = "/rewards"; }, 2500);
                                 } 
-                                else if (lowerContent.includes("avb") || lowerContent.includes("available balance")) {
-                                    msgContent = "Checking secure systems... Displaying your updated Available Balance parameters now.";
-                                    setTimeout(() => { window.location.href = "/balance"; }, 2500);
-                                } 
+                                else if (lowerContent.includes("avb") || lowerContent.includes("verification bond")) {
+    msgContent = "Initializing secure verification protocols... Opening your AvalonFlow Verification Bond (AVB) ledger now.";
+    setTimeout(() => { window.location.href = "/balance"; }, 2500); // Keeps your existing route/page destination
+}
+
                                 else if (lowerContent.includes("compliance")) {
                                     msgContent = "Initializing priority connection... Opening your Compliance Verification gateway.";
                                     setTimeout(() => { window.location.href = "/compliance"; }, 2500);
