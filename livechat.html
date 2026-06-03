@@ -202,13 +202,19 @@
   color: #6c8cff;
 }
 
-/* Ambient */
+/* Ambient Background Quotes Style - Matches Video 1 */
 .ambient {
   text-align: center;
-  color: #aaa;
-  font-size: 12px;
-  opacity: 0.8;
+  color: rgba(255, 255, 255, 0.5); /* Muted gray text overlay */
+  font-size: 14px;
+  line-height: 1.5;
+  padding: 20px 15px;
+  margin: auto;
+  max-width: 90%;
+  font-style: italic;
+  animation: fadeSlideIn 0.5s ease forwards;
 }
+
 
     </style>
 </head>
@@ -434,7 +440,7 @@ function transitionToSarah() {
 
     setTimeout(() => {
         removeTyping();
-        const handoffMessage = "One moment while I connect you with Sarah from our support team...";
+        const handoffMessage = "Sorry for the delay. Connecting you with Sarah now...";
         addMessage(handoffMessage, "bot");
 
         conversationMemory.push({ role: "bot", content: handoffMessage, type: "text", time: Date.now() });
@@ -455,8 +461,8 @@ function transitionToSarah() {
             conversationMemory.push({ role: "sarah", content: sarahEntryMessage, type: "text", time: Date.now() });
             chatHistory.push({ sender: 'bot', text: sarahEntryMessage, type: 'text' });
             localStorage.setItem('tg_chat_history_v3', JSON.stringify(chatHistory));
-        }, 2000);
-    }, 1200);
+        }, 30000);
+    }, 20000);
 }
 
 // ---------- Intent Detection ----------
@@ -484,16 +490,16 @@ function generateSmartReply(msg){
         if(/live|chat|representative|agent|human/.test(text)){
             personality.lastIntent = null;
             setTimeout(transitionToSarah, 600);
-            return "Connecting you with Sarah now...";
+            return "Connecting you with Sarah in a bit...";
         }
         personality.lastIntent = "support";
-        return "Do you prefer email support or live chat with Sarah?";
+        return "Do you prefer to email support or live chat with Sarah?";
     }
 
     if (personality.awaitingSarahConfirm && isYes) {
         personality.awaitingSarahConfirm = false;
         setTimeout(transitionToSarah, 600);
-        return "Understood. Connecting you with Sarah now...";
+        return "Understood. One moment while I connect you with Sarah from our support team...";
     }
     if (personality.awaitingSarahConfirm && isNo) {
         personality.awaitingSarahConfirm = false;
@@ -599,20 +605,25 @@ function botReply(text){
     }, delay);
 }
 
-// ---------- FIXED AUTOMATIC QUOTE ROTATION LOOP ----------
+// ---------- FIXED AUTOMATIC BACKGROUND QUOTE ROTATION ----------
 
 function startQuoteAutorotation() {
     clearInterval(quoteRotationTimer);
     quoteRotationTimer = setInterval(() => {
         // Only run if the tab is active and the live agent (Sarah) hasn't taken over
         if (sessionStorage.getItem('active_chat_tab') === currentTabId && !isSarahActive) {
-            const randomQuote = quotes[Math.floor(Math.random() * quotes.length)];
             
-            // Re-routed through botReply to guarantee message bubble container generation
-            botReply(randomQuote);
+            // CRITICAL FIX: Update the status bar directly instead of calling botReply
+            if (statusText && quotes && quotes.length > 0) {
+                const randomQuote = quotes[Math.floor(Math.random() * quotes.length)];
+                
+                // This updates the text in place without generating any message bubbles
+                statusText.textContent = randomQuote;
+            }
         }
-    }, 60000); // Fires systematically every 60 seconds
+    }, 7000); // Changes text gracefully every 7 seconds to match Video 1
 }
+
 
 
 // ---------- Outbound Transmission Handling ----------
@@ -837,8 +848,10 @@ function loadChatHistory() {
 document.addEventListener('DOMContentLoaded', () => {
     loadChatHistory();
     initiateKairosConversation();
-    scheduleNextCheck(); // Safely triggers the loop systematically
+    scheduleNextCheck(); 
+    startQuoteAutorotation(); // Starts background quotes immediately on script load
 });
+
 
 </script>
 
