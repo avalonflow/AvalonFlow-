@@ -473,6 +473,54 @@ header .logo-card img {
   max-width: 75%; /* Slightly trimmed to leave comfortable room for the avatar */
 }
 
+/* ==========================================================================
+   DESKTOP OVERRIDES: Force edges to touch screen margins with ROUNDED CORNERS
+   ========================================================================== */
+@media (min-width: 1024px) {
+    body {
+        padding: 0; /* Strips page padding so elements hit the screen edges */
+    }
+
+    header {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+    }
+
+    header .logo-card {
+        width: 100%;
+        max-width: 100%; /* Spans the entire screen width */
+        border-radius: 0; /* The very top logo background stays flat against the screen top */
+        height: 140px;
+    }
+
+    #assistantBotCard {
+        width: 100% !important;
+        max-width: 100% !important; /* Maximizes card block edge-to-edge */
+        margin-top: 0;
+        margin-bottom: 60px; /* Aligns comfortably right above the broad footer bar */
+        height: calc(100vh - 200px); /* Extends height smoothly across the screen */
+        border-left: none !important;
+        border-right: none !important;
+        
+        /* FIXED: Keeps the exact curved boundary shape from your mobile preview */
+        border-radius: 16px 16px 0 0 !important; 
+    }
+
+    #botHeader {
+        /* FIXED: Restores your exact, beautiful top rounded corner curves */
+        border-radius: 16px 16px 0 0 !important; 
+    }
+
+    #botMessagesContainer {
+        border-radius: 0 !important; /* Keeps bottom corners flat to blend into the base */
+    }
+    
+    .input-area {
+        margin-left: 20px; /* Adds comfortable safety spacing from edge boundaries */
+        margin-right: 20px;
+    }
+}
 
     </style>
 </head>
