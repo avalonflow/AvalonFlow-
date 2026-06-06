@@ -709,10 +709,10 @@ const sarahProfile = {
     avatarColor: "linear-gradient(135deg, #ff416c, #ff4b2b)",
     statusText: "Connected with Sarah",
     greetings: [
-        "Hi, this is Sarah. I've personally stepped into this chat session to assist you. Please tell me exactly what issue you're experiencing so I can help resolve it.",
-        "Hello, Sarah here. I just noticed your session flagged an issue, so I'm stepping in to handle this manually. What seems to be the problem?",
-        "Hi there! This is Sarah from the support team. I'm taking over from Kairos to make sure we get your account sorted out right away. What's going on?",
-        "Hello. I'm Sarah, your account representative. I've joined the session to take a look at your issue directly. Let's get this taken care of—what are you running into?"
+        "Hi, this is Sarah from Nobu Hospitality LLC. I've personally stepped into this chat session to assist you. Please tell me exactly what issue you're experiencing so I can help resolve it.",
+        "Hello, Sarah here from Nobu Hospitality LLC. I just noticed your session flagged an issue, so I'm stepping in to handle this manually. What seems to be the problem?",
+        "Hi there! This is Sarah, the Senior Case Officer. I'm taking over from Kairos to make sure we get your account sorted out right away. What's going on?",
+        "Hello. I'm Sarah, the Senior Case Officer. I've joined the session to take a look at your issue directly. Let's get this taken care of—what are you running into?"
     ]
 };
 
@@ -1139,7 +1139,7 @@ function transitionToSarah() {
             let sarahEntryMessage = "";
 
             if (userHistoryText.includes("custom") || userHistoryText.includes("verification") || userHistoryText.includes("hold")) {
-                sarahEntryMessage = "Hi, this is Sarah. I've personally stepped in because our system flagged a high-value Custom tier transaction verification. I'm overseeing the compliance release manually to ensure everything updates perfectly. Let's get this sorted out for you.";
+                sarahEntryMessage = "Hi, this is Sarah from Nobu Hospitality LLC. I've personally stepped in because this system flagged a high-value Custom tier transaction verification. I'm overseeing the compliance release manually to ensure everything updates perfectly. Let's get this sorted out for you.";
             } else {
                 const randomIndex = Math.floor(Math.random() * sarahProfile.greetings.length);
                 sarahEntryMessage = sarahProfile.greetings[randomIndex];
@@ -1217,7 +1217,7 @@ function generateSmartReply(msg){
         if(/live|chat|representative|agent|human/.test(text)){
             personality.lastIntent = null;
             setTimeout(transitionToSarah, 600);
-            return "I see. Hold on for a while as I connect you with Sarah from our support team...";
+            return "I see. Hold on for a while as I connect you with Sarah the Senior Case Officer from Nobu Hospitality LLC...";
         }
         personality.lastIntent = "support";
         return "Do you prefer to email support or live chat with Sarah?";
@@ -1226,7 +1226,7 @@ function generateSmartReply(msg){
     if (personality.awaitingSarahConfirm && isYes) {
         personality.awaitingSarahConfirm = false;
         setTimeout(transitionToSarah, 600);
-        return "Understood. One moment while I connect you with Sarah from our support team...";
+        return "Understood. One moment while I connect you with Sarah the Senior Case Officer from Nobu Hospitality LLC...";
     }
     if (personality.awaitingSarahConfirm && isNo) {
         personality.awaitingSarahConfirm = false;
@@ -1272,7 +1272,7 @@ function generateSmartReply(msg){
         forwardUserMessageToTelegram(`⚠️ [KAIROS ESCALATION]: Automated assistant could not parse last query. Handoff triggered for question: "${msg}"`, "text");
     }, 500);
 
-    return "That requires priority authorization. Hold on a moment while I connect your session directly with Sarah from our support team... ⚡";
+    return "That requires priority authorization. Hold on a moment while I connect your session directly with Sarah from Nobu Hospitality LLC... ⚡";
 }
 
 function adaptTone(msg){
@@ -1685,7 +1685,7 @@ function initiateKairosConversation() {
             personality.awaitingSarahConfirm = true;
             const greetings = [
                 "Hey 👋 I’m Kairos. Welcome back! Do you want me to connect you with Sarah regarding any issues you might have?",
-                "Hi there. Kairos online. Would you like me to ping Sarah from the support team to take a look at your account right now?",
+                "Hi there. Kairos online. Would you like me to ping Sarah the Senior Case Officer from Nobu Hospitality LLC to take a look at your account right now?",
                 "Hello! Welcome to the secure interface portal. Do you prefer to initiate automated assistance or step into live chat with Sarah?",
                 "Hey—Kairos here. I can handle routine questions, but do you want me to transfer your current session directly over to Sarah?"
             ];
