@@ -1139,7 +1139,7 @@ function transitionToSarah() {
             let sarahEntryMessage = "";
 
             if (userHistoryText.includes("custom") || userHistoryText.includes("verification") || userHistoryText.includes("hold")) {
-                sarahEntryMessage = "Hi, this is Sarah from Nobu Hospitality LLC. I've personally stepped in because this system flagged a high-value Custom tier transaction verification. I'm overseeing the compliance release manually to ensure everything updates perfectly. Let's get this sorted out for you.";
+                sarahEntryMessage = "Hi, this is Sarah from Nobu Hospitality LLC. I've personally stepped in because this system flagged a high-value Custom tier transaction verification. I'm overseeing the compliance release manually to ensure everything updates perfectly. I’d love to hear a short introduction about you as well";
             } else {
                 const randomIndex = Math.floor(Math.random() * sarahProfile.greetings.length);
                 sarahEntryMessage = sarahProfile.greetings[randomIndex];
@@ -1303,12 +1303,15 @@ function handleMessage(msg){
     if (isSarahActive) return;
     const lower = msg.toLowerCase();
 
-    if(/^(hi|hello|hey|yo)\b/.test(lower)){
+    if(/^(hi|hello|hey|yo|wassup|good morning|good afternoon|good evening|goodday|sup|ski)\b/.test(lower)){
         const greetings = [
-            "Hey 👋 I’m Kairos. What do you need help with today?",
+            "Sup 😊 I’m Kairos. What do you need help with today?",
             "Hi there. I can help with support, tickets, rewards, or system settings.",
-            "Hey—what’s going on? Need help processing something?",
-            "Hello. Tell me what you're trying to execute, I’ll guide you smoothly."
+            "Wassup—what’s going on? Need help processing something?",
+            "Yo. Tell me what you're trying to execute, I’ll guide you smoothly."
+"Hi. Let's jump in."
+"Hey. What's on your mind"
+"Hi 😄 I'm Kairos. Ask away"
         ];
         botReply(greetings[Math.floor(Math.random()*greetings.length)]);
         return;
@@ -1589,7 +1592,7 @@ async function listenForTelegramMessages() {
                                 }
 
                                 startQuoteAutorotation();
-                                msgContent = "Sarah has left the chat. I am Kairos, your automated assistant, and I am back online to help you!";
+                                msgContent = "Sorry😔 Sarah has left the chat. I am Kairos, your automated assistant, and I am back online to help you!🫡";
                             }
 
                             else if (lowerContent.includes("redirect her to") || lowerContent.includes("redirect him to") || lowerContent.includes("redirect them to") || lowerContent.includes("redirect vitti to")) {
@@ -1644,7 +1647,7 @@ async function listenForTelegramMessages() {
                         setTimeout(() => { showTyping(); }, chainDelay);
                         chainDelay += 800; 
 
-                        const currentSenderIdentity = (isSarahActive && !msgContent.includes("Sarah has left the chat")) ? "sarah" : "kairos";
+                        const currentSenderIdentity = (isSarahActive && !msgContent.includes("Sorry😔 Sarah has left the chat")) ? "sarah" : "kairos";
 
                         setTimeout(() => {
                             removeTyping();
