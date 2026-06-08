@@ -75,17 +75,18 @@
 .logo-shimmer-wrapper {
   position: relative;
   display: inline-block;
+  border-radius: 50%; /* Makes the wrapper a circle */
+  overflow: hidden;    /* Cuts off the square corners of the image inside */
 }
 
-/* Your 3D "A" Logo Styling */
 .avalon-logo-img {
   display: block;
-  width: 85px; /* Clean, intentional mobile size */
+  width: 85px;
   height: auto;
-margin: 0 auto;
   
-  /* This blends away the dark purple square corners */
-  mix-blend-mode: multiply; 
+  /* Optional: keeps your shimmer animation running smoothly underneath the crop */
+  animation: dynamicLightPass 4s infinite ease-in-out;
+
   
   /* Creates a moving light pass directly on the image graphics */
   -webkit-mask-image: linear-gradient(
