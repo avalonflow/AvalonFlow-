@@ -62,42 +62,68 @@
 }
 
 /* ================= Header Logo Card Neon ================= */
-.logo-header {
+
+.minimal-logo-header {
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 80px 0;
+  padding: 70px 0 30px 0;
   background: transparent;
 }
 
-.logo-container {
-  width: 90px; /* Clean, minimalist desktop/mobile scale */
-  height: 90px;
+/* The wrapper that handles the mask boundaries */
+.logo-shimmer-wrapper {
   position: relative;
+  display: inline-block;
 }
 
-.avalon-icon {
-  width: 100%;
-  height: 100%;
+/* Your 3D "A" Logo Styling */
+.avalon-logo-img {
+  display: block;
+  width: 85px; /* Clean, intentional mobile size */
+  height: auto;
+  
+  /* Creates a moving light pass directly on the image graphics */
+  -webkit-mask-image: linear-gradient(
+    -75deg, 
+    rgba(0, 0, 0, 1) 35%, 
+    rgba(255, 255, 255, 0.25) 50%, 
+    rgba(0, 0, 0, 1) 65%
+  );
+  mask-image: linear-gradient(
+    -75deg, 
+    rgba(0, 0, 0, 1) 35%, 
+    rgba(255, 255, 255, 0.25) 50%, 
+    rgba(0, 0, 0, 1) 65%
+  );
+  
+  /* Stretches the mask size so it can slide across from side to side */
+  -webkit-mask-size: 400% 100%;
+  mask-size: 400% 100%;
+  
+  -webkit-mask-position: 0% 0%;
+  mask-position: 0% 0%;
+  
+  /* Triggers the smooth, realistic glare animation */
+  animation: dynamicLightPass 4s infinite ease-in-out;
 }
 
-/* Moving the mask element within the SVG */
-#mask-rect {
-  animation: svgLightPass 4s infinite ease-in-out;
-}
-
-/* Smooth light sweep animation keyframes */
-@keyframes svgLightPass {
+/* The Glare Animation Keyframes */
+@keyframes dynamicLightPass {
   0% {
-    transform: translateX(-100px);
+    -webkit-mask-position: 0% 0%;
+    mask-position: 0% 0%;
   }
-  60% {
-    transform: translateX(100px); /* Moves across the vectors smoothly */
+  65% {
+    -webkit-mask-position: 100% 0%;
+    mask-position: 100% 0%; /* Glides the highlight entirely across the logo */
   }
   100% {
-    transform: translateX(100px); /* Short pause before looping again */
+    -webkit-mask-position: 100% 0%;
+    mask-position: 100% 0%; /* Elegant pause before restarting */
   }
 }
+
 
 
     footer {
@@ -120,40 +146,12 @@
     <!-- Floating Background -->
     <div id="floating-bg"></div>
 
-<header class="logo-header">
-  <div class="logo-container">
-    <svg class="avalon-icon" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-      <defs>
-        <linearGradient id="leftLegGrad" x1="0%" y1="100%" x2="100%" y2="0%">
-          <stop offset="0%" stop-color="#4a159d" />
-          <stop offset="100%" stop-color="#a855f7" />
-        </linearGradient>
-        
-        <linearGradient id="rightLegGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stop-color="#c084fc" />
-          <stop offset="100%" stop-color="#6b21a8" />
-        </linearGradient>
-
-        <linearGradient id="lightPassGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-          <stop offset="0%" stop-color="white" stop-opacity="1" />
-          <stop offset="40%" stop-color="white" stop-opacity="1" />
-          <stop offset="50%" stop-color="#ffffff" stop-opacity="0.3" /> <stop offset="60%" stop-color="white" stop-opacity="1" />
-          <stop offset="100%" stop-color="white" stop-opacity="1" />
-        </linearGradient>
-        
-        <mask id="shimmerMask">
-          <rect x="-100" y="0" width="300" height="100" fill="url(#lightPassGrad)" id="mask-rect" />
-        </mask>
-      </defs>
-
-      <g mask="url(#shimmerMask)">
-        <path d="M25,85 C30,55 40,25 53,15 C56,13 61,16 59,22 C52,35 40,60 38,85 Z" fill="url(#leftLegGrad)" />
-        <path d="M38,85 C42,65 55,35 70,30 C75,28 78,32 74,38 C62,55 50,75 48,85 Z" fill="url(#rightLegGrad)" opacity="0.9" />
-        <path d="M33,65 C45,62 55,61 65,63 C63,68 52,67 35,69 Z" fill="#e9d5ff" opacity="0.8" />
-      </g>
-    </svg>
+<header class="minimal-logo-header">
+  <div class="logo-shimmer-wrapper">
+    <img src="assets/pictures/1000652064.png" alt="Avalon Logo" class="avalon-logo-img">
   </div>
 </header>
+
 
 
     <!-- Sticky Footer -->
