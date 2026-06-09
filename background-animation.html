@@ -61,7 +61,7 @@
     }
 }
 
-/* ================= Header Logo Card Neon ================= */
+/* ================= Header Logo Minimal ================= */
 
 .minimal-logo-header {
   display: flex;
@@ -71,7 +71,6 @@
   background: transparent;
 }
 
-/* Clean, open wrapper for the image layer */
 .logo-shimmer-wrapper {
   position: relative;
   display: inline-block;
@@ -79,17 +78,18 @@
 
 .avalon-logo-img {
   display: block;
-  width: 95px; /* Clean mobile display width */
+  width: 95px; /* Perfect intentional sizing */
   height: auto;
   margin: 0 auto;
 
-  /* SURGICAL CONTOUR CROP: 
-    Traces the specific geometric flow of your "A" and deletes the square corners 
+  /* THE FIXED APPROACH: 
+     Instead of slicing the image, this targets the dark purple tones 
+     and blends them perfectly into your light background, leaving the shape intact.
   */
-  clip-path: url(#logo-contour);
-  -webkit-clip-path: url(#logo-contour);
+  mix-blend-mode: screen;
+  filter: contrast(1.1) brightness(1.02);
 
-  /* Creates a moving light pass directly on the image graphics */
+  /* The smooth light pass overlay setup */
   -webkit-mask-image: linear-gradient(
     -75deg, 
     rgba(0, 0, 0, 1) 35%, 
@@ -103,18 +103,15 @@
     rgba(0, 0, 0, 1) 65%
   );
   
-  /* Stretches the mask size so it can slide across from side to side */
   -webkit-mask-size: 400% 100%;
   mask-size: 400% 100%;
-  
   -webkit-mask-position: 0% 0%;
   mask-position: 0% 0%;
   
-  /* Triggers the smooth, realistic glare animation */
   animation: dynamicLightPass 4s infinite ease-in-out;
 }
 
-/* The Glare Animation Keyframes */
+/* Glare Keyframes */
 @keyframes dynamicLightPass {
   0% {
     -webkit-mask-position: 0% 0%;
@@ -122,13 +119,14 @@
   }
   65% {
     -webkit-mask-position: 100% 0%;
-    mask-position: 100% 0%; /* Glides the highlight entirely across the logo */
+    mask-position: 100% 0%;
   }
   100% {
     -webkit-mask-position: 100% 0%;
-    mask-position: 100% 0%; /* Elegant pause before restarting */
+    mask-position: 100% 0%;
   }
 }
+
 
 
 
@@ -159,19 +157,6 @@
   </div>
 </header>
 
-<svg width="0" height="0" style="position: absolute; pointer-events: none;">
-  <defs>
-    <clipPath id="logo-contour" clipPathUnits="objectBoundingBox">
-      <path d="M 0.5 0.05 
-               C 0.55 0.05, 0.78 0.45, 0.98 0.82 
-               C 1.0 0.88, 0.92 0.96, 0.82 0.92
-               C 0.72 0.88, 0.60 0.72, 0.50 0.85
-               C 0.40 0.98, 0.22 0.96, 0.12 0.92
-               C 0.02 0.88, 0.22 0.45, 0.45 0.05 
-               Z" />
-    </clipPath>
-  </defs>
-</svg>
 
 
 
