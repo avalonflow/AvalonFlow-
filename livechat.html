@@ -1487,14 +1487,16 @@ if (botFileInput) {
         const file = botFileInput.files[0];
         if (!file) return;
 
-        // 🌟 FIX 1: Lock the filename into an immutable string immediately 
-        // so it doesn't get lost when the input element is cleared!
-        const savedFileName = file.name;
-
         let msgType = "document"; 
         if (file.type.startsWith("image/")) msgType = "photo";
         if (file.type.startsWith("video/")) msgType = "video";
         if (file.type.startsWith("audio/")) msgType = "audio"; 
+
+        // 🌟 FIXED: If the file name is missing or generic (like 'blob'), give it a clean fallback title based on its type
+        let savedFileName = file.name;
+        if (!savedFileName || savedFileName === "blob") {
+            savedFileName = msgType === "audio" ? "Voice_Note.mp3" : "Attachment_File";
+        }
 
         const reader = new FileReader();
         reader.onload = async function(e) {
@@ -1513,7 +1515,7 @@ if (botFileInput) {
 
             forwardUserMessageToTelegram(savedFileName, msgType);
 
-            // 🌟 FIX 2: Uses the locked file name variable so Kairos ALWAYS triggers successfully
+            // 🌟 This will now ALWAYS fire perfectly because savedFileName is guaranteed to have a string!
             setTimeout(() => {
                 botReply(`Received file: ${savedFileName}. Saved directly to secure logs.`);
             }, 1000);
@@ -1535,6 +1537,7 @@ if (botFileInput) {
         reader.readAsDataURL(file);
     });
 }
+
 
 
 
