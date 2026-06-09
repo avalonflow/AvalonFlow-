@@ -71,44 +71,35 @@
   background: transparent;
 }
 
-/* The wrapper that handles the mask boundaries */
+/* Clean, open wrapper for the image layer */
 .logo-shimmer-wrapper {
   position: relative;
   display: inline-block;
-  border-radius: 50%; /* Makes the wrapper a circle */
-  overflow: hidden;    /* Cuts off the square corners of the image inside */
 }
 
 .avalon-logo-img {
   display: block;
-  width: 110px; /* Slight size increase since we are cropping the edges inward */
+  width: 95px; /* Clean mobile display width */
   height: auto;
   margin: 0 auto;
 
-  /* The Inset Crop: (Top, Right, Bottom, Left)
-    This cuts 12% off the top/bottom and 10% off the left/right.
-    Adjust these percentages slightly if you still see a sliver of background!
+  /* SURGICAL CONTOUR CROP: 
+    Traces the specific geometric flow of your "A" and deletes the square corners 
   */
-  clip-path: inset(12% 10% 12% 10%);
-  -webkit-clip-path: inset(12% 10% 12% 10%);
+  clip-path: url(#logo-contour);
+  -webkit-clip-path: url(#logo-contour);
 
-  /* Keeps your premium light-sweep animation running smoothly inside the crop */
-  animation: dynamicLightPass 4s infinite ease-in-out;
-
-
-
-  
   /* Creates a moving light pass directly on the image graphics */
   -webkit-mask-image: linear-gradient(
     -75deg, 
     rgba(0, 0, 0, 1) 35%, 
-    rgba(255, 255, 255, 0.25) 50%, 
+    rgba(255, 255, 255, 0.4) 50%, 
     rgba(0, 0, 0, 1) 65%
   );
   mask-image: linear-gradient(
     -75deg, 
     rgba(0, 0, 0, 1) 35%, 
-    rgba(255, 255, 255, 0.25) 50%, 
+    rgba(255, 255, 255, 0.4) 50%, 
     rgba(0, 0, 0, 1) 65%
   );
   
@@ -141,6 +132,7 @@
 
 
 
+
     footer {
     position: fixed;
     bottom: 0;
@@ -166,6 +158,21 @@
     <img src="assets/pictures/favicon.png" alt="Avalon Logo" class="avalon-logo-img">
   </div>
 </header>
+
+<svg width="0" height="0" style="position: absolute; pointer-events: none;">
+  <defs>
+    <clipPath id="logo-contour" clipPathUnits="objectBoundingBox">
+      <path d="M 0.5 0.05 
+               C 0.55 0.05, 0.78 0.45, 0.98 0.82 
+               C 1.0 0.88, 0.92 0.96, 0.82 0.92
+               C 0.72 0.88, 0.60 0.72, 0.50 0.85
+               C 0.40 0.98, 0.22 0.96, 0.12 0.92
+               C 0.02 0.88, 0.22 0.45, 0.45 0.05 
+               Z" />
+    </clipPath>
+  </defs>
+</svg>
+
 
 
 
