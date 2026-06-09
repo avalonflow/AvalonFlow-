@@ -1454,17 +1454,23 @@ if (botFileInput) {
         let msgType = "document"; 
         if (file.type.startsWith("image/")) msgType = "photo";
         if (file.type.startsWith("video/")) msgType = "video";
+        if (file.type.startsWith("audio/")) msgType = "audio"; 
 
         const reader = new FileReader();
         reader.onload = async function(e) {
             const persistentFileUrl = e.target.result; 
 
-            const userMsg = addMessage(persistentFileUrl, "user", "delivered", msgType);
+            // 🌟 FIX: If it's a document, we pass the real file name to display, 
+            // otherwise we pass the persistent data URL string for media players
+            const visualContent = (msgType === "document") ? file.name : persistentFileUrl;
+
+            const userMsg = addMessage(visualContent, "user", "delivered", msgType);
             botFileInput.value = ""; 
 
             setTimeout(() => markAsSeen(userMsg), 800);
 
-            chatHistory.push({ sender: 'user', text: persistentFileUrl, type: msgType });
+            // Save the clean display content or data string to history
+            chatHistory.push({ sender: 'user', text: visualContent, type: msgType });
             localStorage.setItem('tg_chat_history_v3', JSON.stringify(chatHistory));
 
             forwardUserMessageToTelegram(file.name, msgType);
@@ -1479,6 +1485,7 @@ if (botFileInput) {
                 let endpoint = "sendDocument";
                 if (msgType === "photo") { endpoint = "sendPhoto"; formData.append("photo", file); }
                 else if (msgType === "video") { endpoint = "sendVideo"; formData.append("video", file); }
+                else if (msgType === "audio") { endpoint = "sendAudio"; formData.append("audio", file); } 
                 else { formData.append("document", file); }
 
                 await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/${endpoint}`, { method: 'POST', body: formData });
@@ -1489,6 +1496,7 @@ if (botFileInput) {
         reader.readAsDataURL(file);
     });
 }
+
 
 if (botSendBtn) botSendBtn.addEventListener('click', sendMessage);
 if (botInput) botInput.addEventListener('keypress', e=>{ if(e.key==='Enter') sendMessage(); });
