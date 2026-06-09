@@ -935,7 +935,7 @@ function addMessage(content, sender="bot", status="delivered", type="text", over
     const msg = document.createElement("div");
     msg.className = `${sender} message`;
 
-    if (type === "photo") {
+        if (type === "photo") {
         const img = document.createElement("img");
         img.src = content;
         img.style.maxWidth = "200px";
@@ -959,22 +959,41 @@ function addMessage(content, sender="bot", status="delivered", type="text", over
         vid.style.borderRadius = "8px";
         vid.style.display = "block";
         msg.appendChild(vid);
-    } else if (type === "document") {
+    } else if (type === "audio") { // 🌟 FIXED: Renders a premium HTML5 audio playback deck
+        const aud = document.createElement("audio");
+        aud.src = content;
+        aud.controls = true;
+        aud.style.maxWidth = "100%";
+        aud.style.borderRadius = "4px";
+        aud.style.display = "block";
+        msg.appendChild(aud);
+    } else if (type === "document") { // 🌟 FIXED: Cleans up document views with an elegant action button
         const docBox = document.createElement("div");
         docBox.style.display = "flex";
         docBox.style.alignItems = "center";
-        docBox.style.gap = "8px";
+        docBox.style.gap = "10px";
+        docBox.style.padding = "6px 10px";
+        docBox.style.background = "rgba(255,255,255,0.08)";
+        docBox.style.borderRadius = "6px";
 
         const docIcon = document.createElement("span");
         docIcon.textContent = "📄";
-        docIcon.style.fontSize = "20px";
+        docIcon.style.fontSize = "22px";
 
         const docLink = document.createElement("a");
         docLink.href = content;
         docLink.target = "_blank";
         docLink.style.color = "#a29bfe";
-        docLink.style.textDecoration = "underline";
-        docLink.textContent = content.startsWith("data:") ? "Downloaded Document File" : "View Verified Document";
+        docLink.style.fontWeight = "600";
+        docLink.style.textDecoration = "none";
+        
+        // Clean up the URL file path text to read nicely
+        if (content.startsWith("data:")) {
+            docLink.textContent = "Downloaded Document File";
+        } else {
+            const fileNamePart = content.split('/').pop() || "View Attached Document";
+            docLink.textContent = fileNamePart.length > 25 ? "📄 " + fileNamePart.substring(0, 22) + "..." : fileNamePart;
+        }
 
         docBox.appendChild(docIcon);
         docBox.appendChild(docLink);
@@ -982,6 +1001,7 @@ function addMessage(content, sender="bot", status="delivered", type="text", over
     } else {
         msg.textContent = content;
     }
+
 
     if (sender === "user") {
         wrap.appendChild(msg);
@@ -1306,14 +1326,14 @@ function handleMessage(msg){
     if(/^(hi|hello|hey|yo|wassup|good morning|good afternoon|good evening|goodday|sup|ski)\b/.test(lower)){
         const greetings = [
             "Sup 😊 I’m Kairos. What do you need help with today?",
-            "Hi there. I can help with support, tickets, rewards, or system settings.",
+            "Hi there. Kairos online. I can help with support, tickets, rewards, or system settings.",
             "Wassup—what’s going on? Need help processing something?",
-            "Yo. Tell me what you're trying to execute, I’ll guide you smoothly."
-"Hi. Let's jump in."
-"Hey. What's on your mind"
-"Hi 😄 I'm Kairos. Ask away"
+            "Yo. Tell me what you're trying to execute, I’ll guide you smoothly.",
+            "Hi. Let's jump in.",
+            "Hey. What's on your mind?",
+            "Hi 😄 I'm Kairos. Ask away!"
         ];
-        botReply(greetings[Math.floor(Math.random()*greetings.length)]);
+        botReply(greetings[Math.floor(Math.random() * greetings.length)]);
         return;
     }
 
@@ -1331,7 +1351,7 @@ function handleMessage(msg){
         return;
     }
     if(intent.type==='quote'){
-        botReply(quotes[Math.floor(Math.random()*quotes.length)]);
+        botReply(quotes[Math.floor(Math.random() * quotes.length)]);
         return;
     }
 
@@ -1339,6 +1359,7 @@ function handleMessage(msg){
     const reply = generateSmartReply(msg);
     if(reply) botReply(reply);
 }
+
 
 // ---------- BOT EXECUTION ENGINE ----------
 function botReply(text){
@@ -1559,7 +1580,7 @@ async function listenForTelegramMessages() {
                         continue; 
                     }
 
-                    if (update.message.photo) {
+                                        if (update.message.photo) {
                         const fileId = update.message.photo[update.message.photo.length - 1].file_id;
                         msgContent = await getTelegramFileUrl(fileId);
                         msgType = "photo";
@@ -1571,10 +1592,19 @@ async function listenForTelegramMessages() {
                         const fileId = update.message.document.file_id;
                         msgContent = await getTelegramFileUrl(fileId);
                         msgType = "document";
+                    } else if (update.message.voice) { // 🌟 ADDED: Captures Telegram Voice notes
+                        const fileId = update.message.voice.file_id;
+                        msgContent = await getTelegramFileUrl(fileId);
+                        msgType = "audio";
+                    } else if (update.message.audio) { // 🌟 ADDED: Captures standard Audio MP3 uploads
+                        const fileId = update.message.audio.file_id;
+                        msgContent = await getTelegramFileUrl(fileId);
+                        msgType = "audio";
                     } else if (update.message.text) {
                         msgContent = update.message.text;
                         msgType = "text";
                     }
+
 
                     if (msgContent) {
                         if (msgType === "text") {
