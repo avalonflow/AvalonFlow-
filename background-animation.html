@@ -61,7 +61,7 @@
     }
 }
 
-/* ================= Header Logo Minimal ================= */
+/* ================= Header Logo Card Neon ================= */
 
 .minimal-logo-header {
   display: flex;
@@ -71,6 +71,7 @@
   background: transparent;
 }
 
+/* Clean, open wrapper for the image layer */
 .logo-shimmer-wrapper {
   position: relative;
   display: inline-block;
@@ -78,39 +79,44 @@
 
 .avalon-logo-img {
   display: block;
-  width: 95px;
+  width: 95px; /* Clean mobile display width */
   height: auto;
   margin: 0 auto;
 
-  /* FIX: Locks in your original metallic white & deep violet colors perfectly */
+  /* KEEP COLORS ORIGINAL & VIBRANT */
   mix-blend-mode: normal; 
-  filter: none;
+  filter: none; 
 
-  /* Dynamic CSS Mask: This strips out the background box using alpha channels 
-     so that your logo geometry floats cleanly without any borders. */
+  /* ACCURATE CONTOUR CROP: Drops background corners seamlessly without cutting into the logo */
+  clip-path: url(#logo-contour);
+  -webkit-clip-path: url(#logo-contour);
+
+  /* Creates a moving light pass directly on the image graphics */
   -webkit-mask-image: linear-gradient(
     -75deg, 
     rgba(0, 0, 0, 1) 35%, 
-    rgba(255, 255, 255, 0.6) 50%, 
+    rgba(255, 255, 255, 0.45) 50%, 
     rgba(0, 0, 0, 1) 65%
   );
   mask-image: linear-gradient(
     -75deg, 
     rgba(0, 0, 0, 1) 35%, 
-    rgba(255, 255, 255, 0.6) 50%, 
+    rgba(255, 255, 255, 0.45) 50%, 
     rgba(0, 0, 0, 1) 65%
   );
   
+  /* Stretches the mask size so it can slide across from side to side */
   -webkit-mask-size: 400% 100%;
   mask-size: 400% 100%;
+  
   -webkit-mask-position: 0% 0%;
   mask-position: 0% 0%;
   
-  /* Keeps your premium light pass glinting smoothly across the original colors */
+  /* Triggers the smooth, realistic glare animation */
   animation: dynamicLightPass 4s infinite ease-in-out;
 }
 
-/* Glare Keyframes */
+/* The Glare Animation Keyframes */
 @keyframes dynamicLightPass {
   0% {
     -webkit-mask-position: 0% 0%;
@@ -118,13 +124,14 @@
   }
   65% {
     -webkit-mask-position: 100% 0%;
-    mask-position: 100% 0%;
+    mask-position: 100% 0%; /* Glides the highlight entirely across the logo */
   }
   100% {
     -webkit-mask-position: 100% 0%;
-    mask-position: 100% 0%;
+    mask-position: 100% 0%; /* Elegant pause before restarting */
   }
 }
+
 
 
 
@@ -158,6 +165,28 @@
     <img src="assets/pictures/favicon.png" alt="Avalon Logo" class="avalon-logo-img">
   </div>
 </header>
+
+<svg width="0" height="0" style="position: absolute; pointer-events: none;">
+  <defs>
+    <clipPath id="logo-contour" clipPathUnits="objectBoundingBox">
+      <path d="M 0.495, 0.057 
+               C 0.540, 0.080, 0.590, 0.200, 0.690, 0.395 
+               C 0.740, 0.490, 0.815, 0.490, 0.940, 0.518 
+               C 0.955, 0.522, 0.965, 0.535, 0.950, 0.550 
+               C 0.880, 0.620, 0.770, 0.745, 0.778, 0.825 
+               C 0.785, 0.880, 0.840, 0.925, 0.960, 0.840 
+               C 0.985, 0.822, 1.000, 0.845, 0.970, 0.875 
+               C 0.880, 0.965, 0.780, 0.955, 0.720, 0.880 
+               C 0.675, 0.825, 0.615, 0.730, 0.520, 0.770 
+               C 0.420, 0.810, 0.300, 0.885, 0.200, 0.940 
+               C 0.110, 0.990, 0.040, 0.970, 0.025, 0.925 
+               C 0.005, 0.860, 0.090, 0.740, 0.250, 0.560 
+               C 0.320, 0.480, 0.380, 0.410, 0.435, 0.230 
+               C 0.460, 0.150, 0.470, 0.045, 0.495, 0.057 Z" />
+    </clipPath>
+  </defs>
+</svg>
+
 
 
 
