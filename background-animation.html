@@ -80,8 +80,8 @@
 
 .logo-shimmer-wrapper {
   position: relative;
-  width: 180px;
-  height: 180px;
+  width: 300px;
+  height: 300px;
   overflow: hidden;
   background: transparent !important; /* Kept perfectly transparent, no card background */
 }
@@ -102,18 +102,16 @@
   /* This blurs the particles directly through the transparent logo asset itself */
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
-  opacity: 0.95; 
+  opacity: 0.9; 
   /* -------------------------------------- */
 
-  /* UPDATED: plus-lighter lets light and particles pass through like real glass 
-     without the heavy dark blue staining that multiply caused */
-  mix-blend-mode: plus-lighter; 
-  filter: drop-shadow(0 4px 14px rgba(142, 197, 255, 0.3));
-  
+  filter: drop-shadow(0 4px 14px rgba(0, 0, 0, 0.05));
+  mix-blend-mode: multiply; 
   background:  transparent !important;
   border: none !important;            
   outline: none !important;
 }
+
 
 
 
