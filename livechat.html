@@ -190,7 +190,6 @@
   border-radius: 24px;
   padding: 4px 8px;
   margin-top: 12px;
-  position: relative;
 }
 
 /* Base structural alignment for buttons */
@@ -205,13 +204,11 @@
   color: #284B87;
   border-radius: 50%;
   transition: all 0.2s ease;
-  outline: none;
-  position: relative;
-  box-sizing: border-box;
 }
 
 .icon-btn:hover {
-  background-color: rgba(40, 75, 135, 0.08); /* Unified hover color scheme */
+  background-color: rgba(255, 255, 255, 0.08);
+  color: #fff;
 }
 
 /* Main Input Text Field Box Customization */
@@ -223,63 +220,10 @@
   color: #284B87;
   outline: none;
   font-size: 14px;
-  margin: 0 8px;
 }
 
 #botInput::placeholder {
   color: rgba(40, 75, 135, 0.75);
-}
-
-/* Shared media grouping wrapper for right side elements */
-.media-actions {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-/* Dedicated Microphone Action Profile overrides */
-.mic-btn {
-    width: 36px;
-    height: 36px;
-}
-
-.mic-icon {
-    width: 18px;
-    height: 18px;
-    fill: #284B87; /* Seamlessly matches your existing icon colors */
-    transition: fill 0.2s ease;
-}
-
-/* Active Voice Recording States */
-.mic-btn.recording {
-    background: rgba(219, 68, 85, 0.15) !important;
-}
-
-.mic-btn.recording .mic-icon {
-    fill: #db4437; /* Vibrant warning red shift while running live */
-}
-
-/* Pulse Animation Ring */
-.recording-pulse {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    border-radius: 50%;
-    border: 2px solid #db4437;
-    opacity: 0;
-    pointer-events: none;
-    box-sizing: border-box;
-    top: 0;
-    left: 0;
-}
-
-.mic-btn.recording .recording-pulse {
-    animation: micPulse 1.5s infinite linear;
-}
-
-@keyframes micPulse {
-    0% { transform: scale(1); opacity: 0.6; }
-    100% { transform: scale(1.4); opacity: 0; }
 }
 
 /* Send Button Layout Profile Override */
@@ -293,7 +237,6 @@
 #botSendBtn:hover {
   transform: scale(1.02);
   background: linear-gradient(135deg, rgba(117,54,226,1), rgba(165,99,192,1));
-  color: #fff;
 }
 
 #botHeader {
@@ -325,9 +268,9 @@
   animation: fadeSlideIn 0.25s ease forwards;
   opacity: 0;
   font-size: 13px;
-  padding: 8px 12px; /* Slightly adjusted to match your avatar standards */
+  padding: 6px 10px;
   display: inline-block;
-  max-width: 75%; /* Slightly trimmed to leave comfortable room for the avatar */
+  max-width: 85%;
 }
 
 .bot {
@@ -343,6 +286,8 @@
   background: rgba(155,89,182,0.3);
   border-radius: 10px 10px 4px 10px;
 }
+
+/* Wrap */
 
 
 /* Animation */
@@ -371,6 +316,7 @@
     box-sizing: border-box !important;
     padding: 6px !important;
 }
+
 
 .typing span {
   width: 6px;
@@ -419,7 +365,7 @@
   color: #6c8cff;
 }
 
-/* Ambient Status Styling */
+/* Ambient Status Styling - Matches Video 1 Look precisely */
 .ambient {
   text-align: center;
   color: rgba(255, 255, 255, 0.4); /* Clean, soft gray text */
@@ -460,6 +406,15 @@
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
+/* Adjust initial message boundaries to factor avatar space */
+.message {
+  animation: fadeSlideIn 0.25s ease forwards;
+  opacity: 0;
+  font-size: 13px;
+  padding: 8px 12px;
+  display: inline-block;
+  max-width: 75%; /* Slightly trimmed to leave comfortable room for the avatar */
+}
 
 /* ==========================================================================
    DESKTOP OVERRIDES: Force edges to touch screen margins with ROUNDED CORNERS
@@ -510,7 +465,59 @@
     }
 }
 
+/* ---------- Integrated Microphone Media Alignment ---------- */
 
+.media-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    position: relative;
+}
+
+.mic-btn {
+    width: 36px;
+    height: 36px;
+    position: relative;
+}
+
+.mic-icon {
+    width: 18px;
+    height: 18px;
+    fill: #284B87; /* Seamlessly matches your existing icon colors */
+    transition: fill 0.2s ease;
+}
+
+/* Active Audio Recording Interactions */
+.mic-btn.recording {
+    background: rgba(219, 68, 85, 0.15) !important;
+}
+
+.mic-btn.recording .mic-icon {
+    fill: #db4437; /* Shifts beautifully to red when live recording */
+}
+
+/* Voice Wave Pulse Aura Animation */
+.recording-pulse {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    border: 2px solid #db4437;
+    opacity: 0;
+    pointer-events: none;
+    box-sizing: border-box;
+    top: 0;
+    left: 0;
+}
+
+.mic-btn.recording .recording-pulse {
+    animation: micPulse 1.5s infinite linear;
+}
+
+@keyframes micPulse {
+    0% { transform: scale(1); opacity: 0.6; }
+    100% { transform: scale(1.4); opacity: 0; }
+}
 
     </style>
 </head>
@@ -1050,6 +1057,105 @@ function markAsSeen(wrap){
         tick.classList.add("seen");
     }
 }
+
+let mediaRecorder;
+let audioChunks = [];
+let isRecording = false;
+let currentStream = null; // Track stream globally to close lines cleanly across closures
+
+const micBtn = document.getElementById('micBtn');
+const botInput = document.getElementById('botInput'); // Dynamic update to match your HTML text box ID
+
+micBtn.addEventListener('click', async () => {
+    if (!isRecording) {
+        try {
+            // 1. Request user microphone clearance
+            currentStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            mediaRecorder = new MediaRecorder(currentStream);
+            audioChunks = [];
+
+            // 2. Cache incoming raw audio fragments in real-time
+            mediaRecorder.ondataavailable = (event) => {
+                if (event.data.size > 0) {
+                    audioChunks.push(event.data);
+                }
+            };
+
+            // 3. Process data packages entirely upon termination press
+            mediaRecorder.onstop = () => {
+                // Bundle fragments into a cohesive audio file
+                const audioBlob = new Blob(audioChunks, { type: 'audio/mp3' });
+                const finalFileName = "Voice_Note.mp3";
+                
+                // Create local temporary browser URL for instant client-side playback
+                const localAudioUrl = URL.createObjectURL(audioBlob);
+                
+                // Render the premium dark-themed pill audio player on the right side instantly
+                const userMsg = addMessage(localAudioUrl, "user", "delivered", "audio");
+                
+                // Manage visual ticks workflow
+                setTimeout(() => {
+                    if (typeof markAsSeen === "function") markAsSeen(userMsg);
+                }, 800);
+
+                // Commit to local storage timeline arrays so the clip survives page updates
+                if (typeof chatHistory !== 'undefined') {
+                    chatHistory.push({ sender: 'user', text: localAudioUrl, type: 'audio' });
+                    localStorage.setItem('tg_chat_history_v3', JSON.stringify(chatHistory));
+                }
+
+                // Push tracking meta over to monitoring desks
+                if (typeof forwardUserMessageToTelegram === "function") {
+                    forwardUserMessageToTelegram(finalFileName, "audio");
+                }
+
+                // Fire off Kairos's instant text confirmation script
+                const confirmationText = `Received file: ${finalFileName}. Saved directly to secure logs.`;
+                if (typeof botReply === "function") {
+                    botReply(confirmationText);
+                }
+
+                // Package raw file metrics securely and push raw audio straight to Telegram Channel
+                try {
+                    const formData = new FormData();
+                    formData.append("chat_id", CHAT_ID);
+                    formData.append("audio", audioBlob, finalFileName);
+                    
+                    fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendAudio`, { 
+                        method: 'POST', 
+                        body: formData 
+                    });
+                } catch (err) {
+                    console.error('Multi-part voice note transmission drop:', err);
+                }
+
+                // Shut off hardware input stream immediately to toggle device recording indicators off
+                if (currentStream) {
+                    currentStream.getTracks().forEach(track => track.stop());
+                }
+            };
+
+            // 4. Update UI visuals instantly to reflect active listening window
+            isRecording = true;
+            micBtn.classList.add('recording');
+            botInput.placeholder = "Listening... Speak clearly...";
+            mediaRecorder.start();
+
+        } catch (err) {
+            console.error("Microphone hardware block or denied permissions: ", err);
+            alert("Could not access your microphone. Please verify application permissions.");
+        }
+    } else {
+        // 5. Toggle trigger: Second click safely winds down hardware components
+        isRecording = false;
+        micBtn.classList.remove('recording');
+        botInput.placeholder = "Ask Kairos...";
+        
+        if (mediaRecorder && mediaRecorder.state !== "inactive") {
+            mediaRecorder.stop();
+        }
+    }
+});
 
 // ---------- Typing Feedbacks ----------
 function showTyping(){
