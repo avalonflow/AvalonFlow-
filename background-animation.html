@@ -80,7 +80,7 @@
   display: inline-block;
   width: 84px;          /* Clean, uniform size for the circular mask */
   height: 84px;         
-  
+  border-radius: 50%;   /* Forces the frame into a perfect circle */
   overflow: hidden;     /* Automatically chops off the dark corners */
 }
 
@@ -97,7 +97,7 @@
      Scales up the graphic inside the circular window. 
      Increase the 1.40 (140%) to pull the 'A' closer and push corners further out.
   */
-  transform: scale(1.40); 
+  transform: scale(0.40); 
   
   /* Centers the zoomed graphic perfectly inside your new circular frame */
   position: absolute;
