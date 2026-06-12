@@ -721,6 +721,25 @@ let quoteRotationTimer = null;
 const currentTabId = Math.random().toString();
 sessionStorage.setItem('active_chat_tab', currentTabId);
 
+// ---------- Music Library Configuration (Pure File Names) ----------
+const rodWaveTracks = [
+  "Rod Wave - 2019 (Official Audio) - RodWave.mp3",
+  "Rod Wave - Don't Forget (Official Audio) - RodWave.mp3",
+  "Rod Wave - Pillz & Billz (Official Audio) - RodWave.mp3",
+  "Rod Wave - Moving On (Official Audio) - RodWave.mp3",
+  "Got It Right - Rod Wave.mp3",
+  "Rod Wave - By Your Side (Official Video) - RodWave.mp3",
+  "Rod Wave - PTSD (Official Music Video) - RodWave.mp3",
+  "Rod Wave - Tru Story (Official Music Video) Prod. Gloden.Tae - RodWave.mp3",
+  "Rod Wave - Cold December (Official Video) - RodWave.mp3",
+  "Rod Wave - The Best (Official Audio) - RodWave.mp3"
+  // 🌟 You can easily drop the remaining 56 filenames right here!
+];
+
+let musicQueue = [];
+let currentTrackIndex = -1;
+
+
 const sarahProfile = {
     name: "Sarah (Account Representative)",
     avatarColor: "linear-gradient(135deg, #ff416c, #ff4b2b)",
@@ -1347,10 +1366,12 @@ function humanize(text){
     return prefix + text;
 }
 
-// ---------- Message Output Processing ----------
-function handleMessage(msg){
-    if (isSarahActive) return;
-    const lower = msg.toLowerCase();
+// 🌟 THE MUSIC INTENT INTERCEPTOR (DYNAMIC VERSION)
+if (lower.startsWith("play ") || lower.includes("play me") || rodWaveTracks.some(file => lower.includes(file.toLowerCase().replace(/[^a-z0-9]/g, "").trim()))) {
+    handleMusicIntent(lower);
+    return; // Stops the function here so it doesn't trigger greetings or FAQs
+}
+
 
     if(/^(hi|hello|hey|yo|wassup|good morning|good afternoon|good evening|goodday|sup|ski)\b/.test(lower)){
         const greetings = [
@@ -1837,6 +1858,88 @@ document.addEventListener('DOMContentLoaded', () => {
     scheduleNextCheck(); 
     startQuoteAutorotation();
 });
+
+// ---------- KAIROS CORE MUSIC FUNCTIONS ----------
+
+function handleMusicIntent(lowerMsg) {
+    let targetFile = null;
+
+    for (const file of rodWaveTracks) {
+        if (lowerMsg.includes("2019") && file.includes("2019")) {
+            targetFile = file;
+            break;
+        }
+        const cleanFileCheck = file.toLowerCase().replace(/[^a-z0-9\s]/g, "");
+        if (cleanFileCheck.includes(lowerMsg.replace(/play\s*me|play\s*/g, "").trim())) {
+            targetFile = file;
+            break;
+        }
+    }
+
+    if (!targetFile && rodWaveTracks.length > 0) {
+        targetFile = rodWaveTracks[0];
+    }
+
+    if (targetFile) {
+        const startIndex = rodWaveTracks.indexOf(targetFile);
+        musicQueue = rodWaveTracks.slice(startIndex);
+        currentTrackIndex = 0;
+
+        let displayTitle = targetFile
+            .replace(/^Rod Wave\s*-\s*/i, "")
+            .replace(/\s*-?\s*RodWave/i, "")
+            .replace(/\s*\([^)]+\)/g, "")
+            .replace(/\.mp3$/i, "")
+            .trim();
+
+        botReply(`Sure, putting on ${displayTitle} by Rod Wave for you... 🎧`);
+        
+        setTimeout(() => {
+            triggerCustomAudioPlayerMessage(targetFile, displayTitle);
+        }, 1500);
+    } else {
+        botReply("I couldn't find that specific track in my assets library folder.");
+    }
+}
+
+function triggerCustomAudioPlayerMessage(file, displayTitle) {
+    const fullAssetUrl = `assets/audio/${file}`;
+
+    addMessage(fullAssetUrl, "bot", "delivered", "audio", "kairos");
+    
+    chatHistory.push({ sender: 'bot', text: fullAssetUrl, type: 'audio', actualSender: 'kairos' });
+    localStorage.setItem('tg_chat_history_v3', JSON.stringify(chatHistory));
+
+    const audioElements = botMessagesContainer.querySelectorAll('audio');
+    const latestAudio = audioElements[audioElements.length - 1];
+
+    if (latestAudio) {
+        latestAudio.play().catch(() => console.log("Waiting for user tap..."));
+
+        latestAudio.onended = () => {
+            currentTrackIndex++;
+            if (currentTrackIndex < musicQueue.length) {
+                const nextFile = musicQueue[currentTrackIndex];
+                
+                let nextDisplayTitle = nextFile
+                    .replace(/^Rod Wave\s*-\s*/i, "")
+                    .replace(/\s*-?\s*RodWave/i, "")
+                    .replace(/\s*\([^)]+\)/g, "")
+                    .replace(/\.mp3$/i, "")
+                    .trim();
+
+                botReply(`Playing next from the queue: ${nextDisplayTitle}...`);
+                setTimeout(() => {
+                    triggerCustomAudioPlayerMessage(nextFile, nextDisplayTitle);
+                }, 2000);
+            } else {
+                botReply("The queue has finished playing. What should we stream next? 🫡");
+            }
+        };
+    }
+}
+
 </script>
+
 </body>
 </html>
