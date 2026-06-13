@@ -1431,11 +1431,27 @@ function handleMessage(msg) {
     if (isSarahActive) return;
     const lower = msg.toLowerCase();
 
-    // 🌟 THE MUSIC INTENT INTERCEPTOR (SITTING SAFELY INSIDE THE HANDLING FUNCTION)
-    if (lower.startsWith("play ") || lower.includes("play me") || rodWaveTracks.some(file => lower.includes(file.toLowerCase().replace(/[^a-z0-9]/g, "").trim()))) {
+    // 🌟 THE MUSIC INTENT INTERCEPTOR (FIXED)
+if (lower.startsWith("play ") || lower.includes("play me")) {
+    // Clean the user input to get just the track search term
+    const searchTarget = lower.replace("play me", "").replace("play", "").trim().replace(/[^a-z0-9]/g, "");
+    
+    // Check if the requested song matches ANY track in your 66-song array
+    const trackExists = rodWaveTracks.some(file => {
+        const cleanFile = file.toLowerCase().replace(/[^a-z0-9]/g, "");
+        return cleanFile.includes(searchTarget) || searchTarget.includes(cleanFile);
+    });
+
+    if (trackExists) {
         handleMusicIntent(lower);
         return; 
+    } else {
+        // If it's not in your assets/audio local folder, handle it gracefully!
+        botReply("I see you want to stream that track, but I only have access to AvalonFlow Corp database right now. Want me to queue up something from our tracklist instead?");
+        return;
     }
+}
+
 
 
     if(/^(hi|hello|hey|yo|wassup|good morning|good afternoon|good evening|goodday|sup|ski)\b/.test(lower)){
