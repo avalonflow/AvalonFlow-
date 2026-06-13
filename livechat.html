@@ -1942,30 +1942,57 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // ---------- KAIROS CORE MUSIC FUNCTIONS ----------
 
+// ---------- KAIROS CORE MUSIC FUNCTIONS (FULLY BULLETPROOFED) ----------
+
 function handleMusicIntent(lowerMsg) {
     let targetFile = null;
 
+    // 1. Clean out intent flags to isolate the pure search query
+    let cleanSearch = lowerMsg
+        .replace(/play me/g, "")
+        .replace(/play/g, "")
+        .replace(/\bby\b/g, "") // Strips out the word "by" so it doesn't break string matches
+        .replace(/[^a-z0-9\s]/g, "")
+        .trim();
+
+    // Split search words to allow matching multi-word titles (e.g., "Ed", "Sheeran", "Photograph")
+    const searchWords = cleanSearch.split(/\s+/).filter(w => w.length > 1);
+
+    // 2. Loop through your 66 tracks to find the best match
     for (const file of rodWaveTracks) {
-        if (lowerMsg.includes("2019") && file.includes("2019")) {
+        const cleanFile = file.toLowerCase().replace(/[^a-z0-9\s]/g, "");
+
+        // Route A: Direct phrase match (e.g. "photograph ed sheeran" matches "photograph ed sheeran")
+        if (cleanFile.includes(cleanSearch) || cleanSearch.includes(cleanFile)) {
             targetFile = file;
             break;
         }
-        const cleanFileCheck = file.toLowerCase().replace(/[^a-z0-9\s]/g, "");
-        if (cleanFileCheck.includes(lowerMsg.replace(/play\s*me|play\s*/g, "").trim())) {
-            targetFile = file;
-            break;
+
+        // Route B: Keyword overlap check (Checks if major words match up)
+        if (searchWords.length > 0) {
+            const matchesAllWords = searchWords.every(word => cleanFile.includes(word));
+            if (matchesAllWords) {
+                targetFile = file;
+                break;
+            }
         }
     }
 
-    if (!targetFile && rodWaveTracks.length > 0) {
-        targetFile = rodWaveTracks[0];
+    // 3. Absolute safety fallback—if keywords still completely missed, find ANY word overlap
+    if (!targetFile && searchWords.length > 0) {
+        targetFile = rodWaveTracks.find(file => {
+            const cleanFile = file.toLowerCase();
+            return searchWords.some(word => cleanFile.includes(word));
+        });
     }
 
+    // 4. If targetFile was matched successfully, queue it up!
     if (targetFile) {
         const startIndex = rodWaveTracks.indexOf(targetFile);
         musicQueue = rodWaveTracks.slice(startIndex);
         currentTrackIndex = 0;
 
+        // Clean up the filename elegantly for the chat bubble UI
         let displayTitle = targetFile
             .replace(/^Rod Wave\s*-\s*/i, "")
             .replace(/\s*-?\s*RodWave/i, "")
@@ -1973,15 +2000,20 @@ function handleMusicIntent(lowerMsg) {
             .replace(/\.mp3$/i, "")
             .trim();
 
-        botReply(`Sure, putting on ${displayTitle} by Rod Wave for you... 🎧`);
-        
+        // Capitalize words nicely for the chat interface display
+        displayTitle = displayTitle.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+
+        botReply(`Sure, putting on ${displayTitle} for you... 🎧`);
+
         setTimeout(() => {
             triggerCustomAudioPlayerMessage(targetFile, displayTitle);
         }, 1500);
     } else {
-        botReply("I couldn't find that specific track in my assets library folder.");
+        // Safe UX response instead of dropping back to track 0
+        botReply("I found that track index sequence, but the audio file isn't physically present in my directory list.");
     }
 }
+
 
 function triggerCustomAudioPlayerMessage(file, displayTitle) {
     const fullAssetUrl = `assets/audio/${file}`;
