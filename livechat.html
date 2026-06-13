@@ -1987,12 +1987,10 @@ function handleMusicIntent(lowerMsg) {
 function triggerCustomAudioPlayerMessage(file) {
     const formatted = formatTrackTitle(file);
     
-    // 1. Reply First (Order fixed)
+    // 1. Reply First (Always happens immediately)
     if (currentTrackIndex === 0) {
         botReply(`Playing ${formatted} for you... 🎧`);
     } else {
-        // --- SELF-CLEANING FIX ---
-        // Before playing next, find and remove the previous "Playing next" notification
         const messages = botMessagesContainer.querySelectorAll('.bot-message');
         messages.forEach(msg => {
             if (msg.innerText.includes("Playing next:")) {
@@ -2002,12 +2000,14 @@ function triggerCustomAudioPlayerMessage(file) {
         botReply(`Playing next: ${formatted}... 🎧`);
     }
 
-    // 2. Add the player second
-    addMessage(file, "bot", "delivered", "audio", "kairos");
-    chatHistory.push({ sender: 'bot', text: file, type: 'audio', actualSender: 'kairos' });
-    localStorage.setItem('tg_chat_history_v3', JSON.stringify(chatHistory));
-
+    // 2. Add the player with a delay to guarantee it appears UNDER the text
     setTimeout(() => {
+        if (currentTrackIndex === 0) {
+            addMessage(file, "bot", "delivered", "audio", "kairos");
+            chatHistory.push({ sender: 'bot', text: file, type: 'audio', actualSender: 'kairos' });
+            localStorage.setItem('tg_chat_history_v3', JSON.stringify(chatHistory));
+        }
+
         const audioElements = botMessagesContainer.querySelectorAll('audio');
         const latestAudio = audioElements[audioElements.length - 1];
 
@@ -2026,8 +2026,9 @@ function triggerCustomAudioPlayerMessage(file) {
                 }
             };
         }
-    }, 100);
+    }, 200); 
 }
+
 
 function formatTrackTitle(filePath) {
     // 1. Initial cleanup: remove parentheses, RodWave tag, and extra spaces
