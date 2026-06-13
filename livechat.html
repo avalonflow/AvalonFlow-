@@ -651,6 +651,9 @@ async function sendVisitorDetailsToTelegram() {
   }
 }
 
+
+
+
 // NEW PIPELINE METHOD: Forwards real-time messages to Sarah's monitoring desk
 async function forwardUserMessageToTelegram(messageText, messageType = "text") {
   const BOT_TOKENs = '8074365555:AAGL7by0c0TJCVutfkPhAZNCXCYopdInn2E';
@@ -700,6 +703,8 @@ const KAIROS_TITLE = "Kairos Assistant"; // Custom Title Synchronization Constan
 // ---------- State & Personality Configuration ----------
 const personality = { tone: "neutral", lastIntent: null, userMood: "unknown", awaitingSarahConfirm: false, awaitingTimeoutRetry: false };
 let isSarahActive = false; 
+
+let expectingMusicResponse = false; 
 
 // ---------- Kairos Bot / FAQ Elements ----------
 const botMessagesContainer = document.getElementById('botMessagesContainer');
@@ -1432,68 +1437,59 @@ function humanize(text){
 // =================================================================
 function handleMessage(msg) {
     if (isSarahActive) return;
-    const lower = msg.toLowerCase();
+    const lower = msg.toLowerCase().trim();
 
-    // 🌟 THE MUSIC INTENT INTERCEPTOR (FIXED ARRAY REFERENCE)
-    if (lower.startsWith("play ") || lower.includes("play me")) {
-        // Clean the user input to get just the track search term
+    // 1. MUSIC INTERCEPTOR (Priority 1: Always check this first)
+    // Checks if the user is answering the "Want me to play a random one?" prompt
+    if (expectingMusicResponse) {
+        if (/^(yes|yeah|yup|sure|ok|please)\b/.test(lower)) {
+            expectingMusicResponse = false;
+            handleMusicIntent("play"); // Triggers your random shuffle logic
+            return;
+        } else {
+            expectingMusicResponse = false;
+            botReply("No worries! What else can I help you with?");
+            return;
+        }
+    }
+
+    // 2. PLAY COMMANDS (Priority 2)
+    if (lower.startsWith("play ") || lower.includes("play me") || lower === "play") {
         const searchTarget = lower.replace("play me", "").replace("play", "").trim().replace(/[^a-z0-9]/g, "");
         
-        // FIX: Changed 'rodWaveTracks' to your actual array variable 'audioLibrary'
         const trackExists = audioLibrary.some(file => {
             const cleanFile = file.toLowerCase().replace(/[^a-z0-9]/g, "");
             return cleanFile.includes(searchTarget) || searchTarget.includes(cleanFile);
         });
 
-        if (trackExists) {
+        if (trackExists || searchTarget === "") {
             handleMusicIntent(lower);
-            return; 
         } else {
-            // If it's not in your assets/audio local folder, handle it gracefully!
-            botReply("I see you want to stream that track, but I only have access to AvalonFlow Corp database right now. Want me to queue up something from our tracklist instead?");
-            return;
+            // Gatekeeper is turned ON here
+            expectingMusicResponse = true;
+            botReply("I couldn't find that track. Want me to play a random one from the library instead?");
         }
+        return;
     }
 
-
-
-    if(/^(hi|hello|hey|yo|wassup|good morning|good afternoon|good evening|goodday|sup|ski)\b/.test(lower)){
-        const greetings = [
-            "Sup 😊 I’m Kairos. What do you need help with today?",
-            "Hi there. Kairos online. I can help with support, tickets, rewards, or system settings.",
-            "Wassup—what’s going on? Need help processing something?",
-            "Yo. Tell me what you're trying to execute, I’ll guide you smoothly.",
-            "Hi. Let's jump in.",
-            "Hey. What's on your mind?",
-            "Hi 😄 I'm Kairos. Ask away!"
-        ];
+    // 3. GREETINGS & SYSTEM COMMANDS (Priority 3)
+    if(/^(hi|hello|hey|yo|wassup|sup|ski)\b/.test(lower)){
+        const greetings = ["Sup 😊 I’m Kairos. What do you need help with?", "Hi there. Kairos online. How can I help?", "Hey, what's on your mind?"];
         botReply(greetings[Math.floor(Math.random() * greetings.length)]);
         return;
     }
 
     const intent = detectIntent(msg);
-    if(intent.type==='theme'){
-        botReply(`Switched to ${intent.value} mode.`);
-        return;
-    }
-    if(intent.type==='ticket'){
-        botReply("Your ticket has been generated under your profile dashboard.");
-        return;
-    }
-    if(intent.type==='logout'){
-        botReply("Logging you out securely...");
-        return;
-    }
-    if(intent.type==='quote'){
-        botReply(quotes[Math.floor(Math.random() * quotes.length)]);
-        return;
-    }
+    if(intent.type==='theme'){ botReply(`Switched to ${intent.value} mode.`); return; }
+    if(intent.type==='ticket'){ botReply("Your ticket has been generated."); return; }
+    if(intent.type==='logout'){ botReply("Logging you out..."); return; }
+    if(intent.type==='quote'){ botReply(quotes[Math.floor(Math.random() * quotes.length)]); return; }
 
+    // 4. SMART REPLY FALLBACK
     adaptTone(msg);
     const reply = generateSmartReply(msg);
     if(reply) botReply(reply);
 }
-
 
 // ---------- BOT EXECUTION ENGINE ----------
 function botReply(text){
@@ -1943,13 +1939,13 @@ document.addEventListener('DOMContentLoaded', () => {
     startQuoteAutorotation();
 });
 
-// ---------- KAIROS CORE MUSIC FUNCTIONS (DYNAMIC SOURCE LOADING) ----------
+// ---------- KAIROS CORE MUSIC FUNCTIONS (CLEAN) ----------
 
 function handleMusicIntent(lowerMsg) {
-    const trimmedMsg = lowerMsg.trim();
+    const trimmedMsg = lowerMsg.trim().toLowerCase();
     
     // 1. Intercept simple affirmative answers
-    if (trimmedMsg === "yes" || trimmedMsg === "yeah" || trimmedMsg === "yup") {
+    if (trimmedMsg === "yes" || trimmedMsg === "yeah" || trimmedMsg === "yup" || trimmedMsg === "sure") {
         if (audioLibrary.length > 0) {
             const randomIndex = Math.floor(Math.random() * audioLibrary.length);
             const randomTrack = audioLibrary[randomIndex];
@@ -1957,87 +1953,49 @@ function handleMusicIntent(lowerMsg) {
             musicQueue = audioLibrary.slice(randomIndex);
             currentTrackIndex = 0;
 
-            let displayTitle = randomTrack
-                .replace(/^assets\/audio\//i, "") 
-                .replace(/^Rod Wave\s*-\s*/i, "")
-                .replace(/\s*-?\s*RodWave/i, "")
-                .replace(/\s*\([^)]+\)/g, "")
-                .replace(/\.mp3$/i, "")
-                .trim();
-
-            displayTitle = displayTitle.split(/\s+/).map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
-
-            botReply(`Let's go! Shuffling the deck... How about some "${displayTitle}"? 🎲🎧`);
+            botReply(`Let's go! Shuffling the deck... 🎲🎧`);
 
             setTimeout(() => {
-                triggerCustomAudioPlayerMessage(randomTrack, displayTitle);
-            }, 1500);
-            return;
-        } else {
-            botReply("My local directory vault seems to be empty right now! What should we stream instead?");
+                triggerCustomAudioPlayerMessage(randomTrack, "");
+            }, 1000);
             return;
         }
     }
     
     if (trimmedMsg === "no" || trimmedMsg === "nope" || trimmedMsg === "nah") {
-        botReply("No worries at all! Let me know whenever you're ready to spin something. 🫡");
+        botReply("No worries at all! Let me know whenever you're ready. 🫡");
         return;
     }
 
     let targetFile = null;
-
-    let cleanSearch = lowerMsg
-        .replace(/play me/g, "")
-        .replace(/play/g, "")
-        .replace(/\bby\b/g, "")
-        .replace(/[^a-z0-9]/g, "") 
-        .trim();
-
-    if (!cleanSearch) {
-        botReply("What track would you like me to pull up from the library? 🎧");
-        return;
-    }
+    let cleanSearch = lowerMsg.replace(/play me|play|\bby\b/g, "").replace(/[^a-z0-9]/g, "").trim();
 
     for (const file of audioLibrary) {
-        const cleanFile = file.toLowerCase().replace(/[^a-z0-9]/g, ""); 
-
-        if (cleanFile.includes(cleanSearch) || cleanSearch.includes(cleanFile)) {
+        if (file.toLowerCase().replace(/[^a-z0-9]/g, "").includes(cleanSearch)) {
             targetFile = file; 
             break;
         }
     }
 
     if (targetFile) {
-        // STATE FIX: Explicitly slice your queue array and lock the index to 0
         const startIndex = audioLibrary.indexOf(targetFile);
         musicQueue = audioLibrary.slice(startIndex);
         currentTrackIndex = 0; 
 
-        let displayTitle = targetFile
-            .replace(/^assets\/audio\//i, "") 
-            .replace(/^Rod Wave\s*-\s*/i, "")
-            .replace(/\s*-?\s*RodWave/i, "")
-            .replace(/\s*\([^)]+\)/g, "")
-            .replace(/\.mp3$/i, "")
-            .trim();
-
-        displayTitle = displayTitle.split(/\s+/).map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
-
-        botReply(`Sure, putting on ${displayTitle} for you... 🎧`);
+        botReply(`Sure, playing that for you... 🎧`);
 
         setTimeout(() => {
-            triggerCustomAudioPlayerMessage(targetFile, displayTitle);
-        }, 1500);
+            triggerCustomAudioPlayerMessage(targetFile, "");
+        }, 1000);
     } else {
-        botReply("I couldn't find that track in our local directory vault. Want to queue something else up?");
+        botReply("I couldn't find that track. Want me to play a random one instead?");
     }
 }
 
 function triggerCustomAudioPlayerMessage(file, displayTitle) {
-    // ONLY create a new bubble structure if it's the start of a request session
+    // Only create a new bubble for the first track in a sequence
     if (currentTrackIndex === 0) {
         addMessage(file, "bot", "delivered", "audio", "kairos");
-
         chatHistory.push({ sender: 'bot', text: file, type: 'audio', actualSender: 'kairos' });
         localStorage.setItem('tg_chat_history_v3', JSON.stringify(chatHistory));
     }
@@ -2047,60 +2005,23 @@ function triggerCustomAudioPlayerMessage(file, displayTitle) {
         const latestAudio = audioElements[audioElements.length - 1];
 
         if (latestAudio) {
-            const currentSrcDecoded = decodeIdentityPath(latestAudio.src);
-            const targetFileDecoded = decodeIdentityPath(file);
-
-            if (!currentSrcDecoded.includes(targetFileDecoded)) {
-                latestAudio.src = file;
-                latestAudio.load(); 
-            }
-
-            const playPromise = latestAudio.play();
-
-            if (playPromise !== undefined) {
-                playPromise.catch((err) => {
-                    console.log("Playback interaction required:", err);
-                    latestAudio.controls = true;
-                    latestAudio.setAttribute('preload', 'auto');
-                });
-            }
+            // NO DECODING. JUST THE PATH.
+            latestAudio.src = file; 
+            latestAudio.load();
+            latestAudio.play().catch(err => console.log("Waiting for interaction:", err));
 
             latestAudio.onended = () => {
                 currentTrackIndex++; 
-                
                 if (currentTrackIndex < musicQueue.length) {
                     const nextFile = musicQueue[currentTrackIndex];
-
-                    let nextDisplayTitle = nextFile
-                        .replace(/^assets\/audio\//i, "") 
-                        .replace(/^Rod Wave\s*-\s*/i, "")
-                        .replace(/\s*-?\s*RodWave/i, "")
-                        .replace(/\s*\([^)]+\)/g, "")
-                        .replace(/\.mp3$/i, "")
-                        .trim();
-
-                    nextDisplayTitle = nextDisplayTitle.split(/\s+/).map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
-
-                    botReply(`Playing next from the queue: ${nextDisplayTitle}...`);
-                    
-                    setTimeout(() => {
-                        triggerCustomAudioPlayerMessage(nextFile, nextDisplayTitle);
-                    }, 2000);
+                    botReply(`Playing next...`);
+                    triggerCustomAudioPlayerMessage(nextFile, "");
                 } else {
-                    botReply("The queue has finished playing. What should we stream next? 🫡");
+                    botReply("Queue finished. What next? 🫡");
                 }
             };
         }
-    }, 80); 
-}
-
-function decodeIdentityPath(pathString) {
-    if (!pathString) return "";
-    try {
-        return decodeURIComponent(pathString).toLowerCase();
-    } catch(e) {
-        return pathString.toLowerCase();
-    }
+    }, 100);
 }
 
 </script>
