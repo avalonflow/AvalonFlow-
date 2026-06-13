@@ -724,7 +724,7 @@ sessionStorage.setItem('active_chat_tab', currentTabId);
 // =================================================================
 // POSITION 1: TOP OF FILE (Global Configurations & States)
 // =================================================================
-const rodWaveTracks = [
+const audioLibrary = [
   "assets/audio/Rod Wave - 2019 (Official Audio) - RodWave.mp3",
   "assets/audio/Rod Wave - Don't Forget (Official Audio) - RodWave.mp3",
   "assets/audio/Rod Wave - Pillz & Billz (Official Audio) - RodWave.mp3",
@@ -796,6 +796,7 @@ const rodWaveTracks = [
 
 let musicQueue = [];
 let currentTrackIndex = -1;
+
 
 
 
@@ -1949,12 +1950,12 @@ function handleMusicIntent(lowerMsg) {
     
     // 1. Intercept simple affirmative answers
     if (trimmedMsg === "yes" || trimmedMsg === "yeah" || trimmedMsg === "yup") {
-        if (rodWaveTracks.length > 0) {
-            const randomIndex = Math.floor(Math.random() * rodWaveTracks.length);
-            const randomTrack = rodWaveTracks[randomIndex];
+        if (audioLibrary.length > 0) {
+            const randomIndex = Math.floor(Math.random() * audioLibrary.length);
+            const randomTrack = audioLibrary[randomIndex];
             
             // Set the global queue and point index to 0
-            musicQueue = rodWaveTracks.slice(randomIndex);
+            musicQueue = audioLibrary.slice(randomIndex);
             currentTrackIndex = 0;
 
             let displayTitle = randomTrack
@@ -1970,7 +1971,8 @@ function handleMusicIntent(lowerMsg) {
             botReply(`Let's go! Shuffling the deck... How about some "${displayTitle}"? 🎲🎧`);
 
             setTimeout(() => {
-                triggerCustomAudioPlayerMessage(randomTrack, displayTitle);
+                // Encode spaces to prevent breaks on GitHub Pages hosting
+                triggerCustomAudioPlayerMessage(encodeURI(randomTrack), displayTitle);
             }, 1500);
             return;
         } else {
@@ -1998,7 +2000,7 @@ function handleMusicIntent(lowerMsg) {
         return;
     }
 
-    for (const file of rodWaveTracks) {
+    for (const file of audioLibrary) {
         const cleanFile = file.toLowerCase().replace(/[^a-z0-9]/g, ""); 
 
         if (cleanFile.includes(cleanSearch) || cleanSearch.includes(cleanFile)) {
@@ -2008,8 +2010,8 @@ function handleMusicIntent(lowerMsg) {
     }
 
     if (targetFile) {
-        const startIndex = rodWaveTracks.indexOf(targetFile);
-        musicQueue = rodWaveTracks.slice(startIndex);
+        const startIndex = audioLibrary.indexOf(targetFile);
+        musicQueue = audioLibrary.slice(startIndex);
         currentTrackIndex = 0; // Pointing to the beginning of our sliced queue
 
         let displayTitle = targetFile
@@ -2025,7 +2027,8 @@ function handleMusicIntent(lowerMsg) {
         botReply(`Sure, putting on ${displayTitle} for you... 🎧`);
 
         setTimeout(() => {
-            triggerCustomAudioPlayerMessage(targetFile, displayTitle);
+            // Encode spaces to handle live absolute path expansion correctly
+            triggerCustomAudioPlayerMessage(encodeURI(targetFile), displayTitle);
         }, 1500);
     } else {
         botReply("I couldn't find that track in our local directory vault. Want to queue something else up?");
@@ -2066,7 +2069,6 @@ function triggerCustomAudioPlayerMessage(file, displayTitle) {
                     console.log("Autoplay context interception triggered on live repository context:", err);
                     
                     // FALLBACK: If browser restricts background execution, force structural controls injection visibility 
-                    // so the user can easily tap play to clear up the system processing restrictions!
                     latestAudio.controls = true;
                     latestAudio.setAttribute('preload', 'auto');
                 });
@@ -2091,15 +2093,15 @@ function triggerCustomAudioPlayerMessage(file, displayTitle) {
                     botReply(`Playing next from the queue: ${nextDisplayTitle}...`);
                     
                     setTimeout(() => {
-                        // Progress seamlessly using the modified runtime scope index
-                        triggerCustomAudioPlayerMessage(nextFile, nextDisplayTitle);
+                        // Progress seamlessly using the modified runtime scope index with path encoding applied
+                        triggerCustomAudioPlayerMessage(encodeURI(nextFile), nextDisplayTitle);
                     }, 2000);
                 } else {
                     botReply("The queue has finished playing. What should we stream next? 🫡");
                 }
             };
         }
-    }, 80); 
+    }, 100); 
 }
 
 // Simple internal helper utility to parse asset path values cleanly across global environments
