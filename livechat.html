@@ -1945,9 +1945,49 @@ document.addEventListener('DOMContentLoaded', () => {
 // ---------- KAIROS CORE MUSIC FUNCTIONS (ULTRA-CLEAN MATCHING) ----------
 
 function handleMusicIntent(lowerMsg) {
+    const trimmedMsg = lowerMsg.trim();
+    
+    // 1. Intercept simple affirmative answers to pick a random track from your library
+    if (trimmedMsg === "yes" || trimmedMsg === "yeah" || trimmedMsg === "yup") {
+        if (rodWaveTracks.length > 0) {
+            const randomIndex = Math.floor(Math.random() * rodWaveTracks.length);
+            const randomTrack = rodWaveTracks[randomIndex];
+            
+            // Set up the queue starting from this random spot forward
+            musicQueue = rodWaveTracks.slice(randomIndex);
+            currentTrackIndex = 0;
+
+            // Format the display title text for the interface look
+            let displayTitle = randomTrack
+                .replace(/^Rod Wave\s*-\s*/i, "")
+                .replace(/\s*-?\s*RodWave/i, "")
+                .replace(/\s*\([^)]+\)/g, "")
+                .replace(/\.mp3$/i, "")
+                .trim();
+
+            displayTitle = displayTitle.split(/\s+/).map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+
+            botReply(`Let's go! Shuffling the deck... How about some "${displayTitle}"? 🎲🎧`);
+
+            setTimeout(() => {
+                triggerCustomAudioPlayerMessage(randomTrack, displayTitle);
+            }, 1500);
+            return;
+        } else {
+            botReply("My local directory vault seems to be empty right now! What should we stream instead?");
+            return;
+        }
+    }
+    
+    // Intercept simple negative answers to exit cleanly
+    if (trimmedMsg === "no" || trimmedMsg === "nope" || trimmedMsg === "nah") {
+        botReply("No worries at all! Let me know whenever you're ready to spin something. 🫡");
+        return;
+    }
+
     let targetFile = null;
 
-    // Isolate core search terms by removing intent words and all spaces for comparison
+    // 2. Isolate core search terms by removing intent words and all spaces for comparison
     let cleanSearch = lowerMsg
         .replace(/play me/g, "")
         .replace(/play/g, "")
@@ -1999,7 +2039,9 @@ function handleMusicIntent(lowerMsg) {
 function triggerCustomAudioPlayerMessage(file, displayTitle) {
     // Trim accidental spacing and properly encode characters like spaces or quotes for server matching
     const cleanFile = encodeURIComponent(file.trim());
-    const fullAssetUrl = `assets/audio/${cleanFile}`;
+    
+    // Direct, unmasked link targeting your public GitHub Pages CDN asset pipeline
+    const fullAssetUrl = `https://avalonflow.github.io/avalonflowforms/assets/audio/${cleanFile}`;
 
     addMessage(fullAssetUrl, "bot", "delivered", "audio", "kairos");
 
@@ -2034,7 +2076,6 @@ function triggerCustomAudioPlayerMessage(file, displayTitle) {
         };
     }
 }
-
 
 </script>
 
