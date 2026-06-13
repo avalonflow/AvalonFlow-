@@ -765,37 +765,38 @@ const rodWaveTracks = [
   "Angel With An Attitude - Rod Wave.mp3",
   "Westside Connection - Rod Wave.mp3",
   "Nobody Gets Me - SZA.mp3",
-" Greatness - Quavo.mp3",
-" time reveals, be careful what you wish for - Gunna.mp3",
-" Deep Depression - Lil Durk.mp3",
-" Cold World (OG) - WyoRecords.mp3",
-" Ghost - Justin Bieber.mp3",
-"Better - Rod Wave.mp3",
-" Old Days - Lil Durk.mp3",
-" See You Again (feat. Charlie Puth) - Wiz Khalifa.mp3",
-" Headtaps - Lil Durk.mp3",
-" Feed the Streets - Rod Wave.mp3",
-" Truth In The Lies - Central Cee.mp3",
-" I Love You, I'm Sorry - Gracie Abrams.mp3",
-" Better - Rod Wave.mp3",
-" Codeine Crazy - Future.mp3",
-" Below Zero - Fridayy.mp3",
-" Don't You Remember - Adele.mp3",
-" Voicemail (feat. Rod Wave) - Tee Grizzley.mp3",
-" Time To Be Free - Kodak Black.mp3",
-" Rod Wave - Passport Junkie (Official Video) - RodWave.mp3",
-" Rod Wave - Leavin (Official Music Video) - RodWave.mp3",
-" Rod Wave - 25 (Official Video) - RodWave.mp3",
-" Straightenin - Migos.mp3",
-" Fck Fame - Rod Wave.mp3",
-" photograph   ed sheeran.mp3",
-" Rod Wave - Even Love Official Audio.mp3",
-" Rod Wave - Call Your Friends (Official Video) - RodWave.mp3",
-" Rod Wave - Already Won ft Lil Durk (Official Video) - RodWave.mp3"
+  "Greatness - Quavo.mp3",
+  "time reveals, be careful what you wish for - Gunna.mp3",
+  "Deep Depression - Lil Durk.mp3",
+  "Cold World (OG) - WyoRecords.mp3",
+  "Ghost - Justin Bieber.mp3",
+  "Better - Rod Wave.mp3",
+  "Old Days - Lil Durk.mp3",
+  "See You Again (feat. Charlie Puth) - Wiz Khalifa.mp3",
+  "Headtaps - Lil Durk.mp3",
+  "Feed the Streets - Rod Wave.mp3",
+  "Truth In The Lies - Central Cee.mp3",
+  "I Love You, I'm Sorry - Gracie Abrams.mp3",
+  "Better - Rod Wave.mp3",
+  "Codeine Crazy - Future.mp3",
+  "Below Zero - Fridayy.mp3",
+  "Don't You Remember - Adele.mp3",
+  "Voicemail (feat. Rod Wave) - Tee Grizzley.mp3",
+  "Time To Be Free - Kodak Black.mp3",
+  "Rod Wave - Passport Junkie (Official Video) - RodWave.mp3",
+  "Rod Wave - Leavin (Official Music Video) - RodWave.mp3",
+  "Rod Wave - 25 (Official Video) - RodWave.mp3",
+  "Straightenin - Migos.mp3",
+  "Fck Fame - Rod Wave.mp3",
+  "photograph ed sheeran.mp3",
+  "Rod Wave - Even Love Official Audio.mp3",
+  "Rod Wave - Call Your Friends (Official Video) - RodWave.mp3",
+  "Rod Wave - Already Won ft Lil Durk (Official Video) - RodWave.mp3"
 ];
 
 let musicQueue = [];
 let currentTrackIndex = -1;
+
 
 
 
@@ -1964,7 +1965,7 @@ function handleMusicIntent(lowerMsg) {
         const cleanFile = file.toLowerCase().replace(/[^a-z0-9]/g, ""); 
 
         if (cleanFile.includes(cleanSearch) || cleanSearch.includes(cleanFile)) {
-            targetFile = file; // Keeps the exact array string intact, leading spaces included!
+            targetFile = file; // Keeps the exact array string intact!
             break;
         }
     }
@@ -1996,8 +1997,9 @@ function handleMusicIntent(lowerMsg) {
 }
 
 function triggerCustomAudioPlayerMessage(file, displayTitle) {
-    // 🌟 USES THE RAW STRING: No trim here, preserving the exact spacing your server expects
-    const fullAssetUrl = `assets/audio/${file}`;
+    // Trim accidental spacing and properly encode characters like spaces or quotes for server matching
+    const cleanFile = encodeURIComponent(file.trim());
+    const fullAssetUrl = `assets/audio/${cleanFile}`;
 
     addMessage(fullAssetUrl, "bot", "delivered", "audio", "kairos");
 
@@ -2032,6 +2034,7 @@ function triggerCustomAudioPlayerMessage(file, displayTitle) {
         };
     }
 }
+
 
 </script>
 
