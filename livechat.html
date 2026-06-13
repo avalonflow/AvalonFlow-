@@ -1954,7 +1954,6 @@ function handleMusicIntent(lowerMsg) {
             const randomIndex = Math.floor(Math.random() * audioLibrary.length);
             const randomTrack = audioLibrary[randomIndex];
             
-            // Set the global queue and point index to 0
             musicQueue = audioLibrary.slice(randomIndex);
             currentTrackIndex = 0;
 
@@ -1971,8 +1970,7 @@ function handleMusicIntent(lowerMsg) {
             botReply(`Let's go! Shuffling the deck... How about some "${displayTitle}"? 🎲🎧`);
 
             setTimeout(() => {
-                // Encode spaces to prevent breaks on GitHub Pages hosting
-                triggerCustomAudioPlayerMessage(encodeURI(randomTrack), displayTitle);
+                triggerCustomAudioPlayerMessage(randomTrack, displayTitle);
             }, 1500);
             return;
         } else {
@@ -2010,9 +2008,10 @@ function handleMusicIntent(lowerMsg) {
     }
 
     if (targetFile) {
+        // STATE FIX: Explicitly slice your queue array and lock the index to 0
         const startIndex = audioLibrary.indexOf(targetFile);
         musicQueue = audioLibrary.slice(startIndex);
-        currentTrackIndex = 0; // Pointing to the beginning of our sliced queue
+        currentTrackIndex = 0; 
 
         let displayTitle = targetFile
             .replace(/^assets\/audio\//i, "") 
@@ -2027,8 +2026,7 @@ function handleMusicIntent(lowerMsg) {
         botReply(`Sure, putting on ${displayTitle} for you... 🎧`);
 
         setTimeout(() => {
-            // Encode spaces to handle live absolute path expansion correctly
-            triggerCustomAudioPlayerMessage(encodeURI(targetFile), displayTitle);
+            triggerCustomAudioPlayerMessage(targetFile, displayTitle);
         }, 1500);
     } else {
         botReply("I couldn't find that track in our local directory vault. Want to queue something else up?");
@@ -2036,23 +2034,19 @@ function handleMusicIntent(lowerMsg) {
 }
 
 function triggerCustomAudioPlayerMessage(file, displayTitle) {
-    const fullAssetUrl = file; 
-
     // ONLY create a new bubble structure if it's the start of a request session
     if (currentTrackIndex === 0) {
-        addMessage(fullAssetUrl, "bot", "delivered", "audio", "kairos");
+        addMessage(file, "bot", "delivered", "audio", "kairos");
 
-        chatHistory.push({ sender: 'bot', text: fullAssetUrl, type: 'audio', actualSender: 'kairos' });
+        chatHistory.push({ sender: 'bot', text: file, type: 'audio', actualSender: 'kairos' });
         localStorage.setItem('tg_chat_history_v3', JSON.stringify(chatHistory));
     }
 
-    // Small delay ensures DOM node extraction is accurate across slow frame paints
     setTimeout(() => {
         const audioElements = botMessagesContainer.querySelectorAll('audio');
         const latestAudio = audioElements[audioElements.length - 1];
 
         if (latestAudio) {
-            // FIX: Decode URI matching to prevent GitHub Pages path expansion errors breaking source validation
             const currentSrcDecoded = decodeIdentityPath(latestAudio.src);
             const targetFileDecoded = decodeIdentityPath(file);
 
@@ -2061,14 +2055,11 @@ function triggerCustomAudioPlayerMessage(file, displayTitle) {
                 latestAudio.load(); 
             }
 
-            // FIX: Wrap audio execution parameters in a standard promise tracker to monitor structural security failures
             const playPromise = latestAudio.play();
 
             if (playPromise !== undefined) {
                 playPromise.catch((err) => {
-                    console.log("Autoplay context interception triggered on live repository context:", err);
-                    
-                    // FALLBACK: If browser restricts background execution, force structural controls injection visibility 
+                    console.log("Playback interaction required:", err);
                     latestAudio.controls = true;
                     latestAudio.setAttribute('preload', 'auto');
                 });
@@ -2093,18 +2084,16 @@ function triggerCustomAudioPlayerMessage(file, displayTitle) {
                     botReply(`Playing next from the queue: ${nextDisplayTitle}...`);
                     
                     setTimeout(() => {
-                        // Progress seamlessly using the modified runtime scope index with path encoding applied
-                        triggerCustomAudioPlayerMessage(encodeURI(nextFile), nextDisplayTitle);
+                        triggerCustomAudioPlayerMessage(nextFile, nextDisplayTitle);
                     }, 2000);
                 } else {
                     botReply("The queue has finished playing. What should we stream next? 🫡");
                 }
             };
         }
-    }, 100); 
+    }, 80); 
 }
 
-// Simple internal helper utility to parse asset path values cleanly across global environments
 function decodeIdentityPath(pathString) {
     if (!pathString) return "";
     try {
