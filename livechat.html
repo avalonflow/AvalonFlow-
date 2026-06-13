@@ -1982,10 +1982,17 @@ function handleMusicIntent(lowerMsg) {
         currentTrackIndex = 0; 
 
         const formatted = formatTrackTitle(targetFile);
-        botReply(`Playing ${formatted} for you... 🎧`);
+        botReply(`Sure, playing ${formatted} for you... 🎧`);
 
         setTimeout(() => {
-            function triggerCustomAudioPlayerMessage(file, displayTitle) {
+            triggerCustomAudioPlayerMessage(targetFile, "");
+        }, 1000);
+    } else {
+        botReply("I couldn't find that track. Want me to play a random one instead?");
+    }
+}
+
+function triggerCustomAudioPlayerMessage(file, displayTitle) {
     if (currentTrackIndex === 0) {
         addMessage(file, "bot", "delivered", "audio", "kairos");
         chatHistory.push({ sender: 'bot', text: file, type: 'audio', actualSender: 'kairos' });
