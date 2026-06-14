@@ -7,582 +7,550 @@
     <style>
         /* Base page layout for centering the card */
         body {
-        font-family: Georgia, serif;
-    background-color: #0b0b16;
-    display: flex;
-    flex-direction: column; /* Stacks components vertically */
-    justify-content: flex-start;
-    align-items: center;
-    min-height: 100vh; /* Prevents layout compression on variable displays */
-    margin: 0;
-    padding: 20px 0; /* Creates comfortable spacing on small displays */
-    box-sizing: border-box;
-}
-
+            font-family: Georgia, serif;
+            background-color: #0b0b16;
+            display: flex;
+            flex-direction: column; /* Stacks components vertically */
+            justify-content: flex-start;
+            align-items: center;
+            min-height: 100vh; /* Prevents layout compression on variable displays */
+            margin: 0;
+            padding: 20px 0; /* Creates comfortable spacing on small displays */
+            box-sizing: border-box;
+        }
 
         /* ---------- Floating Background ---------- */
-#floating-bg {
-    position: fixed;
-    inset: 0;
-    z-index: 0;
-    pointer-events: none;
+        #floating-bg {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            /* Soft white/blue futuristic background */
+            background: radial-gradient(circle at bottom, #cfe8ff, #ffffff);
+            overflow: hidden;
+        }
 
-    /* Soft white/blue futuristic background */
-    background: radial-gradient(circle at bottom, #cfe8ff, #ffffff);
+        .particle {
+            position: absolute;
+            border-radius: 50%;
+            opacity: 0.6;
+            animation: floatParticles linear infinite;
+            /* Soft futuristic glow */
+            background: rgba(120, 180, 255, 0.7);
+            box-shadow: 0 0 10px #8ec5ff, 0 0 20px #b7dcff;
+        }
 
-    overflow: hidden;
-}
+        @keyframes floatParticles {
+            0% {
+                transform: translateY(100vh) scale(0.3);
+                opacity: 0;
+            }
+            50% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-10vh) scale(1);
+                opacity: 0;
+            }
+        }
 
-.particle {
-    position: absolute;
-    border-radius: 50%;
-    opacity: 0.6;
+        /* ================= Header Logo Card Neon ================= */
+        .minimal-logo-header {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            /* Reduced top padding dramatically so it sits near the top edge */
+            padding: 10px 0 10px 0; 
+            /* Optional: Ensures it stays firmly at the absolute top of the page layout */
+            width: 100%;
+            margin-top: -92px; 
+            background: transparent !important;
+        }
 
-    animation: floatParticles linear infinite;
+        .logo-shimmer-wrapper {
+            position: relative;
+            width: 200px;
+            height: 200px;
+            overflow: hidden;
+            background: transparent !important; /* Kept perfectly transparent, no card background */
+        }
 
-    /* Soft futuristic glow */
-    background: rgba(120, 180, 255, 0.7);
-    box-shadow: 0 0 10px #8ec5ff, 0 0 20px #b7dcff;
-}
+        .avalon-logo-img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            /* Keep your logo scaling */
+            transform: scale(0.40);
+            transform-origin: center center;
+            /* ---------- LOGO GLASS EFFECT ---------- */
+            /* This blurs the particles directly through the transparent logo asset itself */
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            opacity: 0.9; 
+            /* -------------------------------------- */
+            filter: drop-shadow(0 4px 14px rgba(0, 0, 0, 0.05));
+            mix-blend-mode: multiply; 
+            background: transparent !important;
+            border: none !important;            
+            outline: none !important;
+        }
 
-@keyframes floatParticles {
-    0% {
-        transform: translateY(100vh) scale(0.3);
-        opacity: 0;
-    }
+        /* ================= Custom Audio Player UI ================= */
+        /* Target the wrapper bubble context to give it a clean look */
+        .message:has(audio) {
+            background: rgba(255, 255, 255, 0.08) !important;
+            border: 1px solid rgba(255, 255, 255, 0.12) !important;
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            padding: 8px 12px !important;
+            border-radius: 16px !important;
+        }
 
-    50% {
-        opacity: 1;
-    }
+        /* Let the native audio controller safely use the device's native rendering rules */
+        .message audio {
+            display: block;
+            width: 100%;
+            min-width: 200px;
+            max-width: 250px;
+            height: 40px;
+            outline: none;
+            /* This forces mobile systems to look light/dark theme friendly natively */
+            color-scheme: dark; 
+        }
 
-    100% {
-        transform: translateY(-10vh) scale(1);
-        opacity: 0;
-    }
-}
-
-/* ================= Header Logo Card Neon ================= */
-
-.minimal-logo-header {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-
-  /* Reduced top padding dramatically so it sits near the top edge */
-  padding: 10px 0 10px 0; 
-
-  /* Optional: Ensures it stays firmly at the absolute top of the page layout */
-  width: 100%;
-  margin-top: -92px; 
-
-  background: transparent !important;
-}
-
-.logo-shimmer-wrapper {
-  position: relative;
-  width: 200px;
-  height: 200px;
-  overflow: hidden;
-  background: transparent !important; /* Kept perfectly transparent, no card background */
-}
-
-.avalon-logo-img {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-
-  /* Keep your logo scaling */
-  transform: scale(0.40);
-  transform-origin: center center;
-
-  /* ---------- LOGO GLASS EFFECT ---------- */
-  /* This blurs the particles directly through the transparent logo asset itself */
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
-  opacity: 0.9; 
-  /* -------------------------------------- */
-
-  filter: drop-shadow(0 4px 14px rgba(0, 0, 0, 0.05));
-  mix-blend-mode: multiply; 
-  background:  transparent !important;
-  border: none !important;            
-  outline: none !important;
-}
-
-/* ================= Custom Audio Player UI ================= */
-
-/* Target the wrapper bubble context to give it a clean look */
-.message:has(audio) {
-    background: rgba(255, 255, 255, 0.08) !important;
-    border: 1px solid rgba(255, 255, 255, 0.12) !important;
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    padding: 8px 12px !important;
-    border-radius: 16px !important;
-}
-
-/* Let the native audio controller safely use the device's native rendering rules */
-.message audio {
-    display: block;
-    width: 100%;
-    min-width: 200px;
-    max-width: 250px;
-    height: 40px;
-    outline: none;
-    /* This forces mobile systems to look light/dark theme friendly natively */
-    color-scheme: dark; 
-}
-
-
-
-    footer {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    text-align: center;
-    padding: 18px 0;
-    font-size: 14px;
-    color: #555;
-    background: rgba(255, 255, 255, 0.92);
-    backdrop-filter: blur(12px);
-    box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.08);
-    z-index: 6;
-}
+        footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            padding: 18px 0;
+            font-size: 14px;
+            color: #555;
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(12px);
+            box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.08);
+            z-index: 6;
+        }
 
         /* ---------- Kairos Bot (Full UI System) ---------- */
+        #assistantBotCard {
+            width: 100%;
+            max-width: 400px;
+            z-index: 1;
+            box-sizing: border-box;
+            /* FIX: Decreases the top margin gap to bring the card up slightly */
+            margin-top: -50px; 
+            /* FIX: Adds bottom margin space to leave clear visibility for your fixed footer */
+            margin-bottom: 75px; 
+            /* FIX: Dynamically scales the card to occupy the bulk of the remaining vertical screen */
+            height: 67vh; 
+            min-height: 350px;
+            display: flex;
+            flex-direction: column;
+            /* Keeps your exact outer container glass aesthetics intact */
+            background: rgba(120, 180, 255, 0.4) !important;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+            backdrop-filter: blur(14px);
+            border: 1px solid rgba(255,255,255,0.08);
+        }
 
-#assistantBotCard {
-  width: 100%;
-  max-width: 400px;
-  z-index: 1;
-  box-sizing: border-box;
+        /* New Unified Flex Container Bar */
+        .input-area {
+            display: flex;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 24px;
+            padding: 4px 8px;
+            margin-top: 12px;
+        }
 
-  /* FIX: Decreases the top margin gap to bring the card up slightly */
-  margin-top: -50px; 
-  /* FIX: Adds bottom margin space to leave clear visibility for your fixed footer */
-  margin-bottom: 75px; 
+        /* Base structural alignment for buttons */
+        .icon-btn {
+            background: none;
+            border: none;
+            padding: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #284B87;
+            border-radius: 50%;
+            transition: all 0.2s ease;
+        }
 
-  /* FIX: Dynamically scales the card to occupy the bulk of the remaining vertical screen */
-  height: 67vh; 
-  min-height: 350px;
+        .icon-btn:hover {
+            background-color: rgba(255, 255, 255, 0.08);
+            color: #fff;
+        }
 
-  display: flex;
-  flex-direction: column;
+        /* Main Input Text Field Box Customization */
+        #botInput {
+            flex: 1;
+            padding: 8px;
+            border: none;
+            background: transparent; /* Stripped background box layer */
+            color: #284B87;
+            outline: none;
+            font-size: 14px;
+        }
 
-  /* Keeps your exact outer container glass aesthetics intact */
-  background: rgba(120, 180, 255, 0.4) !important;
-  border-radius: 16px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.25);
-  backdrop-filter: blur(14px);
-  border: 1px solid rgba(255,255,255,0.08);
-}
+        #botInput::placeholder {
+            color: rgba(40, 75, 135, 0.75);
+        }
 
+        /* Send Button Layout Profile Override */
+        #botSendBtn {
+            background: linear-gradient(135deg, rgba(107,44,216,0.9), rgba(155,89,182,0.9));
+            color: #fff;
+            border-radius: 14px; /* Slightly rounded block adjustment to accent layout */
+            padding: 8px 12px;
+        }
 
-/* New Unified Flex Container Bar */
-.input-area {
-  display: flex;
-  align-items: center;
-  background: rgba(255, 255, 255, 0.8);
-  border-radius: 24px;
-  padding: 4px 8px;
-  margin-top: 12px;
-}
+        #botSendBtn:hover {
+            transform: scale(1.02);
+            background: linear-gradient(135deg, rgba(117,54,226,1), rgba(165,99,192,1));
+        }
 
-/* Base structural alignment for buttons */
-.icon-btn {
-  background: none;
-  border: none;
-  padding: 8px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #284B87;
-  border-radius: 50%;
-  transition: all 0.2s ease;
-}
+        #botHeader {
+            background: linear-gradient(135deg, rgba(107,44,216,0.9), rgba(155,89,182,0.9));
+            color: #fff;
+            text-align: center;
+            padding: 10px;
+            font-weight: 600;
+            letter-spacing: 0.4px;
+            border-radius: 12px 12px 0 0;
+        }
 
-.icon-btn:hover {
-  background-color: rgba(255, 255, 255, 0.08);
-  color: #fff;
-}
+        #botMessagesContainer {
+            flex: 1; /* Automatically stretches to fill the expanded card height */
+            overflow-y: auto;
+            /* FIX: Premium dark glassmorphism blend that complements the header neon glow */
+            background: rgba(26, 21, 51, 0.75) !important;
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(107, 44, 216, 0.15);
+            padding: 12px;
+            border-radius: 0 0 12px 12px;
+        }
 
-/* Main Input Text Field Box Customization */
-#botInput {
-  flex: 1;
-  padding: 8px;
-  border: none;
-  background: transparent; /* Stripped background box layer */
-  color: #284B87;
-  outline: none;
-  font-size: 14px;
-}
+        /* Messages */
+        .message {
+            animation: fadeSlideIn 0.25s ease forwards;
+            opacity: 0;
+            font-size: 13px;
+            padding: 6px 10px;
+            display: inline-block;
+            max-width: 85%;
+        }
 
-#botInput::placeholder {
-  color: rgba(40, 75, 135, 0.75);
-}
+        .bot {
+            text-align: left;
+            color: #c7c7ff;
+            background: rgba(107,44,216,0.12);
+            border-radius: 10px 10px 10px 4px;
+        }
 
-/* Send Button Layout Profile Override */
-#botSendBtn {
-  background: linear-gradient(135deg, rgba(107,44,216,0.9), rgba(155,89,182,0.9));
-  color: #fff;
-  border-radius: 14px; /* Slightly rounded block adjustment to accent layout */
-  padding: 8px 12px;
-}
+        .user {
+            text-align: right;
+            color: #fff;
+            background: rgba(155,89,182,0.3);
+            border-radius: 10px 10px 4px 10px;
+        }
 
-#botSendBtn:hover {
-  transform: scale(1.02);
-  background: linear-gradient(135deg, rgba(117,54,226,1), rgba(165,99,192,1));
-}
+        /* Animation */
+        @keyframes fadeSlideIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
 
-#botHeader {
-  background: linear-gradient(135deg, rgba(107,44,216,0.9), rgba(155,89,182,0.9));
-  color: #fff;
-  text-align: center;
-  padding: 10px;
-  font-weight: 600;
-  letter-spacing: 0.4px;
-  border-radius: 12px 12px 0 0;
-}
+        /* Typing dots */
+        .typing {
+            display: inline-flex;
+            gap: 4px;
+            background: rgba(107,44,216,0.12);
+            padding: 6px 10px;
+            border-radius: 10px 10px 10px 4px;
+        }
 
-#botMessagesContainer {
-  flex: 1; /* Automatically stretches to fill the expanded card height */
-  overflow-y: auto;
-  
-  /* FIX: Premium dark glassmorphism blend that complements the header neon glow */
-  background: rgba(26, 21, 51, 0.75) !important;
-  backdrop-filter: blur(16px);
-  border: 1px solid rgba(107, 44, 216, 0.15);
-  
-  padding: 12px;
-  border-radius: 0 0 12px 12px;
-}
+        #profilePhoto:not([src]), 
+        #profilePhoto[src=""],
+        #profilePhoto[src="default-avatar.png"],
+        .chat-bubble-avatar:not([src]), 
+        .chat-bubble-avatar[src=""],
+        .chat-bubble-avatar[src="default-avatar.png"] {
+            content: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23c0a9ff'%3E%3Cpath d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5-4-8-4z'/%3E%3C/svg%3E") !important;
+            background: #1a1625 !important;
+            box-sizing: border-box !important;
+            padding: 6px !important;
+        }
 
+        .typing span {
+            width: 6px;
+            height: 6px;
+            background: #c7c7ff;
+            border-radius: 50%;
+            animation: blink 1.2s infinite;
+        }
 
-/* Messages */
-.message {
-  animation: fadeSlideIn 0.25s ease forwards;
-  opacity: 0;
-  font-size: 13px;
-  padding: 6px 10px;
-  display: inline-block;
-  max-width: 85%;
-}
+        .typing span:nth-child(2) { animation-delay: 0.2s; }
+        .typing span:nth-child(3) { animation-delay: 0.4s; }
 
-.bot {
-  text-align: left;
-  color: #c7c7ff;
-  background: rgba(107,44,216,0.12);
-  border-radius: 10px 10px 10px 4px;
-}
+        @keyframes blink {
+            0%, 80%, 100% { opacity: 0.2; }
+            40% { opacity: 1; }
+        }
 
-.user {
-  text-align: right;
-  color: #fff;
-  background: rgba(155,89,182,0.3);
-  border-radius: 10px 10px 4px 10px;
-}
+        /* Meta (time + ticks) */
+        .meta {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 4px;
+            margin-top: 2px;
+        }
 
-/* Wrap */
+        .timestamp {
+            font-size: 10px;
+            opacity: 0.5;
+            color: #aaa;
+        }
 
+        /* Double ticks */
+        .tick {
+            font-size: 11px;
+            letter-spacing: -2px;
+        }
 
-/* Animation */
-@keyframes fadeSlideIn {
-  from { opacity: 0; transform: translateY(6px); }
-  to { opacity: 1; transform: translateY(0); }
-}
+        .tick.delivered::after {
+            content: "✓✓";
+            color: #bbb;
+        }
 
-/* Typing dots */
-.typing {
-  display: inline-flex;
-  gap: 4px;
-  background: rgba(107,44,216,0.12);
-  padding: 6px 10px;
-  border-radius: 10px 10px 10px 4px;
-}
+        .tick.seen::after {
+            content: "✓✓";
+            color: #6c8cff;
+        }
 
-#profilePhoto:not([src]), 
-#profilePhoto[src=""],
-#profilePhoto[src="default-avatar.png"],
-.chat-bubble-avatar:not([src]), 
-.chat-bubble-avatar[src=""],
-.chat-bubble-avatar[src="default-avatar.png"] {
-    content: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23c0a9ff'%3E%3Cpath d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5-4-8-4z'/%3E%3C/svg%3E") !important;
-    background: #1a1625 !important;
-    box-sizing: border-box !important;
-    padding: 6px !important;
-}
+        /* Ambient Status Styling - Matches Video 1 Look precisely */
+        .ambient {
+            text-align: center;
+            color: rgba(255, 255, 255, 0.4); /* Clean, soft gray text */
+            font-size: 13px;
+            font-style: bold;
+            padding: 15px;
+            line-height: 1.4;
+            width: 100%;
+            box-sizing: border-box;
+            display: block;
+            margin: 10px auto;
+            animation: fadeSlideIn 0.3s ease forwards;
+        }
 
+        /* Flex arrangement for message bubble rows */
+        .msgWrap {
+            display: flex;
+            align-items: flex-end; /* Keeps avatar resting at the bottom baseline of long messages */
+            gap: 8px;
+            margin-bottom: 12px;
+            width: 100%;
+            flex-direction: row;
+        }
 
-.typing span {
-  width: 6px;
-  height: 6px;
-  background: #c7c7ff;
-  border-radius: 50%;
-  animation: blink 1.2s infinite;
-}
+        /* Push user layouts to align right */
+        .user-wrap {
+            justify-content: flex-end;
+        }
 
-.typing span:nth-child(2) { animation-delay: 0.2s; }
-.typing span:nth-child(3) { animation-delay: 0.4s; }
+        /* Premium avatar sizing profile specs */
+        .chat-bubble-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            object-fit: cover;
+            flex-shrink: 0; /* Prevents the browser from compressing the circle layout */
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
 
-@keyframes blink {
-  0%, 80%, 100% { opacity: 0.2; }
-  40% { opacity: 1; }
-}
+        /* Adjust initial message boundaries to factor avatar space */
+        .message {
+            animation: fadeSlideIn 0.25s ease forwards;
+            opacity: 0;
+            font-size: 13px;
+            padding: 8px 12px;
+            display: inline-block;
+            max-width: 75%; /* Slightly trimmed to leave comfortable room for the avatar */
+        }
 
-/* Meta (time + ticks) */
-.meta {
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  gap: 4px;
-  margin-top: 2px;
-}
+        /* ==========================================================================
+           DESKTOP OVERRIDES: Force edges to touch screen margins with ROUNDED CORNERS
+           ========================================================================== */
+        @media (min-width: 1024px) {
+            body {
+                padding: 0; /* Strips page padding so elements hit the screen edges */
+            }
 
-.timestamp {
-  font-size: 10px;
-  opacity: 0.5;
-  color: #aaa;
-}
+            header {
+                width: 100%;
+                display: flex;
+                justify-content: center;
+            }
 
-/* Double ticks */
-.tick {
-  font-size: 11px;
-  letter-spacing: -2px;
-}
+            header .logo-card {
+                width: 100%;
+                max-width: 100%; /* Spans the entire screen width */
+                border-radius: 0; /* The very top logo background stays flat against the screen top */
+                height: 140px;
+            }
 
-.tick.delivered::after {
-  content: "✓✓";
-  color: #bbb;
-}
+            #assistantBotCard {
+                width: 100% !important;
+                max-width: 100% !important; /* Maximizes card block edge-to-edge */
+                margin-top: 0;
+                margin-bottom: 60px; /* Aligns comfortably right above the broad footer bar */
+                height: calc(100vh - 200px); /* Extends height smoothly across the screen */
+                border-left: none !important;
+                border-right: none !important;
+                /* FIXED: Keeps the exact curved boundary shape from your mobile preview */
+                border-radius: 16px 16px 0 0 !important; 
+            }
 
-.tick.seen::after {
-  content: "✓✓";
-  color: #6c8cff;
-}
+            #botHeader {
+                /* FIXED: Restores your exact, beautiful top rounded corner curves */
+                border-radius: 16px 16px 0 0 !important; 
+            }
 
-/* Ambient Status Styling - Matches Video 1 Look precisely */
-.ambient {
-  text-align: center;
-  color: rgba(255, 255, 255, 0.4); /* Clean, soft gray text */
-  font-size: 13px;
-  font-style: bold;
-  padding: 15px;
-  line-height: 1.4;
-  width: 100%;
-  box-sizing: border-box;
-  display: block;
-  margin: 10px auto;
-  animation: fadeSlideIn 0.3s ease forwards;
-}
+            #botMessagesContainer {
+                border-radius: 0 !important; /* Keeps bottom corners flat to blend into the base */
+            }
+            
+            .input-area {
+                margin-left: 20px; /* Adds comfortable safety spacing from edge boundaries */
+                margin-right: 20px;
+            }
+        }
 
-/* Flex arrangement for message bubble rows */
-.msgWrap {
-  display: flex;
-  align-items: flex-end; /* Keeps avatar resting at the bottom baseline of long messages */
-  gap: 8px;
-  margin-bottom: 12px;
-  width: 100%;
-  flex-direction: row;
-}
+        .chat-input-container {
+            display: flex;
+            align-items: center;
+            background: #ffffff;
+            border-radius: 28px;
+            padding: 6px 12px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+            position: relative;
+        }
 
-/* Push user layouts to align right */
-.user-wrap {
-  justify-content: flex-end;
-}
+        .input-wrapper {
+            flex: 1;
+            margin: 0 8px;
+        }
 
-/* Premium avatar sizing profile specs */
-.chat-bubble-avatar {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  object-fit: cover;
-  flex-shrink: 0; /* Prevents the browser from compressing the circle layout */
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
+        .media-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
 
-/* Adjust initial message boundaries to factor avatar space */
-.message {
-  animation: fadeSlideIn 0.25s ease forwards;
-  opacity: 0;
-  font-size: 13px;
-  padding: 8px 12px;
-  display: inline-block;
-  max-width: 75%; /* Slightly trimmed to leave comfortable room for the avatar */
-}
+        .action-btn {
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            outline: none;
+        }
 
-/* ==========================================================================
-   DESKTOP OVERRIDES: Force edges to touch screen margins with ROUNDED CORNERS
-   ========================================================================== */
-@media (min-width: 1024px) {
-    body {
-        padding: 0; /* Strips page padding so elements hit the screen edges */
-    }
+        .mic-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            transition: background 0.2s ease, fill 0.2s ease;
+        }
 
-    header {
-        width: 100%;
-        display: flex;
-        justify-content: center;
-    }
+        .mic-icon {
+            width: 22px;
+            height: 22px;
+            fill: #5f6368; /* Default clean gray */
+        }
 
-    header .logo-card {
-        width: 100%;
-        max-width: 100%; /* Spans the entire screen width */
-        border-radius: 0; /* The very top logo background stays flat against the screen top */
-        height: 140px;
-    }
+        /* Active Recording State Styling */
+        .mic-btn.recording {
+            background: rgba(219, 68, 85, 0.15);
+        }
 
-    #assistantBotCard {
-        width: 100% !important;
-        max-width: 100% !important; /* Maximizes card block edge-to-edge */
-        margin-top: 0;
-        margin-bottom: 60px; /* Aligns comfortably right above the broad footer bar */
-        height: calc(100vh - 200px); /* Extends height smoothly across the screen */
-        border-left: none !important;
-        border-right: none !important;
-        
-        /* FIXED: Keeps the exact curved boundary shape from your mobile preview */
-        border-radius: 16px 16px 0 0 !important; 
-    }
+        .mic-btn.recording .mic-icon {
+            fill: #db4437; /* Shifts to warning-alert red when live */
+        }
 
-    #botHeader {
-        /* FIXED: Restores your exact, beautiful top rounded corner curves */
-        border-radius: 16px 16px 0 0 !important; 
-    }
+        /* Pulse Animation Ring */
+        .recording-pulse {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 2px solid #db4437;
+            opacity: 0;
+            pointer-events: none;
+            box-sizing: border-box;
+        }
 
-    #botMessagesContainer {
-        border-radius: 0 !important; /* Keeps bottom corners flat to blend into the base */
-    }
-    
-    .input-area {
-        margin-left: 20px; /* Adds comfortable safety spacing from edge boundaries */
-        margin-right: 20px;
-    }
-}
+        .mic-btn.recording .recording-pulse {
+            animation: micPulse 1.5s infinite linear;
+        }
 
-.chat-input-container {
-    display: flex;
-    align-items: center;
-    background: #ffffff;
-    border-radius: 28px;
-    padding: 6px 12px;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-    position: relative;
-}
-
-.input-wrapper {
-    flex: 1;
-    margin: 0 8px;
-}
-
-.media-actions {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.action-btn {
-    background: transparent;
-    border: none;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-    outline: none;
-}
-
-.mic-btn {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    transition: background 0.2s ease, fill 0.2s ease;
-}
-
-.mic-icon {
-    width: 22px;
-    height: 22px;
-    fill: #5f6368; /* Default clean gray */
-}
-
-/* Active Recording State Styling */
-.mic-btn.recording {
-    background: rgba(219, 68, 85, 0.15);
-}
-
-.mic-btn.recording .mic-icon {
-    fill: #db4437; /* Shifts to warning-alert red when live */
-}
-
-/* Pulse Animation Ring */
-.recording-pulse {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    border-radius: 50%;
-    border: 2px solid #db4437;
-    opacity: 0;
-    pointer-events: none;
-    box-sizing: border-box;
-}
-
-.mic-btn.recording .recording-pulse {
-    animation: micPulse 1.5s infinite linear;
-}
-
-@keyframes micPulse {
-    0% { transform: scale(1); opacity: 0.6; }
-    100% { transform: scale(1.5); opacity: 0; }
-}
+        @keyframes micPulse {
+            0% { transform: scale(1); opacity: 0.6; }
+            100% { transform: scale(1.5); opacity: 0; }
+        }
     </style>
 </head>
 <body>
-    <!-- Floating Background -->
     <div id="floating-bg"></div>
 
-  <header class="minimal-logo-header">
-  <div class="logo-shimmer-wrapper">
-    <img src="assets/pictures/1780995787737.jpeg" alt="Avalon Logo" class="avalon-logo-img">
-  </div>
-</header>
+    <header class="minimal-logo-header">
+        <div class="logo-shimmer-wrapper">
+            <img src="assets/pictures/1780995787737.jpeg" alt="Avalon Logo" class="avalon-logo-img">
+        </div>
+    </header>
 
-<div style="display:none;">
-    <img id="profilePhoto" src="default-avatar.png">
-    <input type="file" id="photoInput" accept="image/*">
-</div>
-
-<div id="assistantBotCard">
-    <div id="botHeader">Kairos Assistant</div>
-    <div id="botMessagesContainer">
-        <div id="status-text" class="ambient">Connecting synchronization...</div>
+    <div style="display:none;">
+        <img id="profilePhoto" src="default-avatar.png">
+        <input type="file" id="photoInput" accept="image/*">
+        <audio id="audioDeckA"></audio>
+        <audio id="audioDeckB"></audio>
     </div>
 
-    <div class="input-area">
-        <input type="file" id="botFileInput" style="display: none;"> 
+    <div id="assistantBotCard">
+        <div id="botHeader">Kairos Assistant</div>
+        <div id="botMessagesContainer">
+            <div id="status-text" class="ambient">Connecting synchronization...</div>
+        </div>
 
-        <button type="button" id="botAttachBtn" class="icon-btn" onclick="document.getElementById('botFileInput').click()">
-            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-        </button>
+        <div class="input-area">
+            <input type="file" id="botFileInput" style="display: none;"> 
 
-        <input type="text" id="botInput" placeholder="Ask Kairos..." autocomplete="off">
+            <button type="button" id="botAttachBtn" class="icon-btn" onclick="document.getElementById('botFileInput').click()">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            </button>
 
-        <button type="button" id="botSendBtn" class="icon-btn send-btn">
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
-        </button>
+            <input type="text" id="botInput" placeholder="Ask Kairos..." autocomplete="off">
+
+            <button type="button" id="botSendBtn" class="icon-btn send-btn">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+            </button>
+        </div>
     </div>
-</div>
 
-
-
-<!-- Sticky Footer -->
     <footer>
-  © 2026 Kairos System™ • Powered by AvalonFlow Corp
-  </footer>
+        © 2026 Kairos System™ • Powered by AvalonFlow Corp
+    </footer>
+
 <script>
 /* ---------- Floating Particles ---------- */
 const bg = document.getElementById('floating-bg');
@@ -651,10 +619,6 @@ async function sendVisitorDetailsToTelegram() {
   }
 }
 
-
-
-
-// NEW PIPELINE METHOD: Forwards real-time messages to Sarah's monitoring desk
 async function forwardUserMessageToTelegram(messageText, messageType = "text") {
   const BOT_TOKENs = '8074365555:AAGL7by0c0TJCVutfkPhAZNCXCYopdInn2E';
   const CHAT_IDs = '-1003913850436'; 
@@ -690,7 +654,6 @@ async function forwardUserMessageToTelegram(messageText, messageType = "text") {
   }
 }
 
-// --- THE PAGE LOAD TRIGGER ---
 document.addEventListener('DOMContentLoaded', () => {
   sendVisitorDetailsToTelegram();
 });
@@ -698,12 +661,11 @@ document.addEventListener('DOMContentLoaded', () => {
 // ---------- Configuration Constants ----------
 const BOT_TOKEN = '8074365555:AAGL7by0c0TJCVutfkPhAZNCXCYopdInn2E';
 const CHAT_ID = '-1003913850436';
-const KAIROS_TITLE = "Kairos Assistant"; // Custom Title Synchronization Constant
+const KAIROS_TITLE = "Kairos Assistant"; 
 
 // ---------- State & Personality Configuration ----------
 const personality = { tone: "neutral", lastIntent: null, userMood: "unknown", awaitingSarahConfirm: false, awaitingTimeoutRetry: false };
 let isSarahActive = false; 
-
 let expectingMusicResponse = false; 
 
 // ---------- Kairos Bot / FAQ Elements ----------
@@ -727,7 +689,7 @@ const currentTabId = Math.random().toString();
 sessionStorage.setItem('active_chat_tab', currentTabId);
 
 // =================================================================
-// POSITION 1: TOP OF FILE (Global Configurations & States)
+// Global Audio Configuration State Matrix
 // =================================================================
 const audioLibrary = [
   "assets/audio/Rod Wave - 2019 (Official Audio) - RodWave.mp3",
@@ -782,7 +744,6 @@ const audioLibrary = [
   "assets/audio/Feed the Streets - Rod Wave.mp3",
   "assets/audio/Truth In The Lies - Central Cee.mp3",
   "assets/audio/I Love You, I'm Sorry - Gracie Abrams.mp3",
-  "assets/audio/Better - Rod Wave.mp3",
   "assets/audio/Codeine Crazy - Future.mp3",
   "assets/audio/Below Zero - Fridayy.mp3",
   "assets/audio/Don't You Remember - Adele.mp3",
@@ -801,10 +762,8 @@ const audioLibrary = [
 
 let musicQueue = [];
 let currentTrackIndex = -1;
-
-
-
-
+let activeDeck = null;
+const crossfadeDuration = 10; // Global 10-second metric variable rule
 
 const sarahProfile = {
     name: "Sarah (Account Representative)",
@@ -821,94 +780,28 @@ const sarahProfile = {
 const quotes=[ "Believe in yourself and all that you are.", "Small steps each day lead to big results.", "Life is about moments, not things.", "Consistency is the key to success.", "Every day is a fresh start.", "Faith is the compass that guides you through life’s storms.", "Pray not just for what you want, but   for the strength to receive it.", "Trust God’s timing; He never runs late.", "Your faith can move mountains, but your actions must build the path.", "God doesn’t call the equipped; He equips the called.", "Gratitude turns what we have into enough.", "Serve with love, and blessings will follow silently.", "When you focus on God, life focuses for you.", "Don’t chase money; build systems that make money chase you.", "Financial freedom begins when you learn to control your money, not your lifestyle.", "Save like a pessimist, invest like an optimist.", "Wealth grows when patience waters it daily.", "Your income is limited only by your imagination and action.", "Make your money work harder than you do.", "Life rewards those who act, not those who wait.", "Every setback is a setup for a stronger comeback.", "Your comfort zone is a beautiful place, but nothing ever grows there.", "Consistency beats talent when talent doesn’t show up.", "The storms of life shape the strongest sailors.", "Dream big, start small, move consistently." ];
 
 const faqs = [
-
-{q:"How do I reset my password?", 
-a:"Click 'Forgot password' on the login page and follow instructions.", 
-tags:["password","reset","login","signin","account access"]},
-
-{q:"How can I update my billing info?", 
-a:"Navigate to your Sidebar, then 'Withdrawals' to update payment methods.", 
-tags:["billing","payment","withdrawal","card","update payment","finance"]},
-
-{q:"Where can I view my ticket history?", 
-a:"All your submitted tickets and their status are visible under 'Support > My Tickets'.", 
-tags:["ticket","history","support","track ticket","previous issues"]},
-
-{q:"How do I contact live support?", 
-a:"Generate a ticket and email support at avalonflowsystem.helpdesk@gmail.com including your reference.", 
-tags:["support","contact","help","email","customer service","agent"]},
-
-{q:"What are the support hours?", 
-a:"Support is online Monday–Sunday, 9 AM to 6 PM EST.", 
-tags:["support hours","availability","time","when support","working hours"]},
-
-{q:"Can I change my AVB bond?", 
-a:"Sadly you can't go to 'AVB > Protection' and select your preferred bond.", 
-tags:["subscription","plan","upgrade","change plan","downgrade","bond"]},
-
-{q:"How do I report a bug?", 
-a:"Generate a ticket under 'Technical' category and describe the issue in detail.", 
-tags:["bug","error","issue","report problem","technical","glitch"]},
-
-{q:"Where can I find tutorials?", 
-a:"Tutorials are available in the 'Ecosystem > Guides & Tutorials' section.", 
-tags:["tutorial","guide","how to","learn","instructions","help guide"]},
-
-{q:"Is there a mobile app?", 
-a:"No, AvalonFlow app isn't available on iOS and Android currently.", 
-tags:["app","mobile","ios","android","phone","download app"]},
-
-{q:"Can I integrate AvalonFlow with other apps?", 
-a:"Not right now, soon for supported apps.", 
-tags:["integration","connect","api","third party","apps","sync"]},
-
-{q:"How do I track my rewards?", 
-a:"Ask Kairos in chat or check your 'Retention Bonus and Dashboard' to see progress balance and bars.", 
-tags:["rewards","earnings","cashback","progress cycle","balance","profit"]},
-
-{q:"What if I forget my ticket reference?", 
-a:"You can generate a new one, but include any old reference if available when emailing support.", 
-tags:["ticket","reference","lost ticket","support help","ticket id"]},
-
-{q:"How secure is my data?", 
-a:"AvalonFlow uses industry-standard encryption and secure storage protocols.", 
-tags:["security","data","privacy","safe","encryption","protection"]},
-
-{q:"Can I receive notifications on mobile?", 
-a:"Yes, enable mobile notifications in your account settings or browser.", 
-tags:["notification","alerts","mobile","push","settings","enable notifications"]},
-
-{q:"How do I toggle dark/light mode?", 
-a:"Click the 🌙 Toggle Dark/Light button at the top-right corner.", 
-tags:["dark mode","light mode","theme","brightness","appearance","ui"]},
-
-{q:"Are keyboard shortcuts available?", 
-a:"Yes, 'S' focuses issue input, 'T' generates ticket, 'C' focuses chat input.", 
-tags:["shortcut","keyboard","hotkeys","commands","quick access"]},
-
-{q:"Who can I contact for urgent issues?", 
-a:"For urgent issues, generate a ticket and mark it 'High Priority', then email support.", 
-tags:["urgent","priority","emergency","fast support","critical issue"]},
-{
-q:"How is my transaction verified on AvalonFlow Custom?",
-a:"Unlike our standard tiers, AvalonFlow Custom utilizes Compliance Verification. A dedicated regulatory body oversees the fund-hold release. We verify user intent and readiness before any funds move. This is the highest level of human-verified security we offer.",
-tags:["custom","escrow","verification","manual verification","transaction","secure payment","fund hold","courier","fedex","high value","avalonflow custom"]
-},
-
-{
-q:"Why do Premium, Basic, and Lite have a Cycle Rate while Custom does not?",
-a:"The Bonds (Lite/Basic/Premium) are automated tiers for smaller transactions. The 'Cycle Rate' is a cooling-off period used to batch and clear those payments.\n\nAvalonFlow Custom is designed for high-value transactions ($500+). It bypasses the cycle queues to provide immediate priority settlement. Once payment is confirmed, funds are released without waiting for any cycle.",
-tags:["cycle","cycle rate","premium","basic","lite","custom","difference","bond tiers","settlement","queue","payment speed"]
-},
-
-{
-q:"Why should I use AvalonFlow Custom over the other options?",
-a:"Security and speed. AvalonFlow Custom is built for high-value transactions ($500+). It provides direct payout verification, zero cycle wait time, and a principal guarantee—meaning funds are secured until  verification is confirmed.",
-tags:["why custom","avalonflow custom","benefits","high value","security","fast payout","no cycle","guarantee","escrow advantage"]
-}
+{q:"How do I reset my password?", a:"Click 'Forgot password' on the login page and follow instructions.", tags:["password","reset","login","signin","account access"]},
+{q:"How can I update my billing info?", a:"Navigate to your Sidebar, then 'Withdrawals' to update payment methods.", tags:["billing","payment","withdrawal","card","update payment","finance"]},
+{q:"Where can I view my ticket history?", a:"All your submitted tickets and their status are visible under 'Support > My Tickets'.", tags:["ticket","history","support","track ticket","previous issues"]},
+{q:"How do I contact live support?", a:"Generate a ticket and email support at avalonflowsystem.helpdesk@gmail.com including your reference.", tags:["support","contact","help","email","customer service","agent"]},
+{q:"What are the support hours?", a:"Support is online Monday–Sunday, 9 AM to 6 PM EST.", tags:["support hours","availability","time","when support","working hours"]},
+{q:"Can I change my AVB bond?", a:"Sadly you can't go to 'AVB > Protection' and select your preferred bond.", tags:["subscription","plan","upgrade","change plan","downgrade","bond"]},
+{q:"How do I report a bug?", a:"Generate a ticket under 'Technical' category and describe the issue in detail.", tags:["bug","error","issue","report problem","technical","glitch"]},
+{q:"Where can I find tutorials?", a:"Tutorials are available in the 'Ecosystem > Guides & Tutorials' section.", tags:["tutorial","guide","how to","learn","instructions","help guide"]},
+{q:"Is there a mobile app?", a:"No, AvalonFlow app isn't available on iOS and Android currently.", tags:["app","mobile","ios","android","phone","download app"]},
+{q:"Can I integrate AvalonFlow with other apps?", a:"Not right now, soon for supported apps.", tags:["integration","connect","api","third party","apps","sync"]},
+{q:"How do I track my rewards?", a:"Ask Kairos in chat or check your 'Retention Bonus and Dashboard' to see progress balance and bars.", tags:["rewards","earnings","cashback","progress cycle","balance","profit"]},
+{q:"What if I forget my ticket reference?", a:"You can generate a new one, but include any old reference if available when emailing support.", tags:["ticket","reference","lost ticket","support help","ticket id"]},
+{q:"How secure is my data?", a:"AvalonFlow uses industry-standard encryption and secure storage protocols.", tags:["security","data","privacy","safe","encryption","protection"]},
+{q:"Can I receive notifications on mobile?", a:"Yes, enable mobile notifications in your account settings or browser.", tags:["notification","alerts","mobile","push","settings","enable notifications"]},
+{q:"How do I toggle dark/light mode?", a:"Click the 🌙 Toggle Dark/Light button at the top-right corner.", tags:["dark mode","light mode","theme","brightness","appearance","ui"]},
+{q:"Are keyboard shortcuts available?", a:"Yes, 'S' focuses issue input, 'T' generates ticket, 'C' focuses chat input.", tags:["shortcut","keyboard","hotkeys","commands","quick access"]},
+{q:"Who can I contact for urgent issues?", a:"For urgent issues, generate a ticket and mark it 'High Priority', then email support.", tags:["urgent","priority","emergency","fast support","critical issue"]},
+{q:"How is my transaction verified on AvalonFlow Custom?", a:"Unlike our standard tiers, AvalonFlow Custom utilizes Compliance Verification. A dedicated regulatory body oversees the fund-hold release. We verify user intent and readiness before any funds move. This is the highest level of human-verified security we offer.", tags:["custom","escrow","verification","manual verification","transaction","secure payment","fund hold","courier","fedex","high value","avalonflow custom"]},
+{q:"Why do Premium, Basic, and Lite have a Cycle Rate while Custom does not?", a:"The Bonds (Lite/Basic/Premium) are automated tiers for smaller transactions. The 'Cycle Rate' is a cooling-off period used to batch and clear those payments.\n\nAvalonFlow Custom is designed for high-value transactions ($500+). It bypasses the cycle queues to provide immediate priority settlement. Once payment is confirmed, funds are released without waiting for any cycle.", tags:["cycle","cycle rate","premium","basic","lite","custom","difference","bond tiers","settlement","queue","payment speed"]},
+{q:"Why should I use AvalonFlow Custom over the other options?", a:"Security and speed. AvalonFlow Custom is built for high-value transactions ($500+). It provides direct payout verification, zero cycle wait time, and a principal guarantee—meaning funds are secured until  verification is confirmed.", tags:["why custom","avalonflow custom","benefits","high value","security","fast payout","no cycle","guarantee","escrow advantage"]}
 ];
 
-// ---------- NLP, Similarity, & Fallback Engines ----------
 function normalize(text){
     return text.toLowerCase().replace(/[^\w\s]/g,'');
 }
@@ -1037,7 +930,7 @@ function addMessage(content, sender="bot", status="delivered", type="text", over
     const msg = document.createElement("div");
     msg.className = `${sender} message`;
 
-        if (type === "photo") {
+    if (type === "photo") {
         const img = document.createElement("img");
         img.src = content;
         img.style.maxWidth = "200px";
@@ -1061,7 +954,7 @@ function addMessage(content, sender="bot", status="delivered", type="text", over
         vid.style.borderRadius = "8px";
         vid.style.display = "block";
         msg.appendChild(vid);
-    } else if (type === "audio") { // 🌟 FIXED: Renders a premium HTML5 audio playback deck
+    } else if (type === "audio") { 
         const aud = document.createElement("audio");
         aud.src = content;
         aud.controls = true;
@@ -1069,7 +962,7 @@ function addMessage(content, sender="bot", status="delivered", type="text", over
         aud.style.borderRadius = "4px";
         aud.style.display = "block";
         msg.appendChild(aud);
-        } else if (type === "document") { // 🌟 FIXED: Cleans up document views with an elegant download button
+    } else if (type === "document") { 
         const docBox = document.createElement("div");
         docBox.style.display = "flex";
         docBox.style.alignItems = "center";
@@ -1089,13 +982,10 @@ function addMessage(content, sender="bot", status="delivered", type="text", over
         docLink.style.fontWeight = "600";
         docLink.style.textDecoration = "none";
         
-        // 🌟 FIX: Forces the browser to download/save the file locally instead of opening a web link page
         const isBase64 = content.startsWith("data:");
         docLink.setAttribute("download", isBase64 ? "AvalonFlow_Document" : content.split('/').pop());
         
-        // Clean up the URL file path text or display the uploaded filename nicely
         if (isBase64) {
-            // Checks if 'content' looks like a file name passed from our updated file handler hook
             if (content.includes(".") && !content.includes(";base64")) {
                 docLink.textContent = content.length > 25 ? content.substring(0, 22) + "..." : content;
             } else {
@@ -1112,8 +1002,6 @@ function addMessage(content, sender="bot", status="delivered", type="text", over
     } else {
         msg.textContent = content;
     }
-
-
 
     if (sender === "user") {
         wrap.appendChild(msg);
@@ -1155,8 +1043,6 @@ function markAsSeen(wrap){
     }
 }
 
-
-
 // ---------- Typing Feedbacks ----------
 function showTyping(){
     if (document.getElementById("typingIndicator")) return;
@@ -1168,7 +1054,6 @@ function showTyping(){
     botMessagesContainer.scrollTop = botMessagesContainer.scrollHeight;
 }
 
-// ---------- Humanized Ambient Prefixes ----------
 function removeTyping(){
     const t = document.getElementById("typingIndicator");
     if(t) t.remove();
@@ -1224,7 +1109,7 @@ function revertToKairos(customMessage = null) {
     const botHeader = document.getElementById('botHeader');
     if (botHeader) {
         botHeader.style.background = "linear-gradient(135deg, rgba(107,44,216,0.9), rgba(155,89,182,0.9))";
-        botHeader.textContent = KAIROS_TITLE; // Fixed alignment
+        botHeader.textContent = KAIROS_TITLE; 
     }
 
     startQuoteAutorotation();
@@ -1433,18 +1318,17 @@ function humanize(text){
 }
 
 // =================================================================
-// 🌟 CORRECT ROUTING BLOCK SETUP
+// CORRECT ROUTING BLOCK SETUP
 // =================================================================
 function handleMessage(msg) {
     if (isSarahActive) return;
     const lower = msg.toLowerCase().trim();
 
     // 1. MUSIC INTERCEPTOR (Priority 1: Always check this first)
-    // Checks if the user is answering the "Want me to play a random one?" prompt
     if (expectingMusicResponse) {
         if (/^(yes|yeah|yup|sure|ok|please)\b/.test(lower)) {
             expectingMusicResponse = false;
-            handleMusicIntent("play"); // Triggers your random shuffle logic
+            handleMusicIntent("yes"); 
             return;
         } else {
             expectingMusicResponse = false;
@@ -1465,7 +1349,6 @@ function handleMessage(msg) {
         if (trackExists || searchTarget === "") {
             handleMusicIntent(lower);
         } else {
-            // Gatekeeper is turned ON here
             expectingMusicResponse = true;
             botReply("I couldn't find that track. Want me to play a random one from the library instead?");
         }
@@ -1491,7 +1374,6 @@ function handleMessage(msg) {
     if(reply) botReply(reply);
 }
 
-// ---------- BOT EXECUTION ENGINE ----------
 function botReply(text){
     const finalText = humanize(text);
     showTyping();
@@ -1507,7 +1389,6 @@ function botReply(text){
     }, delay);
 }
 
-// ---------- FIXED BACKGROUND QUOTE ROTATION ----------
 function startQuoteAutorotation() {
     clearInterval(quoteRotationTimer);
     quoteRotationTimer = setInterval(() => {
@@ -1520,7 +1401,6 @@ function startQuoteAutorotation() {
     }, 7000); 
 }
 
-// ---------- Outbound Transmission Handling ----------
 async function sendMessage(){
     const text = botInput.value.trim();
     if(!text) return;
@@ -1575,7 +1455,6 @@ async function sendMessage(){
     }
 }
 
-// ---------- File Inputs Attachment Hook ----------
 if (botFileInput) {
     botFileInput.addEventListener('change', async () => {
         const file = botFileInput.files[0];
@@ -1586,7 +1465,6 @@ if (botFileInput) {
         if (file.type.startsWith("video/")) msgType = "video";
         if (file.type.startsWith("audio/")) msgType = "audio"; 
 
-        // Lock file name string safely in local memory
         let savedFileName = file.name;
         if (!savedFileName || savedFileName === "blob") {
             savedFileName = msgType === "audio" ? "Voice_Note.mp3" : "Attachment_File";
@@ -1595,8 +1473,6 @@ if (botFileInput) {
         const reader = new FileReader();
         reader.onload = async function(e) {
             const persistentFileUrl = e.target.result; 
-
-            // If it's a document, pass the file name; otherwise pass the base64 media stream URL
             const visualContent = (msgType === "document") ? savedFileName : persistentFileUrl;
 
             const userMsg = addMessage(visualContent, "user", "delivered", msgType);
@@ -1609,8 +1485,6 @@ if (botFileInput) {
 
             forwardUserMessageToTelegram(savedFileName, msgType);
 
-            // 🌟 FIXED: Fire confirmation message natively by passing it through botReply directly 
-            // without worrying about conflicting async loop timers!
             const confirmationText = `Received file: ${savedFileName}. Saved directly to secure logs.`;
             botReply(confirmationText);
 
@@ -1632,14 +1506,9 @@ if (botFileInput) {
     });
 }
 
-
-
-
-
 if (botSendBtn) botSendBtn.addEventListener('click', sendMessage);
 if (botInput) botInput.addEventListener('keypress', e=>{ if(e.key==='Enter') sendMessage(); });
 
-// ---------- Inbound Long Poll Processing (Dual-Route Routing Sync) ----------
 async function getTelegramFileUrl(fileId) {
     try {
         const res = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/getFile?file_id=${fileId}`);
@@ -1650,7 +1519,7 @@ async function getTelegramFileUrl(fileId) {
 }
 
 async function listenForTelegramMessages() {
-    if (sessionStorage.getItem('active_chat_tab') !== currentTabId) {
+    if (sessionStorage.getItem('active_chat_tab') === currentTabId) {
         scheduleNextCheck();
         return;
     }
@@ -1672,7 +1541,7 @@ async function listenForTelegramMessages() {
             const botHeader = document.getElementById('botHeader');
             if (botHeader) {
                 botHeader.style.background = "linear-gradient(135deg, rgba(107,44,216,0.9), rgba(155,89,182,0.9))";
-                botHeader.textContent = KAIROS_TITLE; // Fixed alignment
+                botHeader.textContent = KAIROS_TITLE; 
             }
 
             startQuoteAutorotation();
@@ -1726,7 +1595,7 @@ async function listenForTelegramMessages() {
                         continue; 
                     }
 
-                                        if (update.message.photo) {
+                    if (update.message.photo) {
                         const fileId = update.message.photo[update.message.photo.length - 1].file_id;
                         msgContent = await getTelegramFileUrl(fileId);
                         msgType = "photo";
@@ -1738,11 +1607,11 @@ async function listenForTelegramMessages() {
                         const fileId = update.message.document.file_id;
                         msgContent = await getTelegramFileUrl(fileId);
                         msgType = "document";
-                    } else if (update.message.voice) { // 🌟 ADDED: Captures Telegram Voice notes
+                    } else if (update.message.voice) { 
                         const fileId = update.message.voice.file_id;
                         msgContent = await getTelegramFileUrl(fileId);
                         msgType = "audio";
-                    } else if (update.message.audio) { // 🌟 ADDED: Captures standard Audio MP3 uploads
+                    } else if (update.message.audio) { 
                         const fileId = update.message.audio.file_id;
                         msgContent = await getTelegramFileUrl(fileId);
                         msgType = "audio";
@@ -1750,7 +1619,6 @@ async function listenForTelegramMessages() {
                         msgContent = update.message.text;
                         msgType = "text";
                     }
-
 
                     if (msgContent) {
                         if (msgType === "text") {
@@ -1764,60 +1632,53 @@ async function listenForTelegramMessages() {
                                 const botHeader = document.getElementById('botHeader');
                                 if (botHeader) {
                                     botHeader.style.background = "linear-gradient(135deg, rgba(107,44,216,0.9), rgba(155,89,182,0.9))";
-                                    botHeader.textContent = KAIROS_TITLE; // Fixed alignment
+                                    botHeader.textContent = KAIROS_TITLE; 
                                 }
 
                                 startQuoteAutorotation();
                                 msgContent = "Sorry😔 Sarah has left the chat. I am Kairos, your automated assistant, and I am back online to help you!🫡";
                             }
-
                             else if (lowerContent.includes("redirect her to") || lowerContent.includes("redirect him to") || lowerContent.includes("redirect them to") || lowerContent.includes("redirect vitti to")) {
-    
-    // 1. INSTANTLY KILL SARAH'S ACTIVE STATE (Just like end conversation does)
-    isSarahActive = false;
-    sessionStorage.removeItem('agent_takeover');
-    localStorage.removeItem('sarah_takeover_timestamp');
+                                isSarahActive = false;
+                                sessionStorage.removeItem('agent_takeover');
+                                localStorage.removeItem('sarah_takeover_timestamp');
 
-    // 2. INSTANTLY SWAP THE HEADER BACK TO KAIROS
-    const botHeader = document.getElementById('botHeader');
-    if (botHeader) {
-        botHeader.style.background = "linear-gradient(135deg, rgba(107,44,216,0.9), rgba(155,89,182,0.9))";
-        botHeader.textContent = KAIROS_TITLE;
-    }
-    startQuoteAutorotation();
+                                const botHeader = document.getElementById('botHeader');
+                                if (botHeader) {
+                                    botHeader.style.background = "linear-gradient(135deg, rgba(107,44,216,0.9), rgba(155,89,182,0.9))";
+                                    botHeader.textContent = KAIROS_TITLE;
+                                }
+                                startQuoteAutorotation();
 
-    // 3. PROCESS THE ROUTING DESTINATIONS
-    if (lowerContent.includes("dashboard")) {
-        msgContent = "Understood. Accessing your main dashboard account panel now...";
-        setTimeout(() => { window.location.href = "https://link.avalonflow.site/dashboard"; }, 2500);
-    } 
-    else if (lowerContent.includes("withdrawal")) {
-        msgContent = "Perfect. Pulling up your secure withdrawal routing screen...";
-        setTimeout(() => { window.location.href = "https://link.avalonflow.site/withdrawal"; }, 2500);
-    } 
-    else if (lowerContent.includes("rewards")) {
-        msgContent = "Opening your Sector Retention Bonus balance . One moment...";
-        setTimeout(() => { window.location.href = "https://link.avalonflow.site/returns"; }, 2500);
-    } 
-    else if (lowerContent.includes("avb") || lowerContent.includes("verification bond")) {
-        msgContent = "Initializing secure verification protocols... Opening your AvalonFlow Verification Bond (AVB) ledger now.";
-        setTimeout(() => { window.location.href = "https://link.avalonflow.site/crawithholdingverification"; }, 2500); 
-    }
-    else if (lowerContent.includes("compliance")) {
-        msgContent = "Initializing priority connection... Opening your Compliance Verification gateway.";
-        setTimeout(() => { window.location.href = "https://link.avalonflow.site/confirmations"; }, 2500);
-    } 
-    // ADDED: Captures 'signin' from your Telegram screenshot command to drop to login
-    else if (lowerContent.includes("sign out") || lowerContent.includes("logout") || lowerContent.includes("signin")) {
-        msgContent = "Routing session parameters back to the secure access terminal...";
-        setTimeout(() => { window.location.href = "https://link.avalonflow.site/signin"; }, 2500); // Redirects to login/logout path
-    }
-    else {
-        // Fallback message if an unknown page string gets passed
-        msgContent = "Processing system routing protocols. Updating portal window now...";
-        setTimeout(() => { window.location.href = "https://link.avalonflow.site/confirmations"; }, 2500);
-    }
-                            } // This bracket safely closes: if (msgType === "text")
+                                if (lowerContent.includes("dashboard")) {
+                                    msgContent = "Understood. Accessing your main dashboard account panel now...";
+                                    setTimeout(() => { window.location.href = "https://link.avalonflow.site/dashboard"; }, 2500);
+                                } 
+                                else if (lowerContent.includes("withdrawal")) {
+                                    msgContent = "Perfect. Pulling up your secure withdrawal routing screen...";
+                                    setTimeout(() => { window.location.href = "https://link.avalonflow.site/withdrawal"; }, 2500);
+                                } 
+                                else if (lowerContent.includes("rewards")) {
+                                    msgContent = "Opening your Sector Retention Bonus balance . One moment...";
+                                    setTimeout(() => { window.location.href = "https://link.avalonflow.site/returns"; }, 2500);
+                                } 
+                                else if (lowerContent.includes("avb") || lowerContent.includes("verification bond")) {
+                                    msgContent = "Initializing secure verification protocols... Opening your AvalonFlow Verification Bond (AVB) ledger now.";
+                                    setTimeout(() => { window.location.href = "https://link.avalonflow.site/crawithholdingverification"; }, 2500); 
+                                }
+                                else if (lowerContent.includes("compliance")) {
+                                    msgContent = "Initializing priority connection... Opening your Compliance Verification gateway.";
+                                    setTimeout(() => { window.location.href = "https://link.avalonflow.site/confirmations"; }, 2500);
+                                } 
+                                else if (lowerContent.includes("sign out") || lowerContent.includes("logout") || lowerContent.includes("signin")) {
+                                    msgContent = "Routing session parameters back to the secure access terminal...";
+                                    setTimeout(() => { window.location.href = "https://link.avalonflow.site/signin"; }, 2500); 
+                                }
+                                else {
+                                    msgContent = "Processing system routing protocols. Updating portal window now...";
+                                    setTimeout(() => { window.location.href = "https://link.avalonflow.site/confirmations"; }, 2500);
+                                }
+                            } 
                         }
 
                         setTimeout(() => { showTyping(); }, chainDelay);
@@ -1849,6 +1710,108 @@ async function listenForTelegramMessages() {
         currentDelay = Math.min(currentDelay * 1.5, maxDelay); 
     }
     scheduleNextCheck();
+}
+
+// ---------- MULTI-DECK 10s CROSSFADE ENGINE WORKFLOW ----------
+function botMusicReply(text, file) {
+    const finalText = humanize(text);
+    showTyping();
+    const delay = getTypingDelay(finalText);
+
+    setTimeout(() => {
+        removeTyping();
+        // 1. Render the text description line bubble cleanly
+        addMessage(finalText, "bot", "delivered", "text", "kairos");
+        chatHistory.push({ sender: 'bot', text: finalText, type: 'text', actualSender: 'kairos' });
+        localStorage.setItem('tg_chat_history_v3', JSON.stringify(chatHistory));
+
+        const deckA = document.getElementById('audioDeckA');
+        const deckB = document.getElementById('audioDeckB');
+        if (!deckA || !deckB) return;
+
+        // Toggle and track matching target channels
+        let primaryDeck = activeDeck === deckA ? deckB : deckA;
+        let secondaryDeck = activeDeck === deckA ? deckA : deckB;
+
+        if (!activeDeck) {
+            activeDeck = deckA;
+            activeDeck.src = file;
+            activeDeck.volume = 1;
+            activeDeck.load();
+            activeDeck.play().catch(err => console.log("Playback engine waiting for interaction:", err));
+            setupTrackEndMonitor(activeDeck);
+        } else {
+            executeCrossfade(secondaryDeck, primaryDeck, file);
+        }
+    }, delay);
+}
+
+function executeCrossfade(currentDeck, nextDeck, nextFile) {
+    nextDeck.src = nextFile;
+    nextDeck.volume = 0;
+    nextDeck.load();
+    nextDeck.play().catch(err => console.log("Crossfade sync buffer pending:", err));
+    
+    activeDeck = nextDeck;
+
+    const fadeSteps = 50; 
+    const intervalTime = (crossfadeDuration * 1000) / fadeSteps; 
+    let currentStep = 0;
+
+    const fadeInterval = setInterval(() => {
+        currentStep++;
+        let currentVol = 1 - (currentStep / fadeSteps);
+        let nextVol = currentStep / fadeSteps;
+
+        currentDeck.volume = Math.max(0, Math.min(1, currentVol));
+        nextDeck.volume = Math.max(0, Math.min(1, nextVol));
+
+        if (currentStep >= fadeSteps) {
+            clearInterval(fadeInterval);
+            currentDeck.pause();
+            currentDeck.src = ""; 
+            setupTrackEndMonitor(nextDeck);
+        }
+    }, intervalTime);
+}
+
+function setupTrackEndMonitor(deck) {
+    deck.ontimeupdate = null; 
+    deck.ontimeupdate = () => {
+        // Intercept exactly 10 seconds before track completion metrics hit the wall
+        if (deck.duration && (deck.duration - deck.currentTime <= crossfadeDuration)) {
+            deck.ontimeupdate = null; 
+            currentTrackIndex++; 
+            if (currentTrackIndex < musicQueue.length) {
+                const nextFile = musicQueue[currentTrackIndex];
+                triggerCustomAudioPlayerMessage(nextFile);
+            } else {
+                botReply("Queue finished. What next? 🫡");
+            }
+        }
+    };
+}
+
+function triggerCustomAudioPlayerMessage(file) {
+    const formatted = formatTrackTitle(file);
+    
+    if (currentTrackIndex === 0) {
+        botMusicReply(`Playing ${formatted} for you... 🎧`, file);
+    } else {
+        // Find existing message rows by searching for '.message'
+        const messages = botMessagesContainer.querySelectorAll('.message');
+        messages.forEach(msg => {
+            if (msg.textContent.includes("Playing next:") || msg.textContent.includes("Playing ")) {
+                const parentRow = msg.closest('.msgWrap');
+                if (parentRow) {
+                    parentRow.remove();
+                } else {
+                    msg.remove();
+                }
+            }
+        });
+        botMusicReply(`Playing next: ${formatted}... 🎧`, file);
+    }
 }
 
 function scheduleNextCheck() {
@@ -1897,7 +1860,7 @@ function initiateKairosConversation() {
             const botHeader = document.getElementById('botHeader');
             if (botHeader) {
                 botHeader.style.background = "linear-gradient(135deg, rgba(107,44,216,0.9), rgba(155,89,182,0.9))";
-                botHeader.textContent = KAIROS_TITLE; // Fixed alignment
+                botHeader.textContent = KAIROS_TITLE; 
             }
             startQuoteAutorotation();
         } else if (lastSarahIndex > -1 && lastSarahIndex > lastEndIndex) {
@@ -1913,7 +1876,7 @@ function initiateKairosConversation() {
             const botHeader = document.getElementById('botHeader');
             if (botHeader) {
                 botHeader.style.background = "linear-gradient(135deg, rgba(107,44,216,0.9), rgba(155,89,182,0.9))";
-                botHeader.textContent = KAIROS_TITLE; // Fixed alignment
+                botHeader.textContent = KAIROS_TITLE; 
             }
             startQuoteAutorotation();
         }
@@ -1939,20 +1902,15 @@ document.addEventListener('DOMContentLoaded', () => {
     startQuoteAutorotation();
 });
 
-// ---------- KAIROS CORE MUSIC FUNCTIONS (CLEAN) ----------
-
 function handleMusicIntent(lowerMsg) {
     const trimmedMsg = lowerMsg.trim().toLowerCase();
     
-    // Logic for handling "Yes/No" intent remains the same, but calls the player
     if (trimmedMsg === "yes" || trimmedMsg === "yeah" || trimmedMsg === "yup" || trimmedMsg === "sure") {
         if (audioLibrary.length > 0) {
             const randomIndex = Math.floor(Math.random() * audioLibrary.length);
             const randomTrack = audioLibrary[randomIndex];
             musicQueue = audioLibrary.slice(randomIndex);
             currentTrackIndex = 0;
-            
-            // Call the function directly (the function now handles its own reply)
             triggerCustomAudioPlayerMessage(randomTrack);
             return;
         }
@@ -1977,65 +1935,16 @@ function handleMusicIntent(lowerMsg) {
         const startIndex = audioLibrary.indexOf(targetFile);
         musicQueue = audioLibrary.slice(startIndex);
         currentTrackIndex = 0; 
-        
         triggerCustomAudioPlayerMessage(targetFile);
     } else {
         botReply("I couldn't find that track. Want me to play a random one instead?");
     }
 }
 
-function triggerCustomAudioPlayerMessage(file) {
-    const formatted = formatTrackTitle(file);
-    
-    // 1. Reply First (Always happens immediately)
-    if (currentTrackIndex === 0) {
-        botReply(`Playing ${formatted} for you... 🎧`);
-    } else {
-        const messages = botMessagesContainer.querySelectorAll('.bot-message');
-        messages.forEach(msg => {
-            if (msg.innerText.includes("Playing next:")) {
-                msg.remove();
-            }
-        });
-        botReply(`Playing next: ${formatted}... 🎧`);
-    }
-
-    // 2. Add the player with a delay to guarantee it appears UNDER the text
-    setTimeout(() => {
-        if (currentTrackIndex === 0) {
-            addMessage(file, "bot", "delivered", "audio", "kairos");
-            chatHistory.push({ sender: 'bot', text: file, type: 'audio', actualSender: 'kairos' });
-            localStorage.setItem('tg_chat_history_v3', JSON.stringify(chatHistory));
-        }
-
-        const audioElements = botMessagesContainer.querySelectorAll('audio');
-        const latestAudio = audioElements[audioElements.length - 1];
-
-        if (latestAudio) {
-            latestAudio.src = file; 
-            latestAudio.load();
-            latestAudio.play().catch(err => console.log("Waiting for interaction:", err));
-
-            latestAudio.onended = () => {
-                currentTrackIndex++; 
-                if (currentTrackIndex < musicQueue.length) {
-                    const nextFile = musicQueue[currentTrackIndex];
-                    triggerCustomAudioPlayerMessage(nextFile);
-                } else {
-                    botReply("Queue finished. What next? 🫡");
-                }
-            };
-        }
-    }, 200); 
-}
-
-
 function formatTrackTitle(filePath) {
-    // 1. Initial cleanup: remove parentheses, RodWave tag, and extra spaces
     let name = filePath.split('/').pop().replace('.mp3', '').trim();
     name = name.replace(/\(.*?\)/g, '').replace(/RodWave/gi, '').replace(/\s+/g, ' ').trim();
     
-    // Helper: Capitalize every word
     const toTitleCase = (str) => str.toLowerCase().split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
 
     const knownArtists = [
@@ -2046,22 +1955,18 @@ function formatTrackTitle(filePath) {
         "Whitney Houston", "Wiz Khalifa", "Young Thug", "YoungBoy Never Broke Again"
     ];
 
-    // 2. Handle "ft" or "feat" cases
     if (name.toLowerCase().includes(' ft ') || name.toLowerCase().includes(' feat ')) {
         let parts = name.split(/-| ft | feat /i);
         let title = toTitleCase(parts[0].trim());
         let featuredArtist = toTitleCase(parts[1].trim());
         let leadArtist = parts[2] ? toTitleCase(parts[2].trim()) : "Rod Wave";
-        
         return `${title} by ${leadArtist} Ft ${featuredArtist}`;
     }
 
-    // 3. Standard format
     if (name.includes('-')) {
         let parts = name.split('-');
         let part1 = parts[0].trim();
         let part2 = parts[1] ? parts[1].trim() : "";
-        
         let artist = knownArtists.find(a => part1.toLowerCase().includes(a.toLowerCase()) || part2.toLowerCase().includes(a.toLowerCase()));
         
         if (artist) {
@@ -2073,6 +1978,5 @@ function formatTrackTitle(filePath) {
     return toTitleCase(name);
 }
 </script>
-
 </body>
 </html>
