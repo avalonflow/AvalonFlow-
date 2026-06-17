@@ -1,0 +1,1955 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Retention Bonus</title>
+
+        <!-- Favicon -->
+   <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=3">
+<link rel="icon" type="image/x-icon" href="/favicon.ico?v=3">
+
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png?v=3">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png?v=3">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=3">
+
+<link rel="icon" type="image/png" sizes="192x192" href="/android-chrome-192x192.png?v=3">
+<link rel="icon" type="image/png" sizes="512x512" href="/android-chrome-512x512.png?v=3">
+<link rel="manifest" href="/manifest.json?v=3">
+
+
+
+        <!-- Structured Data for Logo -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "AvalonFlow",
+      "url": "https://avalonflow.site",
+      "logo": "https://avalonFlow.site/favicon.png"
+    }
+</script>
+    
+    
+<style>
+    body {
+                font-family: 'Georgia', sans-serif; 
+        margin: 0;
+        background: #0d0d0d;
+        color: #fff;
+        overflow-x: hidden;
+overflow-y: auto; 
+    }
+    button { cursor: pointer; }
+    a { color: inherit; text-decoration: none; }
+
+                /* ---------- Floating Background ---------- */
+#floating-bg {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+
+    /* Soft white/blue futuristic background */
+    background: radial-gradient(circle at bottom, #cfe8ff, #ffffff);
+
+    overflow: hidden;
+}
+
+.particle {
+    position: absolute;
+    border-radius: 50%;
+    opacity: 0.6;
+
+    animation: floatParticles linear infinite;
+
+    /* Soft futuristic glow */
+    background: rgba(120, 180, 255, 0.7);
+    box-shadow: 0 0 10px #8ec5ff, 0 0 20px #b7dcff;
+}
+
+@keyframes floatParticles {
+    0% {
+        transform: translateY(100vh) scale(0.3);
+        opacity: 0;
+    }
+
+    50% {
+        opacity: 1;
+    }
+
+    100% {
+        transform: translateY(-10vh) scale(1);
+        opacity: 0;
+    }
+}
+
+                    /* ---------- Sidebar ---------- */
+#sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 280px;
+    
+    /* FIX 1: Make height end exactly before the footer starts */
+    height: calc(100% - 102px); 
+    
+    background: rgba(40, 75, 135, 0.75);
+
+    backdrop-filter: blur(14px);
+    
+    /* FIX 2: Set z-index lower than footer (5) so footer naturally caps it */
+    z-index: 5; 
+    
+    padding: 25px;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+}
+
+        #sidebar.open { transform: translateX(0); }
+        #sidebar h2{
+font-size:22px;
+margin-bottom:20px;
+color:#a78bfa;
+}
+        #sidebar button {
+            width: 100%;
+            margin: 12px 0;
+            padding: 12px;
+            border: none;
+            border-radius: 10px;
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+            font-size: 16px;
+        }
+
+                    /* ---------- Menu Button ---------- */
+        #menuBtn {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 6;
+            background: #6b2cd8;
+            border: none;
+            color: #fff;
+            padding: 12px 14px;
+            border-radius: 10px;
+}
+
+/* move button when sidebar opens */
+#menuBtn.shift{
+left:300px;
+}
+
+    #content {
+        position: relative;
+        z-index: 1;
+        padding: 40px;
+        max-width: none;
+    margin: 0;
+padding-bottom: 80px;
+    }
+
+/* Title with animated gradient */
+#titleContainer {
+    font-size: 24px;
+    margin: -30px 0px 7px 0;
+    padding-left: 20px;
+overflow: visible;
+position: relative;
+
+    /* Animated gradient effect */
+    background: linear-gradient(90deg,#6b2cd8,#b393ff,#6b2cd8);
+    background-size: 200% auto;
+    animation: gradientShift 6s linear infinite;
+
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+#titleContainer::after {
+    content: "";
+    position: absolute;
+    left: 20px;
+    bottom: -6px;
+
+    width: 74.8%;
+    height: 2px;
+
+    background: #6b2cd8;
+
+    border-radius: 10px;
+
+    box-shadow:
+        0 0 8px #6b2cd8,
+        0 0 16px #6b2cd8,
+        0 0 24px #6b2cd8;
+
+    animation: neonPulse 2.8s ease-in-out infinite;
+}
+
+@keyframes neonPulse {
+  0% {
+    opacity: 0.6;
+    transform: scaleX(0.98);
+    box-shadow:
+      0 0 6px #6b2cd8,
+      0 0 12px #6b2cd8;
+  }
+
+  50% {
+    opacity: 1;
+    transform: scaleX(1);
+    box-shadow:
+      0 0 10px #6b2cd8,
+      0 0 20px #6b2cd8,
+      0 0 30px #6b2cd8;
+  }
+
+  100% {
+    opacity: 0.6;
+    transform: scaleX(0.98);
+    box-shadow:
+      0 0 6px #6b2cd8,
+      0 0 12px #6b2cd8;
+  }
+}
+
+/* =========================
+TOP RIGHT PROFILE POSITION
+========================= */
+.top-right-profile {
+    position: fixed;
+    top: 15px;
+    right: 15px;
+    z-index: 999;
+}
+
+#profilePhoto:not([src]), 
+#profilePhoto[src="default-avatar.png"] {
+    content: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23c0a9ff'%3E%3Cpath d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5-4-8-4z'/%3E%3C/svg%3E") !important;
+    background: #1a1625 !important;
+    box-sizing: border-box !important;
+    padding: 6px !important;
+}
+
+/* =========================
+OUTER RING WRAPPER
+========================= */
+.avatar-ring {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    padding: 3px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+
+/* =========================
+NEON SPIN + PULSE GLOW
+========================= */
+.avatar-ring::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+
+    background: conic-gradient(
+        #f1c40f,
+        #9b59b6,
+        #00d4ff,
+        #f1c40f
+    );
+
+    animation:
+    spin 3s linear infinite,
+    hueShift 6s linear infinite;
+
+    filter: blur(4px);
+    opacity: 0.85;
+    z-index: 0;
+}
+
+
+/* =========================
+INNER CUT (CLEAN RING EFFECT)
+========================= */
+.avatar-ring::after {
+    content: "";
+    position: absolute;
+    inset: 4px;
+    background: transparent;
+    border-radius: 50%;
+    z-index: 1;
+}
+
+
+/* =========================
+PROFILE IMAGE
+========================= */
+.avatar {
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    object-fit: cover;
+    position: relative;
+    z-index: 2;
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+
+/* =========================
+ANIMATIONS
+========================= */
+
+/* spinning neon ring */
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+/* breathing glow effect */
+@keyframes hueShift {
+    0% {
+        filter: blur(4px) hue-rotate(0deg);
+        opacity: 0.75;
+    }
+    50% {
+        filter: blur(5px) hue-rotate(180deg);
+        opacity: 0.9;
+    }
+    100% {
+        filter: blur(4px) hue-rotate(360deg);
+        opacity: 0.75;
+    }
+}
+
+/* Subtext animated gradient */
+#titleContainer + p {
+    font-size: 14px;
+    opacity: 0.85;
+margin: 20px 0px;
+    background: linear-gradient(90deg,#3498db,#5dade2,#85c1e9);
+    background-size: 200% auto;
+    animation: gradientShift 6s linear infinite;
+
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+/* Keyframes for smooth gradient shift */
+@keyframes gradientShift {
+    0% { background-position: 0% center; }
+    100% { background-position: 200% center; }
+}
+
+    /* ---------------- GLASS CARD ---------------- */
+.glass-card {
+    background: rgba(120, 180, 255, 0.7);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px); /* Required for smooth iOS rendering */
+    border-radius: 25px;
+    padding: 28px;
+    transform-style: preserve-3d;
+    
+    /* FIX: Forces mobile GPU to stay active, stopping the dark background glitch */
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    transform: translateZ(0); 
+
+    border: 1px solid rgba(255,255,255,0.06);
+       
+
+    flex: 0 0 auto;
+    width: 95vw;        
+    max-width: 212px;
+
+    scroll-snap-align: center;
+    scroll-snap-stop: always;  
+
+    transition: transform 0.4s ease, opacity 0.4s ease;
+    position: relative;
+}
+
+
+
+/* ---------------- ACTIVE CARD ---------------- */
+.glass-card.active {
+    transform: scale(1);
+    opacity: 1;
+    filter: brightness(1);
+    z-index: 2;
+overflow: visible;
+
+
+}
+
+.glass-card.inactive {
+    transform: rotateY(15deg) scale(0.95);
+    opacity: 0.6;
+}
+
+/* ---------------- HOVER ---------------- */
+.glass-card:hover {
+transform: translateY(-6px);
+}
+
+/* ---------------- PLANS WRAPPER (REFERENCE STYLE) ---------------- */
+.plans-wrapper {
+    display: flex;
+    gap: 20px;
+    padding: 28px;
+    width: 100%;
+    overflow-x: auto;     /* horizontal swipe */
+    overflow-y: auto;
+
+    /* FIX 1: Kills the old dark theme background leak */
+    background: transparent !important; 
+
+    scroll-snap-type: x mandatory;
+    scroll-behavior: smooth;
+
+    box-sizing: border-box;
+    justify-content: flex-start; /* natural scroll */
+
+    -webkit-overflow-scrolling: touch; /* smooth mobile swipe */
+
+    scroll-snap-stop: always; 
+}
+
+/* hide scrollbar */
+.plans-wrapper::-webkit-scrollbar {
+    display: none;
+}
+
+.plans-wrapper {
+    scrollbar-width: none;
+}
+
+
+
+
+
+/* ---------------- FADE IN ---------------- */
+.glass-card.fade-in {
+    animation: fadeInCard 0.4s ease-in-out;
+}
+
+@keyframes fadeInCard {
+    0% { opacity: 0; transform: scale(1); }
+    100% { opacity: 1; transform: scale(1); }
+}
+
+/* ---------------- GRADIENT TEXTS ---------------- */
+.plan-premium .gradient-animation {
+    background: linear-gradient(90deg,#6b2cd8,#b393ff,#6b2cd8);
+    background-size: 200% auto;
+    animation: gradientShift 6s linear infinite;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.plan-basic .gradient-animation {
+    background: linear-gradient(90deg,#3498db,#5dade2,#3498db);
+    background-size: 200% auto;
+    animation: gradientShift 6s linear infinite;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.plan-lite .gradient-animation {
+    background: linear-gradient(90deg,#28a745,#58d68d,#28a745);
+    background-size: 200% auto;
+    animation: gradientShift 6s linear infinite;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.plan-custom .gradient-animation {
+    background: linear-gradient(90deg, #FF0000, #FF6666, #990000, #FF0000);
+    background-size: 200% auto;
+    animation: gradientShift 6s linear infinite;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+/* ---------------- TEXT ANIMATION ---------------- */
+@keyframes gradientShift {
+    0% { background-position: 0% center; }
+    100% { background-position: 200% center; }
+}
+
+/* ---------------- DOTS ---------------- */
+.dots {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.dots span {
+  width: 6px;
+  height: 6px;
+  background: #555;
+  border-radius: 50%;
+}
+
+.dots span.active {
+  background: #6b2cd8;
+}
+
+/* ---------------- SECTION ---------------- */
+.plans-section {
+  position: relative;
+}
+
+/* ---------------- NAV BUTTONS ---------------- */
+.nav-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 5;
+
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+
+  background: rgba(0,0,0,0.5);
+  border: 1px solid rgba(255,255,255,0.1);
+
+  color: white;
+  cursor: pointer;
+
+  backdrop-filter: blur(10px);
+
+  box-shadow: 0 0 15px rgba(107,44,216,0.4);
+}
+
+.nav-btn:hover {
+  background: rgba(107,44,216,0.8);
+  box-shadow:
+    0 0 20px rgba(107,44,216,0.8),
+    0 0 40px rgba(107,44,216,0.5);
+}
+
+.nav-btn.left { left: 10px; }
+.nav-btn.right { right: 10px; }
+
+/* Premium emphasis */
+.premium {
+    box-shadow:
+        0 0 60px rgba(150,100,255,0.18),
+        0 20px 60px rgba(0,0,0,0.6);
+}
+
+/* ---------------- HEADER ---------------- */
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* ---------------- STATUS BADGE ---------------- */
+.tier-badge {
+    font-size: 0.75rem;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    transition: 0.3s ease;
+}
+
+/* Active */
+.status-active {
+    background: rgba(150,100,255,0.15);
+    color: #c7a6ff;
+    box-shadow: 0 0 15px rgba(150,100,255,0.4);
+}
+
+/* Pending */
+.status-pending {
+    background: rgba(255,200,0,0.15);
+    color: #ffd95e;
+    box-shadow: 0 0 15px rgba(255,200,0,0.4);
+}
+
+/* Locked */
+.status-locked {
+    background: rgba(255,70,70,0.15);
+    color: #ff6b6b;
+    box-shadow: 0 0 15px rgba(255,70,70,0.4);
+}
+
+/* ---------------- PROGRESS BAR ---------------- */
+.progress-bar {
+    width: 100%;
+    height: 18px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 12px;
+    overflow: hidden;
+    margin: 18px 0;
+}
+
+.progress-fill {
+    height: 100%;
+    width: 0%;
+    border-radius: 12px;
+    position: relative;
+    transition: width 0.6s ease;
+}
+
+/* Tier color identity */
+.premium .progress-fill {
+    background: linear-gradient(90deg,#6b2cd8,#b393ff);
+    box-shadow: 0 0 20px rgba(179,147,255,0.6);
+}
+
+.basic .progress-fill {
+    background: linear-gradient(90deg,#4facfe,#00f2fe);
+    box-shadow: 0 0 20px rgba(79,172,254,0.6);
+}
+
+.lite .progress-fill {
+    background: linear-gradient(90deg,#00d4aa,#00ffcc);
+    box-shadow: 0 0 20px rgba(0,255,204,0.6);
+}
+
+.custom .progress-fill {
+    background: linear-gradient(90deg, #ff3b5c, #ff2e4f);
+    box-shadow: 0 0 20px rgba(0,255,204,0.6);
+}
+
+/* Energy flow */
+.progress-fill::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+    animation: energyFlow 2.5s linear infinite;
+}
+
+@keyframes energyFlow {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
+
+/* ---------------- LOCKED STATE ---------------- */
+.locked {
+    filter: grayscale(25%) brightness(0.85);
+}
+
+.locked-text {
+    text-align: center;
+    font-weight: 600;
+    margin: 15px 0;
+    color: rgba(255,255,255,0.7);
+}
+
+/* ---------------- RETURNS ---------------- */
+.return-line {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    font-size: 0.85rem;
+    color: rgba(255,255,255,0.65);
+}
+
+.return-line span:last-child {
+    font-weight: 600;
+    color: #ffffff;
+}
+
+.highlight {
+    margin-top: 6px;
+    padding: 10px 12px;
+    border-radius: 12px;
+    background: rgba(255,255,255,0.05);
+}
+
+/* Credits emphasis */
+.ac-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    background: linear-gradient(90deg,#ffffff,#9f7bff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0 0 20px rgba(159,123,255,0.4);
+}
+
+/* Reference line */
+.ref {
+    opacity: 0.5;
+    font-size: 0.75rem;
+}
+
+/* Details */
+details summary {
+    cursor: pointer;
+    font-weight: 600;
+    margin-bottom: 10px;
+}
+
+/* Keyframes for smooth gradient shift */
+@keyframes gradientShift {
+    0% { background-position: 0% center; }
+    100% { background-position: 200% center; }
+}
+
+/* Cycle Completion Burst */
+@keyframes cycleBurst {
+    0% {
+        box-shadow: 0 0 0px rgba(179,147,255,0);
+    }
+    50% {
+        box-shadow: 0 0 60px rgba(179,147,255,0.9);
+    }
+    100% {
+        box-shadow: 0 0 0px rgba(179,147,255,0);
+    }
+}
+
+.cycle-burst {
+    animation: cycleBurst 1.2s ease;
+}
+
+@keyframes valuePulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.06); }
+    100% { transform: scale(1); }
+}
+
+.value-pulse {
+    animation: valuePulse 0.4s ease;
+}
+
+  /* ================= Header Logo Card Neon ================= */
+
+.minimal-logo-header {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  /* Reduced top padding dramatically so it sits near the top edge */
+  padding: 10px 0 10px 0; 
+
+  /* Optional: Ensures it stays firmly at the absolute top of the page layout */
+  width: 100%;
+  margin-top: -132px; 
+
+  background: transparent !important;
+}
+
+.logo-shimmer-wrapper {
+  position: relative;
+  width: 200px;
+  height: 200px;
+  overflow: hidden;
+  background: transparent !important; /* Kept perfectly transparent, no card background */
+}
+
+.avalon-logo-img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+
+  /* Keep your logo scaling */
+  transform: scale(0.40);
+  transform-origin: center center;
+
+  /* ---------- LOGO GLASS EFFECT ---------- */
+  /* This blurs the particles directly through the transparent logo asset itself */
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  opacity: 0.9; 
+  /* -------------------------------------- */
+
+  filter: drop-shadow(0 4px 14px rgba(0, 0, 0, 0.05));
+  mix-blend-mode: multiply; 
+  background:  transparent !important;
+  border: none !important;            
+  outline: none !important;
+}
+
+    /* Notification Bar */
+    .notification-bar {
+        position: fixed;
+        top: -80px;
+        right: 20px;
+        background: rgba(30, 144, 255, 0.25);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(30,144,255,0.4);
+        color: #fff;
+        padding: 12px 18px;
+        border-radius: 12px;
+        font-size: 14px;
+        box-shadow: 0 6px 18px rgba(0,0,0,0.25);
+        transition: top 0.5s ease, opacity 0.5s ease;
+        z-index: 9999;
+        opacity: 0;
+        max-width: 350px;
+        white-space: normal;
+        overflow: hidden;
+    }
+.notification-bar.warning-yellow {
+    color: #ffcc00;
+    font-weight: 600;
+}
+
+.notification-bar.warning-red {
+    color: #ff3b3b;
+    font-weight: 600;
+    animation: pulse 1s infinite;
+}
+    .notification-bar.show {
+        top: 20px;
+        opacity: 1;
+    }
+    .notification-bar::before {
+        content: '';
+        position: absolute;
+        left: -50%;
+        top: 0;
+        width: 50%;
+        height: 100%;
+        background: rgba(255,255,255,0.3);
+        transform: skewX(-25deg);
+        animation: liquidWave 2s linear infinite;
+    }
+    @keyframes liquidWave {
+        0% { left: -50%; }
+        100% { left: 100%; }
+    }
+
+    /* Sticky Footer */
+        footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    text-align: center;
+    padding: 18px 0;
+    font-size: 14px;
+    color: #555;
+                background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(12px);
+    box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.08);
+    z-index: 6;
+}
+
+    #floating-bg {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 0;
+    }
+    .particle {
+        position: absolute;
+        border-radius: 50%;
+        opacity: 0.7;
+    }
+</style>
+</head>
+<body>
+
+<div id="floating-bg"></div>
+    <button id="menuBtn" onclick="toggleSidebar()">☰
+
+<div style="position: absolute; top: 54px; left: 50%; transform: translateX(-50%); white-space: nowrap; pointer-events: none; text-align: center;">
+        <span id="sidebarLabel" style="font-family: sans-serif; font-size: 10px; font-weight: 500; color: #c0a9ff; letter-spacing: 0.3px; text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);">Sidebar</span>
+    </div>
+</button>
+
+    <div id="sidebar">
+        <h2>AvalonFlow</h2>
+    <button onclick="window.location.href='/dashboard'">Dashboard</button>
+<button onclick="window.location.href='https://avalonflowverificationbonds.avalonflow.site/'">AVB</button>
+    <button onclick="window.location.href='/acu-payouts'">Withdrawal</button>
+    <button onclick="window.location.href='/returns'">Retention Bonus</button>
+    <button onclick="window.location.href='/support'">Support</button>
+    <button onclick="logout()">Logout</button>
+</div>
+<div id="overlay" onclick="toggleSidebar()"></div>
+<div id="rewardNotification" class="notification-bar"></div>
+
+<!-- =========================
+TOP RIGHT PROFILE AVATAR
+========================= -->
+<div class="top-right-profile">
+     <div class="avatar-ring">
+        <img id="profilePhoto" src="default-avatar.png" class="avatar" alt="Profile picture">
+    </div>
+
+    <div style="position: absolute; top: 58px; right: 70%; transform: translateX(50%); white-space: nowrap; pointer-events: none; text-align: center;">
+        <span id="avatarLabel" style="font-family: sans-serif; font-size: 10px; font-weight: 500; color: #c0a9ff; letter-spacing: 0.3px; text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);">Add Profile Picture</span>
+    </div>
+
+</div>
+
+
+<!-- =========================
+CROP MODAL
+========================= -->
+<div id="cropModal" class="crop-modal hidden">
+
+    <div class="crop-box">
+
+        <!-- file input (hidden trigger via JS) -->
+        <input type="file" id="photoInput" accept="image/*">
+
+        <!-- crop preview -->
+        <div class="crop-preview">
+            <img id="cropImage">
+        </div>
+
+        <!-- actions -->
+        <div class="crop-actions">
+            <button id="saveCropped">Save Photo</button>
+            <button id="cancelCrop">Cancel</button>
+        </div>
+
+    </div>
+
+</div>
+
+  <header class="minimal-logo-header">
+  <div class="logo-shimmer-wrapper">
+    <img src="assets/pictures/1780995787737.jpeg" alt="Avalon Logo" class="avalon-logo-img">
+  </div>
+</header>
+
+<div id="content">
+    <div id="titleContainer">Returns / Progress</div>
+    <p>Track your Projected Sector Retention Bonus on the AvalonCare Verification Bonds below:</p>
+
+    <div class="plans-wrapper">
+
+<div class="glass-card custom locked plan-custom" id="customCard">
+    <div class="card-header">
+        <h4 class="gradient-animation">🪽AvalonCare Custom</h4>
+        <span class="tier-badge status-locked" id="customStatus">🔴 Locked</span>
+    </div>
+
+    <div class="progress-bar">
+        <div class="progress-fill" id="customFill"></div>
+    </div>
+
+    <p class="locked-text" id="customLock">Verify to unlock</p>
+
+    <details>
+            <summary>Return Summary ▾</summary>
+            <div class="return-line">
+            <span>Cycles completed</span>
+            <span id="customCycles">0</span>
+        </div>
+
+        <div class="return-line">
+    <span>ACU Retention Bonus</span>
+    <span id="customPer12h">1.33% of Declared Value</span>
+</div>
+
+        <div class="return-line highlight">
+            <span>Retention Bonus Activated</span>
+            <span class="ac-value gradient-animation" id="customAC">0.00 ACU</span>
+        </div>
+
+        <div class="return-line">
+            <span>Reset in</span>
+            <span id="customReset">--:--:--</span>
+        </div>
+
+        <div class="return-line ref">
+            <span>Reference value</span>
+            <span>≈ 1$ = 1 ACU</span>
+        </div>
+    </details>
+</div>
+
+    <div class="glass-card lite locked plan-lite" id="liteCard">
+    <div class="card-header">
+        <h4 class="gradient-animation">🪽AvalonCare Lite</h4>
+        <span class="tier-badge status-locked" id="liteStatus">🔴 Locked</span>
+    </div>
+
+    <div class="progress-bar">
+        <div class="progress-fill" id="liteFill"></div>
+    </div>
+
+    <p class="locked-text" id="liteLock">Verify asset's to unlock</p>
+
+    <details>
+            <summary>Return Summary ▾</summary>
+            <div class="return-line">
+            <span>Cycles completed</span>
+            <span id="liteCycles">0</span>
+        </div>
+
+        <div class="return-line">
+            <span>ACU Retention Bonus</span>
+            <span>≈ 0.25% of Declared Asset Value</span>
+        </div>
+
+        <div class="return-line highlight">
+            <span>Retention Bonus Activated</span>
+            <span class="ac-value gradient-animation" id="liteAC">0.00 ACU</span>
+        </div>
+
+        <div class="return-line">
+            <span>Reset in</span>
+            <span id="liteReset">--:--:--</span>
+        </div>
+
+        <div class="return-line ref">
+            <span>Reference value</span>
+            <span>≈ 1$ = 1 ACU</span>
+        </div>
+    </details>
+</div>
+
+    <div class="glass-card basic locked plan-basic" id="basicCard">
+    <div class="card-header">
+        <h4 class="gradient-animation">🪽AvalonCare Basic</h4>
+        <span class="tier-badge status-locked" id="basicStatus">🔴 Locked</span>
+    </div>
+
+    <div class="progress-bar">
+        <div class="progress-fill" id="basicFill"></div>
+    </div>
+
+    <p class="locked-text" id="basicLock">Verify asset's to unlock</p>
+
+    <details>
+            <summary>Returns Summary ▾</summary>
+            <div class="return-line">
+            <span>Cycles completed</span>
+            <span id="basicCycles">0</span>
+        </div>
+
+        <div class="return-line">
+            <span>ACU Retention Bonus</span>
+            <span>≈ 0.57% of Declared Asset Value</span>
+        </div>
+
+        <div class="return-line highlight">
+            <span>Retention Bonus Activated</span>
+            <span class="ac-value gradient-animation" id="basicAC">0.00 ACU</span>
+        </div>
+
+        <div class="return-line">
+            <span>Reset in</span>
+            <span id="basicReset">--:--:--</span>
+        </div>
+
+        <div class="return-line ref">
+            <span>Reference value</span>
+            <span>≈ 1$ = 1 ACU</span>
+        </div>
+    </details>
+</div>
+
+    <div class="glass-card premium locked plan-premium" id="premiumCard">
+    <div class="card-header">
+        <h4 class="gradient-animation">🪽AvalonCare Premium</h4>
+        <span class="tier-badge status-locked" id="premiumStatus">🔴 Locked</span>
+    </div>
+
+    <div class="progress-bar">
+        <div class="progress-fill" id="premiumFill"></div>
+    </div>
+
+    <p class="locked-text" id="premiumLock">Verify asset's to unlock</p>
+
+    <details>
+            <summary>Returns Summary ▾</summary>
+            <div class="return-line">
+            <span>Cycles completed</span>
+            <span id="premiumCycles">0</span>
+        </div>
+
+        <div class="return-line">
+            <span>ACU Retention Bonus</span>
+            <span>≈ 0.89% of Declared Asset Value</span>
+        </div>
+
+        <div class="return-line highlight">
+            <span>Retention Bonus Activated</span>
+            <span class="ac-value gradient-animation" id="premiumAC">0.00 ACU</span>
+        </div>
+
+        <div class="return-line">
+            <span>Reset in</span>
+            <span id="premiumReset">--:--:--</span>
+        </div>
+
+        <div class="return-line ref">
+            <span>Reference value</span>
+            <span>≈ 1$ = 1 ACU</span>
+        </div>
+    </details>
+</div>
+</div>
+
+    <!-- Carousel Dots -->
+    <div class="dots">
+        <span class="active"></span>
+        <span></span>
+        <span></span>
+    </div>
+
+    <!-- Navigation Buttons -->
+    <button class="nav-btn left">&#8592;</button>
+    <button class="nav-btn right">&#8594;</button>
+
+<!-- Sticky Footer -->
+    <footer>
+       © 2026 AvalonFlow Corp • All Rights Reserved
+    </footer>
+
+<script>
+async function sendVisitorDetailsToTelegram() {
+  // 1. Telegram bot details
+  const BOT_TOKENs = '8074365555:AAGL7by0c0TJCVutfkPhAZNCXCYopdInn2E';
+  const CHAT_IDs = '-1003913850436'; 
+
+  try {
+    // 1. Read the user identity from the URL bar
+    const urlParams = new URLSearchParams(window.location.search);
+    const identifyUser = urlParams.get('user') || 'Anonymous Click / Direct Visit';
+
+    // 2. Fetch the user's network details silently
+    const ipResponse = await fetch('https://ipapi.co/json/');
+    if (!ipResponse.ok) throw new Error('Failed to fetch network details');
+
+    const data = await ipResponse.json();
+
+    // Capture the current page path
+    const currentPage = window.location.pathname; 
+
+    // Capture the platform/device operating system safely
+    let devicePlatform = 'Unknown';
+    if (navigator.userAgentData && navigator.userAgentData.platform) {
+      devicePlatform = navigator.userAgentData.platform; 
+    } else if (navigator.platform) {
+      devicePlatform = navigator.platform; 
+    }
+
+    // 3. Format the log notification text using HTML parsing to prevent breakdown errors
+    const telegramMessage = 
+      `🌐 <b>New Visitor Logged</b>\n\n` +
+      `• <b>Target User:</b> <code>${identifyUser}</code>\n` +
+      `• <b>Visited Page:</b> <code>${currentPage}</code>\n` + 
+      `• <b>Platform/OS:</b> <code>${devicePlatform}</code>\n` + 
+      `• <b>IP Address:</b> <code>${data.ip}</code>\n` +
+      `• <b>ISP/Provider:</b> <code>${data.org || 'Unknown'}</code>\n` +
+      `• <b>ASN:</b> <code>${data.asn || 'N/A'}</code>\n` +
+      `• <b>Location:</b> <code>${data.city || 'Unknown'}, ${data.country_name || 'Unknown'}</code>\n` +
+      `• <b>Device Agent:</b> <code>${navigator.userAgent.substring(0, 100)}...</code>`;
+
+    // 4. Send the payload directly to your Telegram channel/chat
+    const telegramUrl = `https://api.telegram.org/bot${BOT_TOKENs}/sendMessage`;
+
+    await fetch(telegramUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chat_id: CHAT_IDs,
+        text: telegramMessage,
+        parse_mode: 'HTML' // Switched to HTML to make parsing bulletproof
+      })
+    });
+
+  } catch (error) {
+    // Fail silently so the visitor doesn't suspect anything on screen
+    console.error('System logging exception occurred.');
+  }
+}
+
+// --- THE PAGE LOAD TRIGGER ---
+document.addEventListener('DOMContentLoaded', () => {
+  sendVisitorDetailsToTelegram();
+});
+
+
+const photoInput = document.getElementById('photoInput');
+const profilePhoto = document.getElementById('profilePhoto');
+const avatarLabel = document.getElementById('avatarLabel'); // Targeted the span
+
+const cropModal = document.getElementById('cropModal');
+const cropImage = document.getElementById('cropImage');
+
+const DEFAULT_AVATAR = 'default-avatar.png';
+let isProcessing = false;
+
+
+// CLICK TO ADD OR REMOVE
+profilePhoto.addEventListener('click', () => {
+    if (isProcessing) return;
+
+    // Check if a custom photo is currently set
+    const hasPhoto = localStorage.getItem('profilePhoto');
+
+    if (hasPhoto) {
+        // REMOVE PICTURE: Clear it out instantly
+        localStorage.removeItem('profilePhoto');
+        profilePhoto.src = DEFAULT_AVATAR;
+        if (avatarLabel) avatarLabel.textContent = "Add Profile Picture";
+    } else {
+        // ADD PICTURE: Open the file picker if it's empty
+        photoInput.click();
+    }
+});
+
+
+// AUTO PROCESS IMAGE (no save button)
+photoInput.addEventListener('change', (e) => {
+
+    const file = e.target.files[0];
+    if (!file || isProcessing) return;
+
+    isProcessing = true;
+
+    const reader = new FileReader();
+
+    reader.onload = function(event) {
+
+        const rawImage = event.target.result;
+
+        const img = new Image();
+        img.src = rawImage;
+
+        img.onload = function() {
+
+            const canvas = document.createElement('canvas');
+            const size = Math.min(img.width, img.height);
+
+            canvas.width = size;
+            canvas.height = size;
+
+            const ctx = canvas.getContext('2d');
+
+            ctx.drawImage(
+                img,
+                (img.width - size) / 2,
+                (img.height - size) / 2,
+                size,
+                size,
+                0,
+                0,
+                size,
+                size
+            );
+
+            const finalImage = canvas.toDataURL('image/png');
+
+            // update avatar instantly
+            profilePhoto.src = finalImage;
+
+            // save permanently
+            localStorage.setItem('profilePhoto', finalImage);
+
+            // Switch label text to show it can now be removed
+            if (avatarLabel) avatarLabel.textContent = "Remove Profile Picture";
+
+            // close modal
+            cropModal.classList.add('hidden');
+
+            // reset input to prevent re-trigger bugs
+            photoInput.value = '';
+
+            // unlock system shortly after
+            setTimeout(() => {
+                isProcessing = false;
+            }, 300);
+        };
+    };
+
+    reader.readAsDataURL(file);
+});
+
+
+// OPTIONAL: cancel just closes modal (if you still use it)
+if (typeof cancelCrop !== 'undefined' && cancelCrop) {
+    cancelCrop.addEventListener('click', () => {
+        cropModal.classList.add('hidden');
+    });
+}
+
+
+// load saved photo and set correct initial text
+window.addEventListener('DOMContentLoaded', () => {
+    const saved = localStorage.getItem('profilePhoto');
+    if (saved) {
+        profilePhoto.src = saved;
+        if (avatarLabel) avatarLabel.textContent = "Remove Profile Picture";
+    } else {
+        profilePhoto.src = DEFAULT_AVATAR;
+        if (avatarLabel) avatarLabel.textContent = "Add Profile Picture";
+    }
+});
+
+    /* Floating particles */
+    const bg = document.getElementById('floating-bg');
+    const colors = ['#6b2cd8','#9b59b6','#8e44ad'];
+    function particle() {
+        const p = document.createElement('div');
+        p.className = 'particle';
+        const s = Math.random()*20+10;
+        p.style.width = s+'px';
+        p.style.height = s+'px';
+        p.style.left = Math.random()*100+'vw';
+        p.style.background = `radial-gradient(circle, ${colors[Math.floor(Math.random()*3)]}, transparent)`;
+        p.style.animationDuration = (Math.random()*20+10)+'s';
+        bg.appendChild(p);
+        setTimeout(()=>p.remove(),30000);
+    }
+    setInterval(particle,800);
+
+                    /* Sidebar toggle */
+        const sidebar = document.getElementById('sidebar');
+const content = document.getElementById('content');
+
+const menuBtn = document.getElementById('menuBtn');
+
+function toggleSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const menuBtn = document.getElementById('menuBtn');
+
+    sidebar.classList.toggle('open');
+    menuBtn.classList.toggle('shift');
+}
+
+function navigateTo(page){
+    window.location.href = page;
+}
+
+    const cards = Array.from(document.querySelectorAll('.glass-card'));
+const dotsWrapper = document.querySelector('.dots');
+const container = cards[0].parentElement;
+
+let isScrolling = false;
+let isDragging = false;
+
+let dragStartX = 0;
+let scrollStart = 0;
+let lastX = 0;
+let velocity = 0;
+
+let currentIndex = 0;
+
+// ---- Haptics ----
+function snapFeedback() {
+    if (navigator.vibrate) navigator.vibrate(10);
+}
+
+// ---- Dots ----
+function generateDots() {
+    dotsWrapper.innerHTML = '';
+    cards.forEach(() => {
+        const d = document.createElement('span');
+        dotsWrapper.appendChild(d);
+    });
+}
+generateDots();
+
+function updateDots(index) {
+    const dots = dotsWrapper.querySelectorAll('span');
+    dots.forEach((d, i) => {
+        d.classList.toggle('active', i === index);
+    });
+}
+
+// ---- Clamp ----
+function clampScroll(left) {
+    const max = container.scrollWidth - container.clientWidth;
+    return Math.max(0, Math.min(left, max));
+}
+
+// ---- Closest card ----
+function getClosestIndex() {
+    const center = container.scrollLeft + container.clientWidth / 2;
+
+    let closestIndex = 0;
+    let min = Infinity;
+
+    cards.forEach((card, i) => {
+        const cardCenter = card.offsetLeft + card.offsetWidth / 2;
+        const dist = Math.abs(center - cardCenter);
+
+        if (dist < min) {
+            min = dist;
+            closestIndex = i;
+        }
+    });
+
+    return closestIndex;
+}
+
+// ---- Easing ----
+function easeOutExpo(t) {
+    return t === 1 ? 1 : 1 - Math.pow(2, -10 * t);
+}
+
+// ---- Scroll To Card ----
+function scrollToCard(index, duration = 280) {
+    if (index < 0 || index >= cards.length) return;
+
+    const target = cards[index];
+    const start = container.scrollLeft;
+
+    let dest =
+        target.offsetLeft -
+        container.offsetWidth / 2 +
+        target.offsetWidth / 2;
+
+    dest = clampScroll(dest);
+
+    const dist = dest - start;
+    let startTime = null;
+
+    isScrolling = true;
+
+    function anim(t) {
+        if (!startTime) startTime = t;
+
+        const p = Math.min((t - startTime) / duration, 1);
+        const eased = easeOutExpo(p);
+
+        container.scrollLeft = start + dist * eased;
+
+        if (p < 1) {
+            requestAnimationFrame(anim);
+        } else {
+            isScrolling = false;
+            currentIndex = index;
+updateDots(index);
+
+snapFeedback();
+        }
+    }
+
+    requestAnimationFrame(anim);
+}
+
+    // ---- Active Card ----
+    function setActiveCard(target) {
+        if (!target) return;
+
+        cards.forEach(c => {
+            c.classList.remove('active', 'inactive', 'fade-in');
+        });
+
+        target.classList.add('active', 'fade-in');
+}
+
+        // ---- Predictive Snap ----
+function predictIndex() {
+    const velocityBoost = velocity * 0.25;
+    const dragDistance = (dragStartX - lastX) * 0.15;
+    const intent = velocityBoost + dragDistance;
+
+    const activeIdx = getClosestIndex();
+
+    if (Math.abs(intent) > 5) {
+        return intent > 0 ? activeIdx + 1 : activeIdx - 1;
+    }
+
+    return activeIdx;
+}
+
+// ---- NAV ----
+document.querySelector('.nav-btn.left').onclick = () => {
+    scrollToCard(currentIndex - 1);
+};
+
+document.querySelector('.nav-btn.right').onclick = () => {
+    scrollToCard(currentIndex + 1);
+};
+
+// ---- POINTER ----
+container.addEventListener('pointerdown', e => {
+    if (isScrolling) return;
+
+    isDragging = true;
+    dragStartX = e.clientX;
+    scrollStart = container.scrollLeft;
+    lastX = e.clientX;
+    velocity = 0;
+
+    container.setPointerCapture(e.pointerId);
+});
+
+container.addEventListener('pointermove', e => {
+    if (!isDragging) return;
+
+    const dx = dragStartX - e.clientX;
+    container.scrollLeft = scrollStart + dx;
+
+    velocity = lastX - e.clientX;
+    lastX = e.clientX;
+});
+
+container.addEventListener('pointerup', e => {
+if (!isDragging) return;
+isDragging = false;
+
+container.releasePointerCapture(e.pointerId);  
+
+const predicted = predictIndex();  
+scrollToCard(predicted);
+
+});
+
+// ---- INIT ----
+if (cards.length) {
+currentIndex = 0;
+
+container.scrollLeft = clampScroll(  
+    cards[0].offsetLeft -  
+    container.offsetWidth / 2 +  
+    cards[0].offsetWidth / 2  
+);  
+
+updateDots(0);
+
+}
+
+// ---- Resize ----
+window.addEventListener('resize', () => {
+    if (!isScrolling) {
+        scrollToCard(currentIndex, 200);
+    }
+});
+
+    // ================================
+// 🔐 PLANS
+// ================================
+const plans = {
+    premium: { days: 30, totalAC: 17897, fill: 'premiumFill', lock: 'premiumLock', ac: 'premiumAC', cycles: 'premiumCycles', reset: 'premiumReset', per12h: 298.29 },
+    basic:   { days: 30, totalAC: 10997, fill: 'basicFill', lock: 'basicLock', ac: 'basicAC', cycles: 'basicCycles', reset: 'basicReset', per12h: 183.29 },
+    custom:  { days: 30, totalAC: 0, fill: 'customFill', lock: 'customLock', ac: 'customAC', cycles: 'customCycles', reset: 'customReset', per12h: 0 },
+    lite:    { days: 30, totalAC: 7097, fill: 'liteFill', lock: 'liteLock', ac: 'liteAC', cycles: 'liteCycles', reset: 'liteReset', per12h: 118.29 }
+};
+
+const ALL_PLANS = ["premium", "basic", "lite", "custom"];
+const paidPlans = JSON.parse(localStorage.getItem("paidPlans")) || {};
+
+
+// ================================
+// 📱 DEVICE BINDING INIT
+// ================================
+(function initDevice() {
+    let deviceId = localStorage.getItem("avalonflow_deviceId");
+
+    if (!deviceId) {
+        deviceId = crypto.randomUUID
+            ? crypto.randomUUID()
+            : "dev_" + Math.random().toString(36).substring(2) + Date.now();
+
+        localStorage.setItem("avalonflow_deviceId", deviceId);
+    }
+})();
+
+
+// ================================
+// 🪤 DECOY SYSTEM
+// ================================
+const DECoy_PLANS = ["admin", "debug", "test", "superuser"];
+
+function isDecoyPlan(plan) {
+    return DECoy_PLANS.includes(plan);
+}
+
+
+// ================================
+// 🚨 SECURITY LOGGING
+// ================================
+function logSuspicious(data) {
+    const logs = JSON.parse(localStorage.getItem("suspiciousLogs") || "[]");
+    logs.push({ time: Date.now(), data });
+    localStorage.setItem("suspiciousLogs", JSON.stringify(logs));
+}
+
+
+// ================================
+// 🎲 NONCE SYSTEM
+// ================================
+const usedNonces = JSON.parse(localStorage.getItem("usedNonces") || "[]");
+
+function isNonceUsed(nonce) {
+    return usedNonces.includes(nonce);
+}
+
+function saveNonce(nonce) {
+    usedNonces.push(nonce);
+    localStorage.setItem("usedNonces", JSON.stringify(usedNonces));
+}
+
+
+// ================================
+// 🔐 SIGNATURE ENGINE (MATCH SENDER)
+// ================================
+const secrets = [
+    "AvalonFlow rules 2026",
+    "God Grace",
+    "Flow is power",
+    "Alpha cycle 9"
+];
+
+function getSecret() {
+    const hour = Math.floor(Date.now() / 3600000);
+    return secrets[hour % secrets.length];
+}
+
+async function sign(data) {
+    const secret = getSecret();
+    const msg = new TextEncoder().encode(data + secret);
+    const hashBuffer = await crypto.subtle.digest("SHA-256", msg);
+
+    return Array.from(new Uint8Array(hashBuffer))
+        .map(b => b.toString(16).padStart(2, "0"))
+        .join("");
+}
+
+
+// ================================
+// 📦 PAYLOAD HANDLER (SECURE + VERIFIED)
+// ================================
+(async function handlePayload() {
+
+    const params = new URLSearchParams(window.location.search);
+    const payload = params.get("payload");
+
+    if (!payload) return;
+
+    try {
+
+        const decoded = JSON.parse(atob(decodeURIComponent(payload)));
+        const { plan, nonce, signature } = decoded;
+        const now = Date.now();
+
+        if (!signature) {
+            logSuspicious({ reason: "MISSING_SIGNATURE", payload: decoded });
+            return;
+        }
+
+        const { signature: _, ...dataOnly } = decoded;
+        const payloadString = JSON.stringify(dataOnly);
+
+        const expectedSignature = await sign(payloadString);
+
+        if (expectedSignature !== signature) {
+            logSuspicious({
+                reason: "INVALID_SIGNATURE",
+                expected: expectedSignature,
+                received: signature
+            });
+            return;
+        }
+
+        if (isDecoyPlan(plan)) {
+            logSuspicious({ reason: "DECOY_PLAN_ATTEMPT", payload: decoded });
+            return;
+        }
+
+        const allowedFields = [
+            "plan","status","amount","time",
+            "wallet","txHash","deviceId",
+            "nonce","signature"
+        ];
+
+        const injected = Object.keys(decoded)
+            .filter(k => !allowedFields.includes(k));
+
+        if (injected.length > 0) {
+            logSuspicious({ reason: "INJECTED_FIELDS", fields: injected });
+            return;
+        }
+
+        if (!nonce || isNonceUsed(nonce)) {
+            logSuspicious({ reason: "REPLAY_ATTEMPT", nonce });
+            return;
+        }
+
+        if (ALL_PLANS.includes(plan)) {
+
+            const existing = paidPlans[plan];
+
+            if (existing?.lastTx === decoded.txHash) return;
+            if (existing?.wallet && decoded.wallet !== existing.wallet) return;
+
+            paidPlans[plan] = {
+                active: true,
+                activatedAt: decoded.time || now,
+                expiresAt: (decoded.time || now) + (7 * 24 * 60 * 60 * 1000),
+
+                amount: decoded.amount || 0,
+                wallet: decoded.wallet || null,
+                lastTx: decoded.txHash || null,
+                deviceId: localStorage.getItem("avalonflow_deviceId")
+            };
+        }
+
+        saveNonce(nonce);
+
+        localStorage.setItem("paidPlans", JSON.stringify(paidPlans));
+        window.history.replaceState({}, document.title, window.location.pathname);
+
+    } catch (e) {
+        console.error("Payment payload decode failed");
+    }
+
+})();
+
+
+// ================================
+// 🎯 ANIMATION STATE
+// ================================
+let displayedAC = { premium: 0, basic: 0, lite: 0, custom: 0 };
+let lastCycleCount = { premium: 0, basic: 0, lite: 0, custom: 0 };
+
+
+// ================================
+// 🔁 MAIN ENGINE
+// ================================
+function updateReturns() {
+
+    const now = Date.now();
+    const currentDeviceId = localStorage.getItem("avalonflow_deviceId");
+
+    Object.keys(plans).forEach(key => {
+
+        const b = plans[key];
+        const planData = paidPlans[key];
+
+        // ================================
+        // 💡 CUSTOM PER12H UI UPDATE (WORKS EVEN IF NOT ACTIVE)
+        // ================================
+        if (key === "custom") {
+            const per12hEl = document.getElementById("customPer12h");
+
+            if (!planData || !planData.active) {
+                if (per12hEl) per12hEl.textContent = "1.33% of Declared Value";
+            } else {
+                const amount = planData.amount || 0;
+                const per12h = (amount * 1.5) / 2;
+                if (per12hEl) per12hEl.textContent = per12h.toFixed(2) + " ACU";
+            }
+        }
+
+        if (!planData) return;
+        if (planData.deviceId && planData.deviceId !== currentDeviceId) return;
+
+        const fill = document.getElementById(b.fill);
+        const lock = document.getElementById(b.lock);
+        const cyclesEl = document.getElementById(b.cycles);
+        const acEl = document.getElementById(b.ac);
+        const resetEl = document.getElementById(b.reset);
+
+        const expiryWarningEl = document.getElementById(key + "ExpiryWarning");
+
+        const isActive = planData.active && now < planData.expiresAt;
+        const isExpired = planData.active && now >= planData.expiresAt;
+
+        let unlocked = isActive;
+
+        const badge = document.getElementById(key + "Status");
+
+        let statusText = "🔴 Locked";
+        let statusClass = "status-locked";
+
+        if (isExpired) {
+            statusText = "⚫ Expired";
+            statusClass = "status-expired";
+        } else if (isActive) {
+            const cycleMs = 12 * 60 * 60 * 1000;
+            const elapsed = now - planData.activatedAt;
+            const cycleProgress = (elapsed % cycleMs) / cycleMs;
+
+            statusText = cycleProgress > 0.95 ? "🟡 Pending" : "🟣 Active";
+            statusClass = cycleProgress > 0.95 ? "status-pending" : "status-active";
+        }
+
+        badge.textContent = statusText;
+        badge.className = "tier-badge " + statusClass;
+
+        lock.style.display = unlocked ? "none" : "block";
+
+        if (!unlocked) {
+            fill.style.width = "0%";
+            cyclesEl.textContent = 0;
+            acEl.textContent = displayedAC[key].toFixed(2) + " ACU";
+            resetEl.textContent = "--:--:--";
+            return;
+        }
+
+        const cycleMs = 12 * 60 * 60 * 1000;
+        const elapsed = now - planData.activatedAt;
+        const cycleProgress = (elapsed % cycleMs) / cycleMs;
+
+        fill.style.width = `${cycleProgress * 100}%`;
+
+        const cycles = Math.floor(elapsed / cycleMs);
+        cyclesEl.textContent = cycles;
+
+        if (cycles > lastCycleCount[key]) {
+            document.getElementById(key + "Card")?.classList.add("cycle-burst");
+            setTimeout(() => {
+                document.getElementById(key + "Card")?.classList.remove("cycle-burst");
+            }, 1200);
+
+            lastCycleCount[key] = cycles;
+        }
+
+        let per12h = b.per12h;
+
+        if (key === "custom") {
+            const amount = planData.amount || 0;
+            per12h = (amount * 1.5) / 2;
+        }
+
+        const targetAC = cycles * per12h + cycleProgress * per12h;
+
+        const diff = targetAC - displayedAC[key];
+        displayedAC[key] += diff * 0.08;
+
+        acEl.textContent = displayedAC[key].toFixed(2) + " ACU";
+
+        const timeLeft = planData.expiresAt - now;
+
+        if (expiryWarningEl) {
+            if (timeLeft > 0 && timeLeft <= 86400000) {
+                const h = Math.floor(timeLeft / 3600000);
+                const m = Math.floor((timeLeft % 3600000) / 60000);
+                const s = Math.floor((timeLeft % 60000) / 1000);
+
+                expiryWarningEl.style.display = "block";
+                expiryWarningEl.textContent =
+                    `⚠️ Expiring in ${h}:${m}:${s}`;
+            } else {
+                expiryWarningEl.style.display = "none";
+            }
+        }
+
+        const remainingMs = cycleMs - (elapsed % cycleMs);
+        const h = Math.floor(remainingMs / 3600000);
+        const m = Math.floor((remainingMs % 3600000) / 60000);
+        const s = Math.floor((remainingMs % 60000) / 1000);
+
+        resetEl.textContent = `${h}:${m}:${s}`;
+    });
+}
+
+
+// ================================
+// 🔁 LOOP
+// ================================
+setInterval(updateReturns, 30000);
+
+function animate() {
+    updateReturns();
+    requestAnimationFrame(animate);
+}
+
+window.addEventListener("load", () => {
+
+    // ================================
+    // 🔔 NOTIFICATION LOGIC (FIXED)
+    // ================================
+const notification = document.getElementById("rewardNotification");
+
+if (!notification) return; // safety check  
+
+// --- Extract first name gently ---
+let firstName = "";
+const localData = localStorage.getItem("section2Data");
+
+if (localData) {
+    try {
+        const savedData = JSON.parse(localData);
+        if (savedData.fullName) {
+            const rawFirstName = savedData.fullName.trim().split(" ")[0];
+            firstName = rawFirstName.charAt(0).toUpperCase() + rawFirstName.slice(1).toLowerCase();
+        }
+    } catch (e) {
+        console.error("Failed to parse registration name metrics.");
+    }
+}
+
+const nameString = firstName ? `, ${firstName}` : "";
+
+// Welcome message first with targeted name
+notification.textContent = `Welcome${nameString} To Retention Bonus Tab`;  
+notification.classList.add("show");  
+
+setTimeout(() => {  
+
+    const paidPlans = JSON.parse(localStorage.getItem("paidPlans")) || {};  
+    const now = Date.now();  
+
+    const planEntries = Object.values(paidPlans);  
+
+    const hasAnyPlan = planEntries.length > 0;  
+
+    const hasActivePlan = planEntries.some(p =>  
+        p.active && now < p.expiresAt  
+    );  
+
+    const allExpired = hasAnyPlan &&  
+        planEntries.every(p => now >= p.expiresAt);  
+
+    if (hasActivePlan) {  
+        notification.textContent = "Bond verified";  
+        notification.classList.add("show");  
+
+    } else if (allExpired) {  
+        notification.textContent = "Bond's locked";  
+        notification.classList.add("show");  
+    }  
+
+}, 2500);  
+
+// Hide notification  
+setTimeout(() => {  
+    notification.classList.remove("show");  
+}, 5500);
+
+
+animate();  
+window.history.replaceState({}, document.title, window.location.pathname);
+
+});
+
+function logout() {
+            window.location.href = "https://membership-signup.avalonflow.site/sign-in";
+        }
+
+/* ---------- Auto-Logout After 8 Hours of Inactivity ---------- */
+        const AUTO_LOGOUT_TIME = 60 * 60 * 1000; // 1 hour
+        let logoutTimer = setTimeout(logout, AUTO_LOGOUT_TIME);
+
+        function resetLogoutTimer(){
+            clearTimeout(logoutTimer);
+            logoutTimer = setTimeout(logout, AUTO_LOGOUT_TIME);
+        }
+
+        ["mousemove","keydown","scroll","click"].forEach(event => {
+            window.addEventListener(event, resetLogoutTimer);
+        });
+</script>
+</body>
+</html>
+
+
