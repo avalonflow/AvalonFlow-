@@ -1041,104 +1041,103 @@ function setupPasswordSystem(passwordId, confirmId) {
     createBars("strength-meter-confirm");
 
     /* =========================
-   INPUT SYNC SYSTEM
-========================= */
-if (typeof password !== 'undefined' && typeof confirmPassword !== 'undefined') {
+       INPUT SYNC SYSTEM
+    ========================= */
     password.addEventListener("input", handleSync);
-    confirmPassword.addEventListener("input", handleSync);
-}
+    confirm.addEventListener("input", handleSync);
 
-function handleSync() {
+    function handleSync() {
 
-    const passwordValue = password.value;
-    const confirmValue = confirmPassword.value;
+        const passwordValue = password.value;
+        const confirmValue = confirm.value;
 
-    const passwordScore = typeof calculateStrength === 'function' ? calculateStrength(passwordValue) : 0;
-    const confirmScore = typeof calculateStrength === 'function' ? calculateStrength(confirmValue) : 0;
+        const passwordScore = calculateStrength(passwordValue);
+        const confirmScore = calculateStrength(confirmValue);
 
-    const passwordMeter = document.getElementById("strength-meter-password");
-    const passwordLabel = document.getElementById("strength-label-password");
+        const passwordMeter = document.getElementById("strength-meter-password");
+        const passwordLabel = document.getElementById("strength-label-password");
 
-    const confirmMeter = document.getElementById("strength-meter-confirm");
-    const confirmLabel = document.getElementById("strength-label-confirm");
+        const confirmMeter = document.getElementById("strength-meter-confirm");
+        const confirmLabel = document.getElementById("strength-label-confirm");
 
-    /* PASSWORD LABEL */
-    if (passwordLabel) {
+        /* PASSWORD LABEL */
+        if (passwordLabel) {
 
-        if (passwordValue.length === 0) {
-            passwordLabel.textContent = "";
-        }
-
-        else if (passwordScore <= 1) {
-            passwordLabel.textContent = "Weak";
-        }
-
-        else if (passwordScore === 2) {
-            passwordLabel.textContent = "Medium";
-        }
-
-        else {
-            passwordLabel.textContent = "Strong";
-        }
-    }
-
-    /* PASSWORD METER */
-    if (passwordMeter) {
-        renderBars(passwordMeter, passwordScore);
-    }
-
-    /* CONFIRM EMPTY RESET */
-    if (confirmValue.length === 0) {
-
-        if (confirmLabel) {
-            confirmLabel.textContent = "";
-        }
-
-        if (confirmMeter) {
-            renderBars(confirmMeter, 0);
-        }
-
-        return;
-    }
-
-    const mismatch = confirmValue !== passwordValue;
-
-    /* MISMATCH STATE */
-    if (mismatch) {
-
-        if (confirmLabel) {
-            confirmLabel.textContent = "Doesn't match password";
-            confirmLabel.style.color = "#ff4d4d";
-        }
-
-        if (confirmMeter) {
-
-            const bars = confirmMeter.querySelectorAll("div");
-
-            for (let i = 0; i < bars.length; i++) {
-                bars[i].style.opacity = "0.25";
-            }
-        }
-
-    } else {
-
-        if (confirmLabel) {
-
-            if (confirmScore <= 1) {
-                confirmLabel.textContent = "Weak";
+            if (passwordValue.length === 0) {
+                passwordLabel.textContent = "";
             }
 
-            else if (confirmScore === 2) {
-                confirmLabel.textContent = "Medium";
+            else if (passwordScore <= 1) {
+                passwordLabel.textContent = "Weak";
+            }
+
+            else if (passwordScore === 2) {
+                passwordLabel.textContent = "Medium";
             }
 
             else {
-                confirmLabel.textContent = "Strong";
+                passwordLabel.textContent = "Strong";
             }
         }
 
-        if (confirmMeter) {
-            renderBars(confirmMeter, confirmScore);
+        /* PASSWORD METER */
+        if (passwordMeter) {
+            renderBars(passwordMeter, passwordScore);
+        }
+
+        /* CONFIRM EMPTY RESET */
+        if (confirmValue.length === 0) {
+
+            if (confirmLabel) {
+                confirmLabel.textContent = "";
+            }
+
+            if (confirmMeter) {
+                renderBars(confirmMeter, 0);
+            }
+
+            return;
+        }
+
+        const mismatch = confirmValue !== passwordValue;
+
+        /* MISMATCH STATE */
+        if (mismatch) {
+
+            if (confirmLabel) {
+                confirmLabel.textContent = "Doesn't match password";
+                confirmLabel.style.color = "#ff4d4d";
+            }
+
+            if (confirmMeter) {
+
+                const bars = confirmMeter.querySelectorAll("div");
+
+                for (let i = 0; i < bars.length; i++) {
+                    bars[i].style.opacity = "0.25";
+                }
+            }
+
+        } else {
+
+            if (confirmLabel) {
+
+                if (confirmScore <= 1) {
+                    confirmLabel.textContent = "Weak";
+                }
+
+                else if (confirmScore === 2) {
+                    confirmLabel.textContent = "Medium";
+                }
+
+                else {
+                    confirmLabel.textContent = "Strong";
+                }
+            }
+
+            if (confirmMeter) {
+                renderBars(confirmMeter, confirmScore);
+            }
         }
     }
 }
@@ -1297,45 +1296,36 @@ console.log("Auto-detect failed:", err);
 /* =========================
 RESTORE SAVED DATA
 ========================= */
-setTimeout(function () {
-const localData = localStorage.getItem("section2Data");
-if (!localData) return;
 
-const savedData = JSON.parse(localData);
+
+setTimeout(function () {
 
 if (savedData.location && window.jQuery) {
 $('#location').val(savedData.location).trigger('change');
 }
 
-if (savedData.fullName && typeof fullName !== 'undefined') {
+if (savedData.fullName) {
 fullName.value = savedData.fullName;
 }
 
-if (savedData.email && typeof email !== 'undefined') {
+if (savedData.email) {
 email.value = savedData.email;
 }
 
-if (savedData.password && typeof password !== 'undefined') {
+if (savedData.password) {
 password.value = savedData.password;
 }
 
-if (savedData.confirmPassword && typeof confirmPassword !== 'undefined') {
+if (savedData.confirmPassword) {
 confirmPassword.value = savedData.confirmPassword;
 }
 
 if (savedData.experience) {
 experience = savedData.experience;
-document.querySelectorAll(".option-btn").forEach(function (btn) {
-    if (btn.dataset.value === experience) {
-        btn.classList.add("active");
-    }
-});
 }
 
-if (typeof password !== 'undefined' && typeof confirmPassword !== 'undefined') {
 password.dispatchEvent(new Event("input"));
 confirmPassword.dispatchEvent(new Event("input"));
-}
 
 }, 500);
 
@@ -1448,8 +1438,8 @@ if (nextBtn) {
     nextBtn.onclick = function () {
 
         let hasError = false;
-        const locationEl = document.getElementById('location');
-        const locationValue = window.jQuery ? $('#location').val() : locationEl?.value;
+
+        const locationValue = window.jQuery ? $('#location').val() : locationEl.value;
 
         const fields = [
             { el: fullName },
@@ -1459,7 +1449,7 @@ if (nextBtn) {
         ];
 
         fields.forEach(function (field) {
-            if (!field.el) return;
+
             const value = field.el.value.trim();
 
             if (!value) {
@@ -1477,7 +1467,7 @@ if (nextBtn) {
             }
         });
 
-        if (password && confirmPassword && password.value !== confirmPassword.value) {
+        if (password.value !== confirmPassword.value) {
             hasError = true;
         }
 
@@ -1517,7 +1507,6 @@ BLOCK AFTER SUBMISSION
 if (localStorage.getItem('membershipConfirmed') === 'true') {
     window.location.href = "https://membership.avalonflow.site/signin";
 }
-
 </script>
 </body>
 </html>
