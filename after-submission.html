@@ -5,9 +5,17 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Signup Completion</title>
 
-      <!-- Favicon as .ico -->
-<link rel="icon" href="/favicon.png" type="image/png" sizes="48x48">
+              <!-- Favicon -->
+<link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=3">
+<link rel="icon" type="image/x-icon" href="/favicon.ico?v=3">
 
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png?v=3">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png?v=3">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=3">
+
+<link rel="icon" type="image/png" sizes="192x192" href="/android-chrome-192x192.png?v=3">
+<link rel="icon" type="image/png" sizes="512x512" href="/android-chrome-512x512.png?v=3">
+<link rel="manifest" href="/manifest.json?v=3">
         <!-- Structured Data for Logo -->
     <script type="application/ld+json">
     {
@@ -167,6 +175,7 @@
             padding: 12px 18px;
             border-radius: 12px;
             font-size: 14px;
+font-weight: bold;
             box-shadow: 0 6px 18px rgba(0,0,0,0.25);
             transition: top 0.5s ease, opacity 0.5s ease;
             z-index: 9999;
@@ -337,7 +346,7 @@ header .logo-card img {
   
 <div class="thank-you-card">
   <h2>Thank You for Joining Us!</h2>
-  <p>Redirecting to Sign-in to verify your AvalonCare dashboard.</p>
+  <p>Redirecting to Signin your 🪽 AvalonCare dashboard.</p>
 </div>
 
 <footer>
@@ -394,11 +403,11 @@ setTimeout(function () {
         }
 
         // Just redirect to login page
-        window.location.href = "https://link.avalonflow.site/signin";
+        window.location.href = "https://membership.avalonflow.site/signin";
 
     } catch (e) {
         console.error("Invalid section2Data", e);
-        window.location.href = "https://link.avalonflow.site/signup";
+        window.location.href = "https://membership.avalonflow.site/signup";
     }
 
 }, 6000);
@@ -406,7 +415,7 @@ setTimeout(function () {
         /* ---------- Notification ---------- */
         window.addEventListener("load", () => {
             const notification = document.getElementById("planNotification");
-            notification.textContent = "Hang tight! Redirecting you in 5 seconds.";
+            notification.textContent = "Hang tight! Redirecting you in 5 seconds";
             setTimeout(() => notification.classList.add("show"), 300);
             setTimeout(() => notification.classList.remove("show"), 3300);
         });
