@@ -126,25 +126,6 @@ a { color: inherit; text-decoration: none; }
   box-shadow: 0 0 18px rgba(107,44,216,0.5); /* purple glow on hover */
 }
 
-/* Continuous shimmer + purple glow on all cards */
-.payment-method.active::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -75%;
-    width: 50%;
-    height: 100%;
-    background: linear-gradient(
-      120deg,
-      rgba(255,255,255,0) 0%,
-      rgba(255,255,255,0.15) 50%,
-      rgba(255,255,255,0) 100%
-    );
-    transform: skewX(-20deg);
-    animation: shimmer 1.5s infinite;
-    pointer-events: none;
-    z-index: 2;
-}
 
 /* Glow around card (pulsing purple) */
 .payment-method::before {
@@ -160,12 +141,6 @@ a { color: inherit; text-decoration: none; }
     animation: glowPulse 2.5s ease-in-out infinite;
     pointer-events: none;
     z-index: 1;
-}
-
-@keyframes shimmer {
-    0% { left: -75%; }
-    50% { left: 125%; }
-    100% { left: 125%; }
 }
 
 @keyframes glowPulse {
@@ -194,7 +169,7 @@ a { color: inherit; text-decoration: none; }
   border-radius: 12px;
   border: none;
   background: rgba(255,255,255,0.15);
-  color: #fff;
+  color: #160a2c;
 /* FIX */
   box-sizing: border-box;
 }
@@ -220,7 +195,7 @@ a { color: inherit; text-decoration: none; }
     padding:0;
 }
 
-    input { width:100%; padding:14px; margin-top:10px; border-radius:12px; border:none; background:rgba(255,255,255,0.15); color:#fff; }
+    input { width:100%; padding:14px; margin-top:10px; border-radius:12px; border:none; background:rgba(255,255,255,0.15); color:#160a2c; }
 
     button {
         padding: 12px 24px;
@@ -228,7 +203,7 @@ a { color: inherit; text-decoration: none; }
         border: none;
         font-weight: bold;
         background: rgba(107,44,216,0.6);
-        color: #fff;
+        color: #160a2c;
         cursor: pointer;
     }
 
