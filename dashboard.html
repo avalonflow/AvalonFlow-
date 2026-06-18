@@ -198,23 +198,31 @@ margin-top: -60px;
   flex-wrap: wrap; /* allows wrapping on smaller screens */
 }
 
-/* ---------- Hero Card (Total ACU) ---------- */
+/* ---------- Hero Card (Available Balance) ---------- */
 .hero-card {
-  flex: 2 1 400px; /* larger than stat cards */
+  flex: 2 1 400px;
   min-width: 260px;
   text-align: center;
+  
+  /* Force internal contents to center align perfectly */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
 }
 
-/* Total ACU title purple */
+/* Available Balance title styling */
 .hero-card h2 {
   color: #a78bfa; /* purple */
   font-size: 16px;
   margin: 0 0 8px 0;
+  width: 100%;    /* Ensures text-align: center uses the full card width */
+  text-align: center;
 }
 
 /* ---------- Small Stat Cards ---------- */
 .stat-card {
-  flex: 1 1 180px; /* smaller than hero, flexible width */
+  flex: 1 1 180px; 
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -222,9 +230,21 @@ margin-top: -60px;
   text-align: center;
 }
 
+.stat-card h4 {
+  color: #a78bfa; 
+  margin-bottom: 8px;
+}
+
 .stat-card h3 {
   color: #a78bfa; 
   margin-bottom: 8px;
+  
+  /* FIX: Forces text to stay in a straight, single line */
+  white-space: nowrap; 
+  width: 100%;
+  
+  /* Fluid text: Scales nicely, but won't shrink past 14px or grow past 24px */
+  font-size: clamp(14px, 3.5vw, 24px);
 }
 
 .stat {
@@ -232,6 +252,7 @@ margin-top: -60px;
   font-weight: 600;
   color: #a78bfa;
 }
+
 
 /* =========================
 TOP RIGHT PROFILE POSITION
@@ -666,11 +687,11 @@ CROP MODAL
     </div>
 
     <div class="glass-card stat-card">
-      <h3>Active Bonds</h3>
+      <h4>Active Bonds</h4>
       <div class="stat" id="activePlans">1</div>
     </div>
 
-    <div class="glass-card hero-card">
+    <div class="glass-card stat-card">
       <h3>Retention Bonus</h3>
       <div class="stat">26,779.97 ACU ~ $26,779.97</div>
     </div>
