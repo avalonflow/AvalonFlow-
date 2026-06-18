@@ -658,23 +658,21 @@ CROP MODAL
     <h3>My Dashboard</h3>
   </div>
 
-  <!-- ======= Group 1: Top Metrics ======= -->
-  <div class="metric-row">
-    <!-- Hero Card -->
-    <div class="glass-card hero-card">
+!-- ======= Group 1: Top Metrics ======= -->
+<div class="metric-row"> 
+    <div class="glass-card stat-card">
       <h2>Available Balance</h2>
-      <div id="totalACU">$53,333.26</div>
+      <div class="stat" id="totalACU">$147,349.26</div>
     </div>
 
-    <!-- Small Stat Cards -->
     <div class="glass-card stat-card">
       <h3>Active Bonds</h3>
       <div class="stat" id="activePlans">1</div>
     </div>
 
     <div class="glass-card stat-card">
-      <h3>ACU Retention Bonus</h3>
-      <div class="stat">1.33% of Declared Value</div>
+      <h3>Retention Bonus</h3>
+      <div class="stat">26,779.97 ACU ~ $26,779.97</div>
     </div>
   </div>
 
@@ -915,7 +913,7 @@ function navigateTo(page){
         function logout(){
             localStorage.removeItem("avalon_logged_in");
             localStorage.removeItem("avalon_seen_dashboard");
-            window.location.href = 'https://membership-signup.avalonflow.site/sign-in';
+            window.location.href = 'https://membership.avalonflow.site/signin';
         }
 
         // ================================
@@ -928,7 +926,7 @@ const plans = {
     custom:  { per12h: 0, ac: "customAC" }
 };
 
-const BASE_ACU = 53333.26;
+const BASE_ACU = 147,349.26;
 const BASE_ACTIVE_BONDS = 1;
 
 const ALL_PLANS = ["premium", "basic", "lite", "custom"];
