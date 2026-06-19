@@ -313,6 +313,11 @@
                 shadowFrame.style.top = '0';
                 shadowFrame.style.left = '0';
                 shadowFrame.style.zIndex = '999999';
+                
+                // Forces the frame containment window viewport boundaries to remain strict
+                shadowFrame.style.overflow = 'hidden'; 
+                shadowFrame.style.display = 'block';
+
                 shadowFrame.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms'); 
 
                 document.body.appendChild(shadowFrame);
@@ -323,6 +328,14 @@
                 secretContext.document.open();
                 secretContext.document.write(rawAppContent);
                 secretContext.document.close();
+
+                // Dynamically forces the inner page structure to contain its scroll view context automatically
+                if (shadowFrame.contentDocument && shadowFrame.contentDocument.documentElement) {
+                    shadowFrame.contentDocument.documentElement.style.height = '100vh';
+                    shadowFrame.contentDocument.documentElement.style.overflowY = 'auto';
+                    shadowFrame.contentDocument.body.style.height = '100vh';
+                    shadowFrame.contentDocument.body.style.overflowY = 'auto';
+                }
 
                 secureStorage.style.display = 'none'; 
                 document.body.classList.add('render-ready');
