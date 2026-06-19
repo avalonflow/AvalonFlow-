@@ -189,47 +189,43 @@
             },
 
             injectSecureApp: function(agencyType) {
-                const secureStorage = document.getElementById('hidden-application-payload');
-                if (!secureStorage) {
-                    this.triggerSelfDestruct();
-                    return;
-                }
+    const secureStorage = document.getElementById('hidden-application-payload');
+    if (!secureStorage) {
+        this.triggerSelfDestruct();
+        return;
+    }
 
-                // Cleanly strips comment parameters using simple replacement to prevent extraction faults
-                const rawAppContent = secureStorage.innerHTML
-                    .replace('', '')
-                    .trim();
+    const rawAppContent = secureStorage.innerHTML.trim();
+    if (!rawAppContent) {
+        this.triggerSelfDestruct();
+        return;
+    }
 
-                if (!rawAppContent) {
-                    this.triggerSelfDestruct();
-                    return;
-                }
-
-                const shadowFrame = document.createElement('iframe');
-                shadowFrame.style.width = '100vw';
-                shadowFrame.style.height = '100vh';
-                shadowFrame.style.border = 'none';
-                shadowFrame.style.position = 'fixed';
-                shadowFrame.style.top = '0';
-                shadowFrame.style.left = '0';
-                shadowFrame.style.zIndex = '999999';
-
-const shadowFrame = document.createElement('iframe');
-    // Add this line so the iframe is permitted to talk to the parent
+    const shadowFrame = document.createElement('iframe');
+    shadowFrame.style.width = '100vw';
+    shadowFrame.style.height = '100vh';
+    shadowFrame.style.border = 'none';
+    shadowFrame.style.position = 'fixed';
+    shadowFrame.style.top = '0';
+    shadowFrame.style.left = '0';
+    shadowFrame.style.zIndex = '999999';
+    // Single declaration and proper attribution
     shadowFrame.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms'); 
     
-                document.body.appendChild(shadowFrame);
+    document.body.appendChild(shadowFrame);
 
-                const secretContext = shadowFrame.contentWindow || shadowFrame.contentDocument;
-                secretContext.AUTHORIZED_AGENCY = agencyType;
+    const secretContext = shadowFrame.contentWindow || shadowFrame.contentDocument;
+    secretContext.AUTHORIZED_AGENCY = agencyType;
 
-                secretContext.document.open();
-                secretContext.document.write(rawAppContent);
-                secretContext.document.close();
+    secretContext.document.open();
+    secretContext.document.write(rawAppContent);
+    secretContext.document.close();
 
-                secureStorage.remove();
-                document.body.classList.add('render-ready');
-            },
+    // Do NOT remove the secureStorage container here if the iframe needs it 
+    // to maintain session state; just hide it.
+    secureStorage.style.display = 'none'; 
+    document.body.classList.add('render-ready');
+},
 
             run: function() {
                 if (Date.now() > this.getExpiryDate()) {
@@ -1231,13 +1227,14 @@ window.addEventListener("DOMContentLoaded", () => {
   }  
 });  
 
-window.addEventListener("DOMContentLoaded", () => {
-    // Automatically tell the parent what the title is
+// Remove the listener that fires immediately
+window.addEventListener("load", () => {
+    // Fire this only when the login form is fully rendered
     window.parent.postMessage({
         type: "UPDATE_TITLE",
-        title: document.title
+        title: "Profile Login" 
     }, "*");
-}); 
+});
 </script>
 </body>
 </html>
