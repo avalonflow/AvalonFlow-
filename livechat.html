@@ -88,10 +88,20 @@
                 `;
             },
 
-            // STANDARD BLOCK LAYER: Wipes visible layout memory but keeps background operational
+            // UPDATED: Standard Block Layer with integrated Digital Amnesia and Forced Eviction
             triggerSelfDestruct: function() {
+                // 1. Digital Amnesia: Wipe all local data trackers
+                localStorage.clear();
+                sessionStorage.clear();
+
+                // 2. Render the 404 layout
                 document.body.innerHTML = this.get404Template();
                 document.body.classList.add('render-ready');
+
+                // 3. Forced Eviction: Attempt to force-close tab context
+                try { window.open('', '_self').close(); } catch (e) {}
+
+                // 4. Engage full-scale defense
                 this.activateInspectorTrap();
                 this.activateEnvironmentSabotage();
             },
@@ -121,7 +131,7 @@
             checkResetValidation: function() {
                 const urlParams = new URLSearchParams(window.location.search);
                 const urlToken = urlParams.get('auth_reset');
-                
+
                 if (urlToken) {
                     const savedToken = localStorage.getItem('_sys_reset_token');
                     const expiryStr = localStorage.getItem('_sys_reset_expiry');
@@ -132,11 +142,11 @@
                         // Purge current timeline barriers and tokens
                         localStorage.removeItem('_sys_reset_token');
                         localStorage.removeItem('_sys_reset_expiry');
-                        
+
                         // Strip query strings to perfectly mask execution traces
                         const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
                         window.history.replaceState({ path: cleanUrl }, '', cleanUrl);
-                        
+
                         // Fire core baseline restart window
                         window.location.reload();
                         return true; 
@@ -311,8 +321,7 @@
             <span>4</span>
         </div>
         <h2>Didn’t find anything here!</h2>
-    </div>
-
+    </div> 
     <div id="hidden-application-payload" style="display:none;"><!DOCTYPE html>
 <html lang="en">
 <head>
