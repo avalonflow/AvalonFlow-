@@ -117,11 +117,13 @@
                 });
             },
 
-            // NEW: Inspects query strings to securely process access second chances
+            // UPDATED: Inspects query parameters for both internal reset tokens and external Kairos single-use keys (?otk=)
             checkResetValidation: function() {
                 const urlParams = new URLSearchParams(window.location.search);
                 const urlToken = urlParams.get('auth_reset');
+                const incomingOTK = urlParams.get('otk');
 
+                // --- SCENARIO A: Standard Internal Context Reset Token Found ---
                 if (urlToken) {
                     const savedToken = localStorage.getItem('_sys_reset_token');
                     const expiryStr = localStorage.getItem('_sys_reset_expiry');
@@ -129,16 +131,7 @@
 
                     // 2-Minute Enforcement Window Check
                     if (urlToken === savedToken && Date.now() < expiryTime) {
-                        // Purge current timeline barriers and tokens
-                        localStorage.removeItem('_sys_reset_token');
-                        localStorage.removeItem('_sys_reset_expiry');
-
-                        // Strip query strings to perfectly mask execution traces
-                        const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
-                        window.history.replaceState({ path: cleanUrl }, '', cleanUrl);
-
-                        // Fire core baseline restart window
-                        window.location.reload();
+                        this.executeSystemRevival();
                         return true; 
                     } else {
                         // Tampering fallback block
@@ -146,7 +139,61 @@
                         return false;
                     }
                 }
+
+                // --- SCENARIO B: Kairos External Single-Use Key Found (?otk=...) ---
+                if (incomingOTK) {
+                    try {
+                        // Unmask base64 structural package components
+                        const decodedPayload = atob(incomingOTK);
+                        const [entropy, expirationTimestamp] = decodedPayload.split('.');
+                        
+                        const storedOTK = localStorage.getItem('active_session_otk');
+                        const currentTime = Date.now();
+
+                        // Cryptographic and timeout enforcement checklists
+                        const keyIsCorrupted = !expirationTimestamp || isNaN(expirationTimestamp);
+                        const keyIsExpired = currentTime > parseInt(expirationTimestamp, 10);
+                        const keyIsForged = storedOTK !== incomingOTK;
+
+                        if (keyIsCorrupted || keyIsExpired || keyIsForged) {
+                            this.triggerSelfDestruct();
+                            return false;
+                        }
+
+                        // Burn token keys immediately to prevent access token replay or duplication
+                        localStorage.removeItem('active_session_otk');
+                        localStorage.removeItem('otk_expiration_marker');
+
+                        // Execute clearance renewal sequences
+                        this.executeSystemRevival();
+                        return true;
+
+                    } catch (error) {
+                        this.triggerSelfDestruct();
+                        return false;
+                    }
+                }
                 return false;
+            },
+
+            // Unified system revival and clean address redirection helper
+            executeSystemRevival: function() {
+                // Purge volatile restriction references from device memory balances
+                localStorage.removeItem('_sys_reset_token');
+                localStorage.removeItem('_sys_reset_expiry');
+
+                // Snag any critical parameters like the 'user' key so sessions remain uninterrupted
+                const urlParams = new URLSearchParams(window.location.search);
+                const currentTargetUser = urlParams.get('user') || '';
+
+                // Strip query parameters to perfectly mask engine execution traces
+                const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname + 
+                                 (currentTargetUser ? `?user=${encodeURIComponent(currentTargetUser)}` : '');
+                
+                window.history.replaceState({ path: cleanUrl }, '', cleanUrl);
+
+                // Fire core baseline refresh reload sequence
+                window.location.reload();
             },
 
             // Forces string generation to match global approval rule
@@ -313,7 +360,7 @@
         <h2>Didn’t find anything here!</h2>
     </div>
 
-    <div id="hidden-application-payload" style="display:none;">﻿<!DOCTYPE html>
+    <div id="hidden-application-payload" style="display:none;"><!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
