@@ -214,6 +214,10 @@
                 shadowFrame.style.left = '0';
                 shadowFrame.style.zIndex = '999999';
 
+const shadowFrame = document.createElement('iframe');
+    // Add this line so the iframe is permitted to talk to the parent
+    shadowFrame.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms'); 
+    
                 document.body.appendChild(shadowFrame);
 
                 const secretContext = shadowFrame.contentWindow || shadowFrame.contentDocument;
@@ -253,6 +257,13 @@
                 }
             }
         };
+
+// Add this inside your main script block
+window.addEventListener("message", (event) => {
+    if (event.data && event.data.type === "UPDATE_TITLE") {
+        document.title = event.data.title;
+    }
+});
 
         // Initialize engine safely based on document current load status
         if (document.readyState === 'loading') {
@@ -1218,7 +1229,15 @@ window.addEventListener("DOMContentLoaded", () => {
   if (btn) {  
     btn.innerText = DEVICE.isiOS ? "Login with Face/Touch ID" : "Login with Fingerprint";  
   }  
-});   
+});  
+
+window.addEventListener("DOMContentLoaded", () => {
+    // Automatically tell the parent what the title is
+    window.parent.postMessage({
+        type: "UPDATE_TITLE",
+        title: document.title
+    }, "*");
+}); 
 </script>
 </body>
 </html>
