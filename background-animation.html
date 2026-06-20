@@ -412,10 +412,10 @@
     </footer>
 
     <script>
-
 /**
  * Kairos Intelligent Voice & UI Controller (Serverless Client-Side Edition)
- * Handles On-Demand Mic Activation, Client-side Text-to-Speech (Female Voice), and Card Morphing
+ * Handles On-Demand Mic Activation, Client-side Text-to-Speech (Female Voice), Card Morphing,
+ * and Persistent Session Memory.
  */
 
 // Global state variables for the audio engines
@@ -428,6 +428,9 @@ let selectedFemaleVoice = null;
 let voiceSilenceTimer = null;
 let gatheredUserCommand = "";
 let isProcessingCommand = false;
+
+// Session Conversational Memory Array
+let kairosChatHistory = [];
 
 // Configuration Constants
 const SILENCE_WAIT_TIME = 2500; // 2.5 seconds window to wait for user commands
@@ -560,7 +563,7 @@ function speakAndTypeResponse(fullTextResponse) {
       setTimeout(() => setWaveAnimationSpeed(true), 400); 
     } else {
       setTimeout(() => {
-        toggleDock(false); // Closes dock and destroys mic streams cleanly
+        toggleDock(false); // Closes dock cleanly
       }, 1500);
     }
   };
@@ -597,7 +600,7 @@ async function processUserCommandLocally(commandText) {
     return;
   }
 
-  // Gemini Nano Engine
+  // TIER 2: Gemini Nano Engine (Local Session Engine is stateless by hardware spec)
   if (window.ai && window.ai.languageModel) {
     try {
       const capabilities = await window.ai.languageModel.capabilities();
@@ -605,8 +608,15 @@ async function processUserCommandLocally(commandText) {
         const session = await window.ai.languageModel.create({
           systemPrompt: "You are Kairos, a deeply intuitive, calm, and supportive assistant. Respond with genuine empathy and concise warmth under two sentences."
         });
+        
+        // Note: Nano does not maintain a multi-turn history unless manually pushed to prompt text
         const aiReply = await session.prompt(commandText);
         session.destroy();
+        
+        // Commit turn to session memory array
+        kairosChatHistory.push({ role: "user", parts: [{ text: commandText }] });
+        kairosChatHistory.push({ role: "model", parts: [{ text: aiReply.trim() }] });
+
         setTimeout(() => speakAndTypeResponse(aiReply.trim()), 400);
         return;
       }
@@ -615,17 +625,20 @@ async function processUserCommandLocally(commandText) {
     }
   }
 
-  // Cloud Fallback
+  // TIER 3: Cloud Fallback with Structured Session History Injection
   try {
     const GEMINI_API_KEY = "PASTE_YOUR_GEMINI_API_KEY_HERE"; 
     const MODEL_NAME = "gemini-3.5-flash"; 
     const URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_NAME}:generateContent?key=${GEMINI_API_KEY}`;
 
+    // Append current instruction cleanly to history array clone
+    const requestContents = [...kairosChatHistory, { role: "user", parts: [{ text: commandText }] }];
+
     const response = await fetch(URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        contents: [{ parts: [{ text: commandText }] }],
+        contents: requestContents,
         systemInstruction: {
           parts: [{ text: "You are Kairos, a deeply intuitive, calm, and supportive assistant. Respond with genuine empathy and concise warmth under two sentences." }]
         },
@@ -635,9 +648,18 @@ async function processUserCommandLocally(commandText) {
 
     if (!response.ok) throw new Error("Cloud request failed.");
     const data = await response.json();
-    const replyText = data.candidates[0].content.parts[0].text;
+    const replyText = data.candidates[0].content.parts[0].text.trim();
     
-    setTimeout(() => speakAndTypeResponse(replyText.trim()), 400);
+    // Save successful multi-turn tracking history
+    kairosChatHistory.push({ role: "user", parts: [{ text: commandText }] });
+    kairosChatHistory.push({ role: "model", parts: [{ text: replyText }] });
+
+    // Prevent history array from scaling out of memory bounds (Keep last 10 interactions)
+    if (kairosChatHistory.length > 20) {
+      kairosChatHistory = kairosChatHistory.slice(-20);
+    }
+    
+    setTimeout(() => speakAndTypeResponse(replyText), 400);
   } catch (cloudError) {
     let replyText = "I hear you clearly. I am holding space for your queries right here in your dashboard layout.";
     setTimeout(() => speakAndTypeResponse(replyText), 400);
