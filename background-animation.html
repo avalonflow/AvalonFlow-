@@ -557,6 +557,7 @@ function speakAndTypeResponse(fullTextResponse) {
     const transcriptCanvas = document.getElementById('kairosTranscript');
     const statusText = document.getElementById('dockStatusText');
     
+    // Smooth Handoff for music features: hide panel, keep wave visualizer pulsing
     if (transcriptCanvas && (transcriptCanvas.innerText.includes("music") || transcriptCanvas.innerText.includes("player"))) {
       toggleDock(false); 
       if (statusText) statusText.innerText = "Playing Audio Stream...";
@@ -586,10 +587,9 @@ async function processUserCommandLocally(commandText) {
 
   if (transcriptCanvas) transcriptCanvas.innerText = "Thinking...";
 
+  // Music Intent Pipeline
   if (dynamicCommand.includes('music') || dynamicCommand.includes('play')) {
-    setTimeout(() => {
-      speakAndTypeResponse("Understood. Synchronizing audio configurations and launching player structures.");
-    }, 400);
+    speakAndTypeResponse("Understood. Synchronizing audio configurations and launching player structures.");
     return;
   }
 
@@ -609,7 +609,6 @@ async function processUserCommandLocally(commandText) {
           systemPrompt: "You are Kairos, a deeply intuitive, calm, and supportive assistant. Respond with genuine empathy and concise warmth under two sentences."
         });
         
-        // Note: Nano does not maintain a multi-turn history unless manually pushed to prompt text
         const aiReply = await session.prompt(commandText);
         session.destroy();
         
@@ -761,36 +760,92 @@ function activateKairosVoiceOnDemand() {
     }, SILENCE_WAIT_TIME);
   }
 
-  // First touch fallback sequence if user immediately stays silent
   resetSilenceTimer();
 
   kairosSpeechRecognizer.onerror = (err) => {
     if (err.error === 'no-speech') {
-      // Don't auto-loop crash, simply reset or let timeout handle
+      // Catch empty frames safely
     }
   };
 
   isKairosListeningActive = true;
   kairosSpeechRecognizer.start();
-  console.log("🎙️ Microphone hardware turned ON via click interaction.");
+  console.log("🎙️ Microphone hardware turned ON.");
 }
 
 /**
- * Setup Click/Tap triggers on your custom pill triggers
+ * Handle Unified Wake/Greeting State Sequence
+ * Prevents overlapping synthesis loops & handles exact 2-click toggle logic
+ */
+function wakeUpKairosWithGreeting() {
+  const dockWrap = document.querySelector('.assistant-dock-wrap');
+  const isExpanded = dockWrap ? dockWrap.classList.contains('expanded') : false;
+
+  // Click #2 Logic: If it's already open, act as a hard close/kill switch
+  if (isExpanded) {
+    toggleDock(false);
+    return;
+  }
+
+  // Click #1 Logic: Clean slate open & vocal welcome
+  toggleDock(true);
+  
+  const greetingText = "Hi, I'm Kairos. Tell me what you need.";
+  stopActiveKairosVoice();
+  killSpeechEngineCompletely();
+
+  const transcriptCanvas = document.getElementById('kairosTranscript');
+  if (transcriptCanvas) transcriptCanvas.innerText = "";
+
+  const words = greetingText.split(" ");
+  let wordIndex = 0;
+  
+  const utterance = new SpeechSynthesisUtterance(greetingText);
+  if (selectedFemaleVoice) utterance.voice = selectedFemaleVoice;
+  
+  utterance.rate = 1.0;  
+  utterance.pitch = 1.1; 
+
+  utterance.onstart = () => {
+    setWaveAnimationSpeed(true);
+    const typingInterval = setInterval(() => {
+      if (wordIndex < words.length) {
+        if (transcriptCanvas) transcriptCanvas.innerText += (wordIndex === 0 ? "" : " ") + words[wordIndex];
+        wordIndex++;
+      } else {
+        clearInterval(typingInterval);
+      }
+    }, 180);
+  };
+
+  utterance.onend = () => {
+    setWaveAnimationSpeed(false);
+    // Chain Reaction: Start tracking human voice only after greeting finishes
+    activateKairosVoiceOnDemand();
+  };
+
+  utterance.onerror = () => {
+    setWaveAnimationSpeed(false);
+    toggleDock(false);
+  };
+
+  kairosVoiceEngine.speak(utterance);
+}
+
+/**
+ * Unified Event Controller (Eliminates event bubbling duplicates)
  */
 window.addEventListener('DOMContentLoaded', () => {
   const collapsedView = document.getElementById('collapsedView');
-  const audioWavePill = document.querySelector('.audio-wave-pill');
 
-  // Activate microphone ONLY when user explicitly targets the controller layouts
   if (collapsedView) {
-    collapsedView.addEventListener('click', activateKairosVoiceOnDemand);
-  }
-  if (audioWavePill) {
-    audioWavePill.addEventListener('click', activateKairosVoiceOnDemand);
+    // Single parent layout handler to resolve the triple-click glitch
+    collapsedView.addEventListener('click', (e) => {
+      e.stopPropagation();
+      wakeUpKairosWithGreeting();
+    });
   }
 });
-
 
 
         /* ---------- Floating Particles ---------- */
