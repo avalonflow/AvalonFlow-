@@ -1180,7 +1180,7 @@ function speakResponse(rawResponseText) {
   const typedChatText = humanize(rawResponseText);
   const spokenText = rawResponseText.replace(/[^\x00-\x7F]/g, "").trim();
 
-  // 1. Log to history
+  // Maintain conversation memory and logs
   conversationMemory.push({ role: "bot", content: typedChatText, time: Date.now() });
   chatHistory.push({ sender: 'bot', text: typedChatText, type: 'text', actualSender: 'kairos' });
   localStorage.setItem('tg_chat_history_v3', JSON.stringify(chatHistory));
@@ -1188,45 +1188,36 @@ function speakResponse(rawResponseText) {
   const transcriptCanvas = document.getElementById('kairosTranscript');
   if (transcriptCanvas) transcriptCanvas.innerText = typedChatText;
 
-  // 2. Use a more robust Salli-style URL generator
-  // This uses a highly reliable public TTS engine format
-  const salliAudioUrl = `https://text-to-speech-demo.ng.bluemix.net/api/v1/synthesize?voice=en-US_AllisonVoice&text=${encodeURIComponent(spokenText)}`;
+  // Streaming Salli exclusively
+  const encodedText = encodeURIComponent(spokenText);
+  const salliAudioUrl = `https://api.tts-proxy.com/speak?voice=Salli&text=${encodedText}`;
 
-  console.log("💎 Attempting Salli engine...");
-  
+  console.log("💎 Streaming Salli engine directly...");
   const audio = new Audio(salliAudioUrl);
-  
-  audio.onplay = () => setWaveAnimationSpeed(true);
-  
+
+  audio.onplay = () => {
+    setWaveAnimationSpeed(true);
+  };
+
   audio.onended = () => {
     setWaveAnimationSpeed(false);
     isProcessingCommand = false;
-    setTimeout(() => activateKairosVoiceOnDemand(), 400);
+    
+    // Resume cycle
+    setTimeout(() => { activateKairosVoiceOnDemand(); }, 400);
   };
 
-  audio.onerror = () => {
-    console.warn("Stream failed, reverting to internal system voice.");
-    runOriginalSystemVoice(spokenText);
-  };
-
-  // 3. FORCE PLAY: If the browser blocks it, it will catch and go to fallback
-  audio.play().catch(() => runOriginalSystemVoice(spokenText));
-}
-
-
-/**
- * Fallback function if the network stream fails
- */
-function runOriginalSystemVoice(text) {
-  const utterance = new SpeechSynthesisUtterance(text);
-  if (selectedFemaleVoice) utterance.voice = selectedFemaleVoice;
-  utterance.rate = 0.9;
-  utterance.onend = () => {
+  audio.onerror = (e) => {
+    console.warn("Salli stream failed. Staying silent as per configuration.");
     setWaveAnimationSpeed(false);
     isProcessingCommand = false;
-    activateKairosVoiceOnDemand();
   };
-  kairosVoiceEngine.speak(utterance);
+
+  audio.play().catch(e => {
+    console.warn("Autoplay blocked. Staying silent as per configuration.");
+    setWaveAnimationSpeed(false);
+    isProcessingCommand = false;
+  });
 }
 
 // ==========================================
