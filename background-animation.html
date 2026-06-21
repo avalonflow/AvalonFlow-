@@ -127,7 +127,7 @@
 /* 1. Master Container & Sizing Controllers */
 .assistant-dock-wrap {
   position: fixed;
-  bottom: 24px;
+  bottom: 40px;
   left: 50%;
   transform: translateX(-50%);
   z-index: 9999;
@@ -136,7 +136,7 @@
   padding: 0 16px;
   box-sizing: border-box;
   transition: max-width 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-margin-top: -50px ! important;
+
 }
 
 /* Active Expanded State via JS */
@@ -160,22 +160,45 @@ margin-top: -50px ! important;
   overflow: hidden;
 }
 
-/* Hidden Cloud Pseudo-element running inside the pill background */
+/* 2. Enhanced Ambient Cloud Background */
 .glass-dock::before {
   content: '';
   position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  /* Shifting nebulous mesh representing the live voice state */
-  background: radial-gradient(circle at 30% 40%, rgba(6, 182, 212, 0.15), transparent 40%),
-              radial-gradient(circle at 70% 60%, rgba(168, 85, 247, 0.15), transparent 40%),
-              radial-gradient(circle at 50% 30%, rgba(59, 130, 246, 0.12), transparent 50%);
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: inherit; /* Matches pill curvature flawlessly */
+  
+  /* A seamless multi-stop gradient designed to loop beautifully */
+  background: linear-gradient(
+    135deg,
+    rgba(6, 182, 212, 0.2),  /* Cyan */
+    rgba(59, 130, 246, 0.15), /* Blue */
+    rgba(168, 85, 247, 0.2),  /* Purple */
+    rgba(6, 182, 212, 0.2)   /* Loop anchor back to Cyan */
+  );
+  
+  /* Blown up wide so we can pan smoothly across the color landscape */
+  background-size: 400% 400%; 
   z-index: 0;
-  animation: cloudShift 8s ease infinite;
+  animation: fluidCloud 12s ease infinite;
   pointer-events: none;
 }
+
+/* Fluid Cloud Ambient Flow Animation */
+@keyframes fluidCloud {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
 
 /* Hover glow depth over background ambient gradients */
 .glass-dock:hover {
