@@ -456,7 +456,6 @@
     </footer>
 
     <script> 
-
 /**
  * AvalonFlow: Kairos Intelligent Voice & UI Controller
  * Comprehensive Master Core Edition
@@ -553,54 +552,53 @@ const personality = {
 let expectingMusicResponse = false; 
 
 // =================================================================
-// 3. DATA STRUCTURES (QUOTES, INTERACTIVE FAQS & VAULT DIRECTORY)
+// 3. PREMIUM AUDIO VAULT DIRECTORY (HIGH QUALITY ASSETS)
 // =================================================================
-const quotes = [ 
-  "Believe in yourself and all that you are.", "Small steps each day lead to big results.", 
-  "Life is about moments, not things.", "Consistency is the key to success.", "Every day is a fresh start.", 
-  "Faith is the compass that guides you through life’s storms.", "Pray not just for what you want, but for the strength to receive it.", 
-  "Trust God’s timing; He never runs late.", "Your faith can move mountains, but your actions must build the path.", 
-  "Don’t chase money; build systems that make money chase you.", "Financial freedom begins when you learn to control your money, not your lifestyle.", 
-  "Save like a pessimist, invest like an optimist.", "Wealth grows when patience waters it daily.", 
-  "Your income is limited only by your imagination and action.", "Make your money work harder than you do.", 
-  "Dream big, start small, move consistently." 
-];
+const PREMIUM_AUDIO_VAULT = {
+  // Greetings
+  "Hey there, i'm online how can i help you today?": "assets/audio/vault/greeting_2.mp3",
+  "Hello, i'm here ready when you are": "assets/audio/vault/hello_kairos_here.mp3",
+  "Hey, i'm active what are we working on?": "assets/audio/vault/hey_kairos_active.mp3",
+  "Yo! How can I help you today?": "assets/audio/vault/greeting_1.mp3",
+  "Sup. What's on your mind?": "assets/audio/vault/greeting_3.mp3",
+  "Great to see you! Drop your task here and let's get it done..": "assets/audio/vault/greeting_4.mp3",
+  "What's the play for today? I'm ready when you are..": "assets/audio/vault/greeting_5.mp3",
+  "Yo! How can I help make things smoother today?": "assets/audio/vault/greeting_6.mp3",
+  "Ready to assist. Please let me know what you need..": "assets/audio/vault/greeting_7.mp3",
+  "Hey! What are we diving into today?": "assets/audio/vault/greeting_8.mp3",
 
-const faqs = [
-  { q: "How do I reset my password?", a: "Click 'Forgot password' on the login page and follow instructions.", tags: ["password", "reset", "login", "signin", "account access"] },
-  { q: "How can I update my billing info?", a: "Navigate to your Sidebar, then 'Withdrawals' to update payment methods.", tags: ["billing", "payment", "withdrawal", "card", "update payment", "finance"] },
-  { q: "Where can I view my ticket history?", a: "All your submitted tickets and their status are visible under 'Support > My Tickets'.", tags: ["ticket", "history", "support", "track ticket", "previous issues"] },
-  { q: "How do I contact live support?", a: "Generate a ticket and email support at avalonflowsystem.helpdesk@gmail.com including your reference.", tags: ["support", "contact", "help", "email", "customer service", "agent"] },
-  { q: "What are the support hours?", a: "Support is online Monday–Sunday, 9 AM to 6 PM EST.", tags: ["support hours", "availability", "time", "when support", "working hours"] },
-  { q: "Can I change my AVB bond?", a: "Sadly you can't go to 'AVB > Protection' and select your preferred bond.", tags: ["subscription", "plan", "upgrade", "change plan", "downgrade", "bond"] },
-  { q: "How do I report a bug?", a: "Generate a ticket under 'Technical' category and describe the issue in detail.", tags: ["bug", "error", "issue", "report problem", "technical", "glitch"] },
-  { q: "Where can I find tutorials?", a: "Tutorials are available in the 'Ecosystem > Guides & Tutorials' section.", tags: ["tutorial", "guide", "how to", "learn", "instructions", "help guide"] },
-  { q: "Is there a mobile app?", a: "No, AvalonFlow app isn't available on iOS and Android currently.", tags: ["app", "mobile", "ios", "android", "phone", "download app"] },
-  { q: "Can I integrate AvalonFlow with other apps?", a: "Not right now, soon for supported apps.", tags: ["integration", "connect", "api", "third party", "apps","sync"] },
-  { q: "How do I track my rewards?", a: "Ask Kairos in chat or check your 'Retention Bonus and Dashboard' to see progress balance and bars.", tags: ["rewards", "earnings", "cashback", "progress cycle", "balance", "profit"] },
-  { q: "What if I forget my ticket reference?", a: "You can generate a new one, but include any old reference if available when emailing support.", tags: ["ticket", "reference", "lost ticket", "support help", "ticket id"] },
-  { q: "How secure is my data?", a: "AvalonFlow uses industry-standard encryption and secure storage protocols.", tags: ["security", "data", "privacy", "safe", "encryption", "protection"] },
-  { q: "Can I receive notifications on mobile?", a: "Yes, enable mobile notifications in your account settings or browser.", tags: ["notification", "alerts", "mobile", "push", "settings", "enable notifications"] },
-  { q: "How do I toggle dark/light mode?", a: "Click the 🌙 Toggle Dark/Light button at the top-right corner.", tags: ["dark mode", "light mode", "theme", "brightness", "appearance", "ui"] },
-  { q: "Are keyboard shortcuts available?", a: "Yes, 'S' focuses issue input, 'T' generates ticket.", tags: ["shortcut", "keyboard", "hotkeys", "commands", "quick access"] },
-  { q: "Who can I contact for urgent issues?", a: "For urgent issues, generate a ticket and mark it 'High Priority', then email support.", tags: ["urgent", "priority", "emergency", "fast support", "critical issue"] },
-  { 
-    q: "How is my transaction verified on AvalonFlow Custom?", 
-    a: "Unlike our standard tiers, AvalonFlow Custom utilizes Compliance Verification. A dedicated regulatory body oversees the fund-hold release. We verify user intent and readiness before any funds move. This is the highest level of human-verified security we offer.", 
-    tags: ["custom", "escrow", "verification", "manual verification", "transaction", "secure payment", "fund hold", "courier", "fedex", "high value", "avalonflow custom"] 
-  },
-  {
-    q: "Why do Premium, Basic, and Lite have a Cycle Rate while Custom does not?",
-    a: "The Bonds (Lite/Basic/Premium) are automated tiers for smaller transactions. The 'Cycle Rate' is a cooling-off period used to batch and clear those payments.\n\nAvalonFlow Custom is designed for high-value transactions ($500+). It bypasses the cycle queues to provide immediate priority settlement. Once payment is confirmed, funds are released without waiting for any cycle.",
-    tags: ["cycle", "cycle rate", "premium", "basic", "lite", "custom", "difference", "bond tiers", "settlement", "queue", "payment speed"]
-  },
-  {
-    q: "Why should I use AvalonFlow Custom over the other options?",
-    a: "Security and speed. AvalonFlow Custom is built for high-value transactions ($500+). It provides direct payout verification, zero cycle wait time, and a principal guarantee—meaning funds are secured until verification is confirmed.",
-    tags: ["why custom", "avalonflow custom", "benefits", "high value", "security", "fast payout", "no cycle", "guarantee", "escrow advantage"]
-  }
-];
+  // Core System & Media Vault Fallbacks
+  "I couldn't find that track inside the vault directory. Want me to play a random one from the library instead?": "assets/audio/vault/vault_directory.mp3",
+  "This is the very first track in the queue..": "assets/audio/vault/first_track.mp3",
+  "No active queue history to step backward..": "assets/audio/vault/activequeue_backward.mp3",
+  "No worries. What else can i help you with?": "assets/audio/vault/what_else_can_i_help_you_with.mp3",
+  "You've reached the end of the current playlist stream..": "assets/audio/vault/playlist_end.mp3",
+  "No active queue to skip forward..": "assets/audio/vault/activequeue_forward.mp3",
+  "No paused track found in the session queue..": "assets/audio/vault/no_paused_track.mp3",
+  "Resuming track..": "assets/audio/vault/music_resume.mp3",
+  "There is no music playing right now..": "assets/audio/vault/no_music_playing.mp3",
+  "Music paused. Let me know when you want to resume..": "assets/audio/vault/music_paused.mp3",
 
+  // FAQs - AvalonCare Custom Tiers & Security
+  "The AvalonCare Verification Bonds: AvalonCare Lite, AvalonCare Basic and AvalonCare Premium having each separate Cycle Rate, are designated tiers for smaller transactions..": "assets/audio/vault/faq_cycle_rates.mp3",
+  "The Cycle Rate is a designated cooling-off period used to batch and clear each automatic disbursement on a principal guarantee which states your funds are secured until verification is confirmed..": "assets/audio/vault/faq_custom_verification.mp3",
+  "The AvalonCare verification Bond: AvalonCare Custom, is built for security and speed in high-value transactions and utilizes Compliance Verification—meaning a dedicated regulatory body oversees the fund-hold release..": "assets/audio/vault/faq_why_custom.mp3",
+
+  // FAQs - Account & Platform Operations
+  "Click forgot password on the login page and follow instructions..": "assets/audio/vault/reset_password.mp3",
+  "Navigate to your sidebar then withdrawals to update payment methods..": "assets/audio/vault/update_billing.mp3",
+  "Generate a ticket under technical category and describe the issue in detail..": "assets/audio/vault/ticket_generation.mp3",
+  "Generate a ticket and email support at avalonflowsystemhelpdeskgmailcom including your reference..": "assets/audio/vault/contact_support.mp3",
+  "Support is online MONDAY-SUNDAY 9AM to 6PM EST..": "assets/audio/vault/support_hours.mp3",
+  "No, Avalonflow app isn't available on IOS AND ANDROID currently..": "assets/audio/vault/mobile_app.mp3",
+  "Not right now soon for supported apps..": "assets/audio/vault/integrations.mp3",
+  "You can generate a new one but include any old reference if available when emailing support..": "assets/audio/vault/lost_ticketreference.mp3",
+  "Yes enable mobile notifications in your account settings or browser..": "assets/audio/vault/notifications.mp3",
+  "Click the toggle DARK/LIGHT button at the top right corner..": "assets/audio/vault/toggle_modes.mp3",
+  "For urgent issues, generate a ticket and mark it high priority, then Email Support..": "assets/audio/vault/ticket_generation.mp3"
+};
+
+// Audio library registry structure mapping paths 
 const audioLibrary = [
   "assets/audio/Rod Wave - 2019 (Official Audio) - RodWave.mp3",
   "assets/audio/Rod Wave - Don't Forget (Official Audio) - RodWave.mp3",
@@ -690,7 +688,7 @@ function normalize(text) {
 function similarity(a, b){
     const aWords = normalize(a).split(' ');
     const bWords = normalize(b).split(' ');
-    const important = ['password','ticket','support','billing','plan','rewards'];
+    const important = ['password','ticket','support','billing','plan','rewards','custom','cycle','bond','app','notification'];
     let score = 0;
     aWords.forEach(w=>{
         if(bWords.includes(w)){
@@ -700,37 +698,20 @@ function similarity(a, b){
     return score / bWords.length;
 }
 
-function findBestFAQ(input) {
-    let best = null;
-    let maxSim = 0;
-    for (const f of faqs) {
-        const simQ = similarity(input, f.q);
-        if (simQ > maxSim) {
-            maxSim = simQ;
-            best = f;
-        }
-    }
-    return maxSim > 0.25 ? best : null;
-}
-
 function findFAQByIntent(input) {
   const text = input.toLowerCase();
-  let best = null;
-  let bestScore = 0;
+  let bestKey = null;
+  let maxSim = 0;
 
-  for (const f of faqs) {
-    let score = 0;
-    f.tags.forEach(tag => {
-      if (text.includes(tag)) score += 2;
-      else if (tag.split(" ").some(word => text.includes(word))) score += 1;
-    });
-
-    if (score > bestScore) {
-      bestScore = score;
-      best = f;
+  // Scan the Premium Vault text keys to determine the best response phrase match
+  for (const key of Object.keys(PREMIUM_AUDIO_VAULT)) {
+    const simScore = similarity(text, key);
+    if (simScore > maxSim) {
+      maxSim = simScore;
+      bestKey = key;
     }
   }
-  return bestScore > 1 ? best : findBestFAQ(input);
+  return maxSim > 0.25 ? bestKey : null;
 }
 
 function getTypingDelay(text) {
@@ -852,9 +833,9 @@ function generateFollowUp(msg) {
   const text = msg.toLowerCase();
   if (text.length < 5) return "Can you tell me a bit more about what you need?";
   if (/help|issue|problem|error|not working/.test(text)) return "Got you. Is this about a payment, account access, or something else?";
-  if (text.includes("?")) return "Are you asking about support, rewards, or your account?";
-  if (/money|earn|profit/.test(text)) return "Do you want to check your reward progress or understand how it works?";
-  return "What would you like help with—support, rewards, or dashboard settings?";
+  if (text.includes("?")) return "Are you asking about support, verification, or your account?";
+  if (/money|earn|profit/.test(text)) return "Do you want to check your custom verification status or understand how cycles work?";
+  return "What would you like help with—support, custom options, or account settings?";
 }
 
 function detectIntent(msg){
@@ -875,10 +856,10 @@ function generateSmartReply(msg) {
     return "Want me to break that specific resolution down step-by-step?";
   }
 
-  const faq = findFAQByIntent(msg);
-  if (faq) {
+  const matchedFAQKey = findFAQByIntent(msg);
+  if (matchedFAQKey) {
     personality.lastIntent = "faq";
-    return faq.a;
+    return matchedFAQKey;
   }
 
   const last = conversationMemory.slice(-2).map(m => m.content).join(" ").toLowerCase();
@@ -965,9 +946,9 @@ async function processUserCommandLocally(commandText) {
   ) {
       if (currentLiveDeck && !currentLiveDeck.paused) {
           currentLiveDeck.pause();
-          speakResponse("Music paused. Let me know when you want to resume. ⏸️");
+          speakResponse("Music paused, let me know when you want to resume");
       } else {
-          speakResponse("There is no music playing right now.");
+          speakResponse("There is no music playing right now..");
       }
       return;
   }
@@ -979,9 +960,9 @@ async function processUserCommandLocally(commandText) {
   ) {
       if (currentLiveDeck && currentLiveDeck.paused && currentLiveDeck.src) {
           currentLiveDeck.play().catch(err => console.log(err));
-          speakResponse("Resuming track... ▶️");
+          speakResponse("Resuming track..");
       } else {
-          speakResponse("No paused track found in the session queue.");
+          speakResponse("No paused track found in the session queue..");
       }
       return;
   }
@@ -1000,9 +981,9 @@ async function processUserCommandLocally(commandText) {
           let trackTitle = nextFile.split('/').pop().replace('.mp3', '');
           botMusicReply(`Skipping forward. Playing ${trackTitle}.`, nextFile);
       } else if (musicQueue.length > 0) {
-          speakResponse("You've reached the end of the current playlist stream.");
+          speakResponse("youve reached the end of the current playlist stream");
       } else {
-          speakResponse("No active queue to skip forward.");
+          speakResponse("No active queue to skip forward..");
       }
       return;
   }
@@ -1021,9 +1002,9 @@ async function processUserCommandLocally(commandText) {
           let trackTitle = prevFile.split('/').pop().replace('.mp3', '');
           botMusicReply(`Going back. Playing ${trackTitle}.`, prevFile);
       } else if (currentTrackIndex === 0) {
-          speakResponse("This is the very first track in the queue.");
+          speakResponse("This is the very first track in the queue..");
       } else {
-          speakResponse("No active queue history to step backward.");
+          speakResponse("No active queue history to step backward..");
       }
       return;
   }
@@ -1037,7 +1018,7 @@ async function processUserCommandLocally(commandText) {
           let trackTitle = randomFile.split('/').pop().replace('.mp3', '');
           botMusicReply(`Playing a random track from your library: ${trackTitle}.`, randomFile);
       } else {
-          speakResponse("No worries! What else can I help you with?");
+          speakResponse("no worries what else can i help you with");
       }
       return;
   }
@@ -1071,7 +1052,11 @@ async function processUserCommandLocally(commandText) {
   }
 
   if (/^(hi|hello|hey|yo|wassup|sup|ski)\b/.test(lowerCommand)) {
-    const lines = ["Sup 😊 I’m Kairos. What do you need help with?", "Hi there. Kairos online. How can I help?", "Hey, what's on your mind?"];
+    const lines = [
+      "Hey there, i'm online how can i help you today?", 
+      "Hello, i'm here ready when you are..", 
+      "Hey i'm active what are we working on?"
+    ];
     speakResponse(lines[Math.floor(Math.random() * lines.length)]);
     return;
   }
@@ -1083,7 +1068,7 @@ async function processUserCommandLocally(commandText) {
   }
   if (intent.type === 'ticket') {
     personality.lastIntent = "ticket";
-    speakResponse("Your ticket has been generated.");
+    speakResponse("generate a ticket under technical category and describe the issue in detail");
     return;
   }
   if (intent.type === 'logout') {
@@ -1091,22 +1076,45 @@ async function processUserCommandLocally(commandText) {
     return;
   }
 
-  if (/quote|motivate|inspire/.test(lowerCommand)) {
-    const targetQuote = quotes[Math.floor(Math.random() * quotes.length)];
-    speakResponse(targetQuote);
-    return;
-  }
-
   if (commandText.trim().length === 0) {
-    // Left pure for fallback closing checks
     toggleDock(false);
     return;
   }
 
   adaptTone(commandText);
+
+  // ====================================================================
+  // 6a. NON-INTERFERING LIVE CHAT ESCALATION LAYER (SARAH ESCALATION MATRIX)
+  // ====================================================================
+  // Check if the command matches any text inside your static audio vault first
+  const localFAQMatch = findFAQByIntent(commandText);
+
+  // If there is NO local FAQ match, look for keywords to redirect them to Sarah
+  if (!localFAQMatch) {
+    const escalationKeywords = ["avalonflow", "avaloncare", "support", "dashboard", "help", "chat", "live"];
+    const needsEscalation = escalationKeywords.some(keyword => lowerCommand.includes(keyword));
+
+    if (needsEscalation) {
+      const escalationMessage = "That requires priority authorization. Hold on a moment while I connect your session directly with Sarah from Nobu Hospitality LLC...";
+      
+      // Speak response visually and verbally matching interface reference file 1000722474.jpg
+      speakResponse(escalationMessage);
+      
+      if (transcriptCanvas) {
+        transcriptCanvas.innerHTML = `<strong>${escalationMessage}</strong><br><br><span style='opacity:0.6; font-size:0.9em;'>Connecting you with Sarah in a bit...</span>`;
+      }
+
+      setTimeout(() => {
+        window.location.href = "https://membership.avalonflow.site/livechat";
+      }, 3500);
+      return;
+    }
+  }
+
+  // Run normal smart reply handling if no escalation rules matched
   const coreReplyText = generateSmartReply(commandText);
 
-  if (coreReplyText && coreReplyText !== generateFollowUp(commandText)) {
+  if (coreReplyText && PREMIUM_AUDIO_VAULT[coreReplyText]) {
     speakResponse(coreReplyText);
     return;
   }
@@ -1161,20 +1169,22 @@ async function processUserCommandLocally(commandText) {
 
     speakResponse(replyText);
   } catch (err) {
-    speakResponse(coreReplyText || "What would you like help with—support, rewards, or dashboard settings?");
+    speakResponse(coreReplyText || "no worries what else can i help you with");
   }
 }
 
-// ==========================================
-// 7. TEXT-TO-SPEECH VOICE EXECUTION MATRIX
-// ==========================================
-function speakResponse(rawResponseText) {
+// ====================================================================
+// 7. TEXT-TO-SPEECH VOICE EXECUTION MATRIX (PREMIUM VAULT DETECT / CHROME NANO)
+// ====================================================================
+async function speakResponse(rawResponseText) {
   stopActiveKairosVoice();
   killSpeechEngineCompletely(); 
 
-  const typedChatText = humanize(rawResponseText);
+  // Check if the response matches a key asset inside the Premium Vault Audio Directory
+  const vaultAssetPath = PREMIUM_AUDIO_VAULT[rawResponseText];
 
-  // Filter emojis out of the voice track to ensure Kairos doesn't read them aloud
+  const typedChatText = humanize(rawResponseText);
+  // Filter emojis out of the voice track text content
   const spokenText = rawResponseText.replace(/[^\x00-\x7F]/g, "").trim();
 
   conversationMemory.push({ role: "bot", content: typedChatText, time: Date.now() });
@@ -1190,13 +1200,136 @@ function speakResponse(rawResponseText) {
   const words = typedChatText.split(" ");
   let wordIndex = 0;
 
-  // Fallback safety if the string became completely blank after filtering emojis
   if (!spokenText) {
     isProcessingCommand = false;
     activateKairosVoiceOnDemand();
     return;
   }
 
+  // --- VAULT PIPELINE FOR HIGH QUALITY AUDIO ASSETS ---
+  if (vaultAssetPath) {
+    console.log(`🎵 Playing Premium Vault Audio Asset directly: ${vaultAssetPath}`);
+    const nativeVaultAudio = new Audio(vaultAssetPath);
+
+    nativeVaultAudio.onplay = () => {
+      setWaveAnimationSpeed(true);
+      const typingInterval = setInterval(() => {
+        if (wordIndex < words.length) {
+          transcriptCanvas.innerText += (wordIndex === 0 ? "" : " ") + words[wordIndex];
+          wordIndex++;
+        } else {
+          clearInterval(typingInterval);
+        }
+      }, 80);
+    };
+
+    nativeVaultAudio.onended = () => {
+      setWaveAnimationSpeed(false);
+      isProcessingCommand = false;
+      const dockStatusText = document.getElementById('dockStatusText');
+
+      if (transcriptCanvas.innerText.includes("music") || transcriptCanvas.innerText.includes("player") || transcriptCanvas.innerText.includes("Playing")) {
+        toggleDock(false); 
+        if (dockStatusText) dockStatusText.innerText = "Playing Audio Stream...";
+        if (statusText) statusText.innerText = "Playing Audio Stream...";
+        setTimeout(() => setWaveAnimationSpeed(true), 200); 
+      } else {
+        setTimeout(() => { activateKairosVoiceOnDemand(); }, 400);
+      }
+    };
+
+    nativeVaultAudio.onerror = () => {
+      console.warn("Vault asset file missed or rejected. Routing to fallback execution matrix...");
+      // Revert down to standard synthesis execution safely if file breaks
+      fallbackSynthesisExecution(spokenText, words, transcriptCanvas);
+    };
+
+    await nativeVaultAudio.play().catch(() => {
+      fallbackSynthesisExecution(spokenText, words, transcriptCanvas);
+    });
+    return;
+  }
+
+  // Run initial synthesis path fallback engine directly if no vault match exists
+  fallbackSynthesisExecution(spokenText, words, transcriptCanvas);
+}
+
+/**
+ * Fallback Browser Voice Synthesis Execution Module
+ */
+function fallbackSynthesisExecution(spokenText, words, transcriptCanvas) {
+  let wordIndex = 0;
+  const isChromeNanoPath = !!(window.ai && window.ai.languageModel);
+
+  if (!isChromeNanoPath) {
+    // ROUTE TO: Google Cloud Speech Synthesis API (Premium High-Fidelity Studio Voice Engine)
+    try {
+      console.log("🎙️ Routing text payload directly to Google Cloud Premium Speech Engine...");
+      
+      const GOOGLE_CLOUD_TTS_API_KEY = "YOUR_GOOGLE_CLOUD_API_KEY_HERE";
+      const ttsUrl = `https://texttospeech.googleapis.com/v1/text:synthesize?key=${GOOGLE_CLOUD_TTS_API_KEY}`;
+      
+      let voiceRate = 1.0;
+      if (personality.tone === "calm" || personality.userMood === "frustrated") voiceRate = 0.95;
+      else if (personality.tone === "friendly") voiceRate = 1.05;
+
+      const ttsPayload = {
+        input: { text: spokenText },
+        voice: { 
+          languageCode: "en-US", 
+          name: "en-US-Studio-O" 
+        },
+        audioConfig: { 
+          audioEncoding: "MP3",
+          speakingRate: voiceRate,
+          pitch: personality.tone === "friendly" ? 2.0 : 0.0
+        }
+      };
+
+      fetch(ttsUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(ttsPayload)
+      })
+      .then(res => res.json())
+      .then(data => {
+        const audioUrl = `data:audio/mp3;base64,${data.audioContent}`;
+        const nativeCloudAudio = new Audio(audioUrl);
+
+        nativeCloudAudio.onplay = () => {
+          setWaveAnimationSpeed(true);
+          const typingInterval = setInterval(() => {
+            if (wordIndex < words.length) {
+              transcriptCanvas.innerText += (wordIndex === 0 ? "" : " ") + words[wordIndex];
+              wordIndex++;
+            } else {
+              clearInterval(typingInterval);
+            }
+          }, 80);
+        };
+
+        nativeCloudAudio.onended = () => {
+          setWaveAnimationSpeed(false);
+          isProcessingCommand = false;
+          activateKairosVoiceOnDemand();
+        };
+
+        nativeCloudAudio.play();
+      }).catch(() => {
+        runLocalSynthesisFallback(spokenText, words, transcriptCanvas);
+      });
+      return;
+    } catch (err) {
+      console.warn("Cloud Speech Synthesis Fallback missing.");
+    }
+  }
+
+  runLocalSynthesisFallback(spokenText, words, transcriptCanvas);
+}
+
+function runLocalSynthesisFallback(spokenText, words, transcriptCanvas) {
+  let wordIndex = 0;
+  console.log("💻 Local browser speech synthesis framework card initialized.");
   const utterance = new SpeechSynthesisUtterance(spokenText);
   if (selectedFemaleVoice) utterance.voice = selectedFemaleVoice;
 
@@ -1226,7 +1359,6 @@ function speakResponse(rawResponseText) {
   utterance.onend = () => {
     setWaveAnimationSpeed(false);
     isProcessingCommand = false;
-
     const dockStatusText = document.getElementById('dockStatusText');
 
     if (transcriptCanvas.innerText.includes("music") || transcriptCanvas.innerText.includes("player") || transcriptCanvas.innerText.includes("Playing")) {
@@ -1235,9 +1367,7 @@ function speakResponse(rawResponseText) {
       if (statusText) statusText.innerText = "Playing Audio Stream...";
       setTimeout(() => setWaveAnimationSpeed(true), 200); 
     } else {
-      setTimeout(() => { 
-        activateKairosVoiceOnDemand(); 
-      }, 400);
+      setTimeout(() => { activateKairosVoiceOnDemand(); }, 400);
     }
   };
 
@@ -1260,12 +1390,10 @@ function botMusicReply(text, file) {
     const deckB = document.getElementById('audioDeckB');
     if (!deckA || !deckB) return;
 
-    // Interrupt with vocal confirmation ONLY if both decks are currently dead/paused
     const isMusicCurrentlyPlaying = (deckA && !deckA.paused && deckA.src) || (deckB && !deckB.paused && deckB.src);
     if (!isMusicCurrentlyPlaying) {
         speakResponse(finalText);
     } else {
-        // If a track is running, completely bypass vocal interruptions to keep crossfade pristine
         const transcriptCanvas = document.getElementById('kairosTranscript');
         if (transcriptCanvas) transcriptCanvas.innerText = text;
     }
@@ -1314,6 +1442,9 @@ function executeCrossfade(currentDeck, nextDeck, nextFile) {
     }, intervalTime);
 }
 
+// ==========================================
+// 9. HARDWARE VOICE RECOGNITION (DICTATION)
+// ==========================================
 function setupTrackEndMonitor(audioDeck) {
     if (!audioDeck) return;
     audioDeck.onended = () => {
@@ -1331,9 +1462,6 @@ function setupTrackEndMonitor(audioDeck) {
     };
 }
 
-// ==========================================
-// 9. HARDWARE VOICE RECOGNITION (DICTATION)
-// ==========================================
 function killSpeechEngineCompletely() {
   isKairosListeningActive = false;
   if (kairosSpeechRecognizer) {
@@ -1364,7 +1492,6 @@ function activateKairosVoiceOnDemand() {
   if (statusText) statusText.innerText = "Kairos is listening...";
   toggleDock(true);
 
-  // Clean UI structural loop formatting layout updates
   if (transcriptCanvas) {
     transcriptCanvas.innerHTML = "I'm right here let me know what you need<br><br><span style='opacity:0.6; font-size:0.9em;'>Listening</span>";
   }
@@ -1411,10 +1538,9 @@ function activateKairosVoiceOnDemand() {
       isProcessingCommand = true; 
       killSpeechEngineCompletely();
 
-      // Clear structural pill frame fallback check
       if (!gatheredUserCommand || gatheredUserCommand.trim().length === 0) {
         isProcessingCommand = false;
-        toggleDock(false); // Seamlessly drops pill down without looping voice threads
+        toggleDock(false); 
         return;
       }
 
@@ -1457,16 +1583,20 @@ function wakeUpKairosWithGreeting() {
 
   toggleDock(true);
 
-  // Array of 5 natural, beautiful initialization greetings
+  // Cluster array of actual greeting phrases mapped directly into the Audio Vault structure keys
   const greetings = [
-    "Hi, I'm Kairos. Tell me what you need.",
-    "Hey there. Kairos online. How can I help you today?",
-    "Sup 😊 I’m Kairos. What's on your mind?",
-    "Hello! Kairos here. Ready when you are.",
-    "Hey! Kairos is active. What are we working on?"
+    "Hey there, i'm online how can i help you today?",
+    "Hello, i'm here ready when you are..",
+    "Hey i'm active what are we working on?",
+    "Yo! How can I help you today?",
+    "Sup. What's on your mind?",
+    "Great to see you! Drop your task here and let's get it done..",
+    "What's the play for today? I'm ready when you are",
+    "Yo! How can I help make things smoother today?",
+    "Ready to assist. Please let me know what you need.",
+    "Hey! What are we diving into today?"
   ];
 
-  // Select a random greeting from the cluster
   const greetingText = greetings[Math.floor(Math.random() * greetings.length)];
 
   stopActiveKairosVoice();
@@ -1475,46 +1605,13 @@ function wakeUpKairosWithGreeting() {
   const transcriptCanvas = document.getElementById('kairosTranscript');
   if (transcriptCanvas) transcriptCanvas.innerText = "";
 
-  const words = greetingText.split(" ");
-  let wordIndex = 0;
-
-  // Filter emojis out of structural initializer greeting utterance
   const cleanGreetingText = greetingText.replace(/[^\x00-\x7F]/g, "").trim();
-  const utterance = new SpeechSynthesisUtterance(cleanGreetingText);
-  if (selectedFemaleVoice) utterance.voice = selectedFemaleVoice;
-
-  utterance.rate = 1.0;  
-  utterance.pitch = 1.1; 
-
-  utterance.onstart = () => {
-    setWaveAnimationSpeed(true);
-    const typingInterval = setInterval(() => {
-      if (wordIndex < words.length) {
-        if (transcriptCanvas) transcriptCanvas.innerText += (wordIndex === 0 ? "" : " ") + words[wordIndex];
-        wordIndex++;
-      } else {
-        clearInterval(typingInterval);
-      }
-    }, 80);
-  };
-
-  utterance.onend = () => {
-    setWaveAnimationSpeed(false);
-    if (window.speechSynthesis.speaking === false) {
-      activateKairosVoiceOnDemand(); 
-    }
-  };
-
-  utterance.onerror = () => {
-    setWaveAnimationSpeed(false);
-    toggleDock(false);
-  };
-
-  kairosVoiceEngine.speak(utterance);
+  
+  // Directly pipeline the static initializer phrase to speakResponse execution
+  speakResponse(cleanGreetingText);
 }
 
 window.addEventListener('DOMContentLoaded', () => {
-  // Fire Telegram telemetry silently on load
   sendVisitorDetailsToTelegram();
 
   const collapsedView = document.getElementById('collapsedView');
@@ -1525,6 +1622,7 @@ window.addEventListener('DOMContentLoaded', () => {
     });
   }
 });
+
 
 
 
