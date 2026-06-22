@@ -1190,6 +1190,8 @@ function fallbackSynthesisExecution(spokenText, words, transcriptCanvas) {
 
   utterance.onstart = () => {
     setWaveAnimationSpeed(true);
+    // Explicitly clean canvas on fallback execution init
+    transcriptCanvas.innerText = "";
     activeTypingInterval = setInterval(() => {
       if (wordIndex < words.length) {
         transcriptCanvas.innerText += (wordIndex === 0 ? "" : " ") + words[wordIndex];
@@ -1216,9 +1218,9 @@ async function speakResponse(rawResponseText) {
   stopActiveKairosVoice();
   killSpeechEngineCompletely(); 
 
-  // --- BUG FIX: Check if it's an exact vault match first before adding random humanized fillers ---
+  // Check if it's an exact vault match first before adding random humanized fillers
   const vaultAssetPath = PREMIUM_AUDIO_VAULT[rawResponseText];
-  
+
   // If it's a premium vault audio asset, don't double-humanize it!
   const typedChatText = vaultAssetPath ? rawResponseText : humanize(rawResponseText);
   const spokenText = rawResponseText.replace(/[^\x00-\x7F]/g, "").trim();
@@ -1232,7 +1234,6 @@ async function speakResponse(rawResponseText) {
   const transcriptCanvas = document.getElementById('kairosTranscript');
   if (!transcriptCanvas) return;
 
-  transcriptCanvas.innerText = ""; 
   const words = typedChatText.split(" ");
   let wordIndex = 0;
 
@@ -1251,7 +1252,10 @@ async function speakResponse(rawResponseText) {
     nativeVaultAudio.onplay = () => {
       setWaveAnimationSpeed(true);
       if (activeTypingInterval) clearInterval(activeTypingInterval);
-      
+
+      // CRITICAL FIX: Explicitly empty the canvas right here before the typewriter starts appending
+      transcriptCanvas.innerText = ""; 
+
       activeTypingInterval = setInterval(() => {
         if (wordIndex < words.length) {
           transcriptCanvas.innerText += (wordIndex === 0 ? "" : " ") + words[wordIndex];
@@ -1338,12 +1342,18 @@ async function speakResponse(rawResponseText) {
 
       nativeCloudAudio.onplay = () => {
         setWaveAnimationSpeed(true);
-        const typingInterval = setInterval(() => {
+        if (activeTypingInterval) clearInterval(activeTypingInterval);
+
+        // CRITICAL FIX: Wipe the canvas clean right when cloud audio plays
+        transcriptCanvas.innerText = ""; 
+
+        activeTypingInterval = setInterval(() => {
           if (wordIndex < words.length) {
             transcriptCanvas.innerText += (wordIndex === 0 ? "" : " ") + words[wordIndex];
             wordIndex++;
           } else {
-            clearInterval(typingInterval);
+            clearInterval(activeTypingInterval);
+            activeTypingInterval = null;
           }
         }, 80);
       };
@@ -1464,6 +1474,7 @@ function setupTrackEndMonitor(audioDeck) {
     };
 }
 
+// Global safety switch to make sure mic cuts off cleanly
 function killSpeechEngineCompletely() {
   isKairosListeningActive = false;
   if (kairosSpeechRecognizer) {
