@@ -1463,13 +1463,17 @@ function executeBackgroundVoiceSynthesis(text) {
 // 8. MULTI-DECK 10s CROSSFADE ENGINE WORKFLOW
 // ==========================================
 function botMusicReply(text, file) {
-    const finalText = humanize(text);
+    // 1. Force Kairos to say the track description + full music title text out loud
+    const trackTitle = file.split('/').pop().replace('.mp3', '');
+    const spokenMessage = `${text} Playing ${trackTitle}`;
+    
+    // 2. Wrap output string seamlessly into the system tone/filler matrices
+    const finalText = humanize(spokenMessage);
 
     const deckA = document.getElementById('audioDeckA');
     const deckB = document.getElementById('audioDeckB');
     if (!deckA || !deckB) return;
 
-    // Speak out loud perfectly when manually triggered via local commands
     speakResponse(finalText);
 
     let primaryDeck = activeDeck === deckA ? deckB : deckA;
@@ -1516,6 +1520,7 @@ function executeCrossfade(currentDeck, nextDeck, nextFile) {
     }, intervalTime);
 }
 
+
 // ==========================================
 // 9. HARDWARE VOICE RECOGNITION (DICTATION)
 // ==========================================
@@ -1527,12 +1532,14 @@ function setupTrackEndMonitor(audioDeck) {
             const nextFile = musicQueue[currentTrackIndex];
             let trackTitle = nextFile.split('/').pop().replace('.mp3', '');
 
-            const alertText = `Moving to next track in queue.`;
+            // 3. Clear title text announcement for background automation loops
+            const alertText = `Moving to next track in queue. Now playing ${trackTitle}`;
 
             chatHistory = chatHistory || [];
-            chatHistory.push({ sender: 'bot', text: `${alertText} Playing ${trackTitle}...`, type: 'text', actualSender: 'kairos' });
+            chatHistory.push({ sender: 'bot', text: alertText, type: 'text', actualSender: 'kairos' });
             localStorage.setItem('tg_chat_history_v3', JSON.stringify(chatHistory));
 
+            // Quiet background announcement execution without triggering pill layout snaps
             speakSilentlyInBackground(alertText);
 
             const deckA = document.getElementById('audioDeckA');
