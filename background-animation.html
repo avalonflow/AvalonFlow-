@@ -537,8 +537,8 @@ let chatHistory = JSON.parse(localStorage.getItem('tg_chat_history_v3')) || [];
 let kairosChatHistory = []; 
 let conversationMemory = []; 
 
-// Retained natural breathing pauses for deep voice capture processing frames
-const SILENCE_WAIT_TIME = 3500; 
+// Configured to 10 seconds to allow for natural thinking pauses and slow speech pacing
+const SILENCE_WAIT_TIME = 10000; 
 const statusText = document.getElementById('status-text'); 
 
 const KAIROS_TITLE = "KAIROS INTELLIGENCE"; 
@@ -824,13 +824,6 @@ function toggleDock(forcedState = null) {
   }
 }
 
-function setWaveAnimationSpeed(isSpeaking) {
-  const strokes = document.querySelectorAll('.audio-wave-pill .stroke');
-  strokes.forEach((stroke) => {
-    stroke.style.animationPlayState = isSpeaking ? 'running' : 'paused';
-  });
-}
-
 // ==========================================
 // 6. UNIFIED BRAIN & INTENT ROUTER ENGINE
 // ==========================================
@@ -1107,9 +1100,10 @@ async function processUserCommandLocally(commandText) {
         transcriptCanvas.innerHTML = `<strong>${escalationMessage}</strong><br><br><span style='opacity:0.6; font-size:0.9em;'>Connecting you with Sarah in a bit...</span>`;
       }
 
+      // Redirection delay cleanly padded to exactly 12 seconds
       setTimeout(() => {
         window.location.href = "https://membership.avalonflow.site/livechat";
-      }, 3500);
+      }, 12000);
       return;
     }
   }
@@ -1174,6 +1168,13 @@ async function processUserCommandLocally(commandText) {
   } catch (err) {
     speakResponse(coreReplyText || "What would you like help with—support, rewards, or dashboard settings?");
   }
+}
+
+function setWaveAnimationSpeed(isSpeaking) {
+  const strokes = document.querySelectorAll('.audio-wave-pill .stroke');
+  strokes.forEach((stroke) => {
+    stroke.style.animationPlayState = isSpeaking ? 'running' : 'paused';
+  });
 }
 
 // Helper backup method for when premium vault asset fails or falls over
@@ -1574,7 +1575,8 @@ function activateKairosVoiceOnDemand() {
     }, customWaitTime);
   }
 
-  resetSilenceTimer(4500);
+  // Initial activation timeout padded slightly to allow 12 seconds before first syllable
+  resetSilenceTimer(12000);
 
   try {
     isKairosListeningActive = true;
@@ -1638,6 +1640,7 @@ window.addEventListener('DOMContentLoaded', () => {
     });
   }
 });
+
 
 
         /* ---------- Floating Particles ---------- */
