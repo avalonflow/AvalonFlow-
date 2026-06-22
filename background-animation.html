@@ -758,6 +758,7 @@ if (window.speechSynthesis) {
   loadFemaleVoice();
 }
 
+
 // ==========================================
 // 5. CORE UI CONTROLLER FUNCTIONS
 // ==========================================
@@ -1392,7 +1393,7 @@ async function speakSilentlyInBackground(rawResponseText) {
   if (vaultAssetPath) {
     console.log(`🎵 Playing Silent Background Vault Asset: ${vaultAssetPath}`);
     const backgroundVaultAudio = new Audio(vaultAssetPath);
-    
+
     backgroundVaultAudio.onplay = () => { isProcessingCommand = true; };
     backgroundVaultAudio.onended = () => { isProcessingCommand = false; };
     backgroundVaultAudio.onerror = () => { executeBackgroundVoiceSynthesis(spokenText); };
@@ -1451,13 +1452,12 @@ function executeBackgroundVoiceSynthesis(text) {
   if (!kairosVoiceEngine) return;
   const utterance = new SpeechSynthesisUtterance(text);
   if (selectedFemaleVoice) utterance.voice = selectedFemaleVoice;
-  
+
   utterance.onstart = () => { isProcessingCommand = true; };
   utterance.onend = () => { isProcessingCommand = false; };
-  
+
   kairosVoiceEngine.speak(utterance);
 }
-
 
 // ==========================================
 // 8. MULTI-DECK 10s CROSSFADE ENGINE WORKFLOW
