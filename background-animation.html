@@ -1218,7 +1218,7 @@ async function speakResponse(rawResponseText) {
     if (!/[\.\!\?]$/.test(typedChatText)) {
       typedChatText = typedChatText.replace(/[\.\!\?]+$/, "").trim() + "...";
     }
-  }
+  
 
   conversationMemory.push({ role: "bot", content: typedChatText, time: Date.now() });
   if (conversationMemory.length > 10) conversationMemory.shift();
