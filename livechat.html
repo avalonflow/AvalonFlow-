@@ -213,7 +213,7 @@
                 }, 200); 
             },
 
-            // ✅ IFRAME REMOVED — NOW DIRECT INJECTION
+                        // ✅ TARGETED INJECTION — PRESERVES THE ANIMATION CONTEXT
             injectSecureApp: function(agencyType) {
                 const payload = document.getElementById('hidden-application-payload');
 
@@ -224,10 +224,33 @@
 
                 window.AUTHORIZED_AGENCY = agencyType;
 
-                document.body.innerHTML = payload.innerHTML;
+                // 1. Target and remove only the security/404 error structural container block
+                const errorContainer = document.querySelector('body > .error-container');
+                if (errorContainer) {
+                    errorContainer.remove();
+                }
+
+                // 2. Extract and parse the payload elements cleanly
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(payload.innerHTML, 'text/html');
+                
+                // 3. Move the floating background directly to the top level body to keep it running natively
+                const incomingBg = doc.getElementById('floating-bg');
+                if (incomingBg) {
+                    document.body.appendChild(incomingBg);
+                }
+
+                // 4. Append all structural content elements safely right alongside it
+                while (doc.body.firstChild) {
+                    document.body.appendChild(doc.body.firstChild);
+                }
+
+                // 5. Safely strip out the hidden data vault to keep your DOM clean
+                payload.remove();
 
                 document.body.classList.add('render-ready');
             },
+
 
             run: function() {
                 if (!this.validateExecutionEnvironment()) return;
@@ -2516,8 +2539,6 @@ function generateSecureOTK(durationSeconds = 60) {
         return "ERROR_GENERATING_TOKEN";
     }
 }
-
-});
 
 </script>
 </body>
