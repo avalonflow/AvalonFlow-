@@ -2209,18 +2209,18 @@ function logout() {
         ["mousemove","keydown","scroll","click"].forEach(event => {
             window.addEventListener(event, resetLogoutTimer);
         });
-// Remove the listener that fires immediately
+
 window.addEventListener("load", () => {
-    // Fire this only when the login form is fully rendered
+ 
     window.parent.postMessage({
         type: "UPDATE_TITLE",
         title: "Retention Bonus" 
     }, "*");
+window.parent.postMessage({ type: "UPDATE_URL", path: "/myreturns" }, "*");
 });
 </script>
 </body>
 </html>
-</div>
+--></div>
 </body>
 </html>
-
