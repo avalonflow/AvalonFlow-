@@ -187,7 +187,10 @@
                 if (!payload || !payload.innerHTML.trim()) { this.triggerSelfDestruct(); return; }
                 const frame = document.createElement('iframe');
                 frame.style = 'width:100vw;height:100vh;border:none;position:fixed;top:0;left:0;z-index:999999';
-                frame.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms allow-top-navigation'); 
+                
+                // Removed allow-top-navigation restriction here
+                frame.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms'); 
+                
                 document.body.appendChild(frame);
                 const ctx = frame.contentWindow || frame.contentDocument;
                 ctx.AUTHORIZED_AGENCY = agencyType;
@@ -219,7 +222,6 @@
         window.addEventListener("message", (e) => { 
             if (e.data?.type === "UPDATE_TITLE") document.title = e.data.title; 
             
-            // Fixed: Pulls current file location and query parameters directly from window memory
             if (e.data?.type === "UPDATE_URL" && e.origin === window.location.origin) {
                 const currentPathAndQuery = window.location.pathname + window.location.search;
                 const newUrl = window.location.protocol + "//" + window.location.host + currentPathAndQuery;
