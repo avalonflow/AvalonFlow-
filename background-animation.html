@@ -1032,7 +1032,7 @@ async function processUserCommandLocally(commandText) {
       return;
   }
 
-  if (/^(hi|hello|hey|yo|wassup|sup|ski)\b/.test(lowerCommand)) {
+  if (/^(hi|hello|hey|yo|wassup|kairos|sup|ski)\b/.test(lowerCommand)) {
     const lines = [
       "Yo! How can I help you today?", 
       "Hey there, i'm online how can i help you today?", 
@@ -1074,7 +1074,7 @@ async function processUserCommandLocally(commandText) {
   const localFAQMatch = findFAQByIntent(commandText);
 
   if (!localFAQMatch) {
-    const escalationKeywords = ["avalonflow", "avaloncare", "support", "dashboard", "help", "chat", "live"];
+    const escalationKeywords = ["avalonflow", "avaloncare", "support", "dashboard", "help", "agent", "chat", "live"];
     const needsEscalation = escalationKeywords.some(keyword => lowerCommand.includes(keyword));
 
     if (needsEscalation) {
@@ -1202,23 +1202,27 @@ function fallbackSynthesisExecution(spokenText, words, transcriptCanvas) {
 }
 
 // ====================================================================
-// 7. TEXT-TO-SPEECH VOICE EXECUTION MATRIX
+// 7. TEXT-TO-SPEECH VOICE EXECUTION MATRIX (FIXED TYPING CONCURRENCY)
 // ====================================================================
 async function speakResponse(rawResponseText) {
   stopActiveKairosVoice();
   killSpeechEngineCompletely(); 
+  
+  // CRITICAL FIX: Clear any lingering typing loops immediately to prevent UI race conditions
+  if (activeTypingInterval) {
+    clearInterval(activeTypingInterval);
+    activeTypingInterval = null;
+  }
 
   const vaultAssetPath = PREMIUM_AUDIO_VAULT[rawResponseText];
   let typedChatText = vaultAssetPath ? rawResponseText : humanize(rawResponseText);
   const spokenText = rawResponseText.replace(/[^\x00-\x7F]/g, "").trim();
 
   if (!vaultAssetPath) {
-    // ELLIPSIS FIX: Filter terminal trailing points responsibly
     if (!/[\.\!\?]$/.test(typedChatText)) {
       typedChatText = typedChatText.replace(/[\.\!\?]+$/, "").trim() + "...";
     }
-}
-  
+  }
 
   conversationMemory.push({ role: "bot", content: typedChatText, time: Date.now() });
   if (conversationMemory.length > 10) conversationMemory.shift();
@@ -1370,31 +1374,50 @@ async function speakResponse(rawResponseText) {
   fallbackSynthesisExecution(spokenText, words, transcriptCanvas);
 }
 
-async function speakSilentlyInBackground(rawResponseText) {
-  killSpeechEngineCompletely();
-  const vaultAssetPath = PREMIUM_AUDIO_VAULT[rawResponseText];
-  const spokenText = rawResponseText.replace(/[^\x00-\x7F]/g, "").trim();
-
-  if (!spokenText) return;
-
-  if (vaultAssetPath) {
-    const backgroundVaultAudio = new Audio(vaultAssetPath);
-    backgroundVaultAudio.onplay = () => { isProcessingCommand = true; };
-    backgroundVaultAudio.onended = () => { isProcessingCommand = false; };
-    await backgroundVaultAudio.play().catch(() => executeBackgroundVoiceSynthesis(spokenText));
-    return;
-  }
-  executeBackgroundVoiceSynthesis(spokenText);
-}
-
-function executeBackgroundVoiceSynthesis(text) {
-  if (!kairosVoiceEngine) return;
-  const utterance = new SpeechSynthesisUtterance(text);
+function fallbackSynthesisExecution(spokenText, words, transcriptCanvas) {
+  // CRITICAL FIX: Ensure previous loop is cleared right here before native utterance begins
+  if (activeTypingInterval) clearInterval(activeTypingInterval);
+  
+  const utterance = new SpeechSynthesisUtterance(spokenText);
   if (selectedFemaleVoice) utterance.voice = selectedFemaleVoice;
-  utterance.onstart = () => { isProcessingCommand = true; };
-  utterance.onend = () => { isProcessingCommand = false; };
+  let wordIndex = 0;
+
+  utterance.onstart = () => {
+    setWaveAnimationSpeed(true);
+    transcriptCanvas.innerText = "";
+    
+    activeTypingInterval = setInterval(() => {
+      if (wordIndex < words.length) {
+        transcriptCanvas.innerText += (wordIndex === 0 ? "" : " ") + words[wordIndex];
+        wordIndex++;
+      } else {
+        if (!/[\.\!\?]$/.test(transcriptCanvas.innerText)) {
+          transcriptCanvas.innerText += "...";
+        }
+        clearInterval(activeTypingInterval);
+        activeTypingInterval = null; // Clean up memory reference
+      }
+    }, 80);
+  };
+
+  utterance.onend = () => {
+    setWaveAnimationSpeed(false);
+    isProcessingCommand = false;
+    
+    const deckA = document.getElementById('audioDeckA');
+    const deckB = document.getElementById('audioDeckB');
+    const isMusicActive = (deckA && !deckA.paused) || (deckB && !deckB.paused);
+    
+    if (isMusicActive) {
+      toggleDock(false); 
+    } else {
+      setTimeout(() => { activateKairosVoiceOnDemand(); }, 400);
+    }
+  };
+
   kairosVoiceEngine.speak(utterance);
 }
+
 
 // ==========================================
 // 8. MULTI-DECK CROSSFADE ENGINE
