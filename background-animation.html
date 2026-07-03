@@ -1209,7 +1209,7 @@ async function processUserCommandLocally(commandText) {
   // Fallback B: Cloud Endpoint Session
   try {
     const GEMINI_API_KEY = KAIROS_KEYS.gemini || "";
-    const MODEL_NAME = "gemini-3.5-flash"; 
+    const MODEL_NAME = "gemini-3.5-flash-lite"; 
     const URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_NAME}:generateContent?key=${GEMINI_API_KEY}`;
 
     const requestContents = [...kairosChatHistory, { role: "user", parts: [{ text: commandText }] }];
@@ -1268,7 +1268,14 @@ async function speakResponse(rawResponseText) {
 
   const vaultAssetPath = PREMIUM_AUDIO_VAULT[rawResponseText];
   let typedChatText = vaultAssetPath ? rawResponseText : humanize(rawResponseText);
-  const spokenText = rawResponseText.replace(/[^\x00-\x7F]/g, "").trim();
+  
+  // ==========================================
+  // PATCH: Strip Markdown symbols for clean voice synthesis
+  // ==========================================
+  let spokenText = rawResponseText
+    .replace(/[#*`_~]/g, '') // Strips out #, *, `, _, and ~ so she won't read them
+    .replace(/[^\x00-\x7F]/g, "") // Keeps the existing emoji/special character strip
+    .trim();
 
   if (!vaultAssetPath) {
     if (!/[\.\!\?]$/.test(typedChatText)) {
