@@ -460,7 +460,7 @@
 /**
  * AvalonFlow: Kairos Intelligent Voice & UI Controller
  * Comprehensive Master Core Edition (Flicker-Free Optimized)
- * * PATCH VERIFIED: Mic Wakeup Suppressor Flag Integrated
+ * * PATCH VERIFIED: Mic Wakeup Suppressor Flag & Auto-Collapse Integrated
  */
 
 // ==========================================
@@ -1197,12 +1197,10 @@ async function processUserCommandLocally(commandText) {
 function setWaveAnimationSpeed(isSpeaking) {
   const strokes = document.querySelectorAll('.audio-wave-pill .stroke');
   
-  // FEATURE 2 FIX: Check if background music decks are running even if voice finished speaking
   const deckA = document.getElementById('audioDeckA');
   const deckB = document.getElementById('audioDeckB');
   const isMusicPlaying = (deckA && !deckA.paused && deckA.src) || (deckB && !deckB.paused && deckB.src);
 
-  // Keep running if Kairos is actively speaking OR if music streams are outputting audio
   const shouldAnimate = isSpeaking || isMusicPlaying;
 
   strokes.forEach((stroke) => {
@@ -1244,7 +1242,7 @@ async function speakResponse(rawResponseText) {
 
   if (!spokenText) {
     isProcessingCommand = false;
-    activateKairosVoiceOnDemand();
+    toggleDock(false); // --- FIXED: Collapse if response has no spoken text context ---
     return;
   }
 
@@ -1278,36 +1276,12 @@ async function speakResponse(rawResponseText) {
       if (blockNextMicActivation) {
         blockNextMicActivation = false;
         console.log("Mic activation skipped via Suppressor Flag (Vault Asset Path).");
-        
-        // FEATURE 1 FIX: If music is active/playing, close the pill immediately 
-        const deckA = document.getElementById('audioDeckA');
-        const deckB = document.getElementById('audioDeckB');
-        const isMusicActive = (deckA && !deckA.paused && deckA.src) || (deckB && !deckB.paused && deckB.src);
-        
-        if (isMusicActive) {
-          toggleDock(false); // Seamlessly collapses the expanded pill view
-        }
+        toggleDock(false); // --- FIXED: Always smoothly collapse after a blocked mic stream statement finishes ---
         return;
       }
 
-      const dockStatusText = document.getElementById('dockStatusText');
-      const dockWrap = document.querySelector('.assistant-dock-wrap');
-      const isCurrentlyExpanded = dockWrap ? dockWrap.classList.contains('expanded') : false;
-
-      const deckA = document.getElementById('audioDeckA');
-      const deckB = document.getElementById('audioDeckB');
-      const isMusicActive = (deckA && !deckA.paused && deckA.src) || (deckB && !deckB.paused && deckB.src);
-
-      if (isCurrentlyExpanded) {
-        setTimeout(() => { activateKairosVoiceOnDemand(); }, 400);
-      } else if (isMusicActive) {
-        toggleDock(false); 
-        if (dockStatusText) dockStatusText.innerText = "Playing Audio Stream...";
-        if (statusText) statusText.innerText = "Playing Audio Stream...";
-        setTimeout(() => setWaveAnimationSpeed(true), 200); 
-      } else {
-        setTimeout(() => { activateKairosVoiceOnDemand(); }, 400);
-      }
+      // --- FIXED: After normal asset finishing speech statement, close pill seamlessly ---
+      setTimeout(() => { toggleDock(false); }, 400);
     };
 
     nativeVaultAudio.onerror = () => {
@@ -1374,40 +1348,15 @@ async function speakResponse(rawResponseText) {
         setWaveAnimationSpeed(false);
         isProcessingCommand = false;
 
-        // CHECK AND TRAP SYSTEM WAKEUP
         if (blockNextMicActivation) {
           blockNextMicActivation = false;
           console.log("Mic activation skipped via Suppressor Flag (Cloud Path).");
-          
-          // FEATURE 1 FIX: If music is active/playing, close the pill immediately 
-          const deckA = document.getElementById('audioDeckA');
-          const deckB = document.getElementById('audioDeckB');
-          const isMusicActive = (deckA && !deckA.paused && deckA.src) || (deckB && !deckB.paused && deckB.src);
-          
-          if (isMusicActive) {
-            toggleDock(false); // Seamlessly collapses the expanded pill view
-          }
+          toggleDock(false); // --- FIXED: Close dock after music command speech block ends ---
           return;
         }
 
-        const dockStatusText = document.getElementById('dockStatusText');
-        const dockWrap = document.querySelector('.assistant-dock-wrap');
-        const isCurrentlyExpanded = dockWrap ? dockWrap.classList.contains('expanded') : false;
-
-        const deckA = document.getElementById('audioDeckA');
-        const deckB = document.getElementById('audioDeckB');
-        const isMusicActive = (deckA && !deckA.paused && deckA.src) || (deckB && !deckB.paused && deckB.src);
-
-        if (isCurrentlyExpanded) {
-          setTimeout(() => { activateKairosVoiceOnDemand(); }, 400);
-        } else if (isMusicActive) {
-          toggleDock(false); 
-          if (dockStatusText) dockStatusText.innerText = "Playing Audio Stream...";
-          if (statusText) statusText.innerText = "Playing Audio Stream...";
-          setTimeout(() => setWaveAnimationSpeed(true), 200); 
-        } else {
-          setTimeout(() => { activateKairosVoiceOnDemand(); }, 400);
-        }
+        // --- FIXED: Standard query completes, collapse pill container window cleanly ---
+        setTimeout(() => { toggleDock(false); }, 400);
       };
 
       await nativeCloudAudio.play();
@@ -1450,40 +1399,15 @@ function fallbackSynthesisExecution(spokenText, words, transcriptCanvas) {
     setWaveAnimationSpeed(false);
     isProcessingCommand = false;
 
-    // CHECK AND TRAP SYSTEM WAKEUP
     if (blockNextMicActivation) {
       blockNextMicActivation = false;
       console.log("Mic activation skipped via Suppressor Flag (Fallback Utterance Path).");
-      
-      // FEATURE 1 FIX: If music is active/playing, close the pill immediately 
-      const deckA = document.getElementById('audioDeckA');
-      const deckB = document.getElementById('audioDeckB');
-      const isMusicActive = (deckA && !deckA.paused && deckA.src) || (deckB && !deckB.paused && deckB.src);
-      
-      if (isMusicActive) {
-        toggleDock(false); // Seamlessly collapses the expanded pill view
-      }
+      toggleDock(false); // --- FIXED ---
       return;
     }
 
-    const dockStatusText = document.getElementById('dockStatusText');
-    const dockWrap = document.querySelector('.assistant-dock-wrap');
-    const isCurrentlyExpanded = dockWrap ? dockWrap.classList.contains('expanded') : false;
-
-    const deckA = document.getElementById('audioDeckA');
-    const deckB = document.getElementById('audioDeckB');
-    const isMusicActive = (deckA && !deckA.paused && deckA.src) || (deckB && !deckB.paused && deckB.src);
-
-    if (isCurrentlyExpanded) {
-      setTimeout(() => { activateKairosVoiceOnDemand(); }, 400);
-    } else if (isMusicActive) {
-      toggleDock(false); 
-      if (dockStatusText) dockStatusText.innerText = "Playing Audio Stream...";
-      if (statusText) statusText.innerText = "Playing Audio Stream...";
-      setTimeout(() => setWaveAnimationSpeed(true), 200); 
-    } else {
-      setTimeout(() => { activateKairosVoiceOnDemand(); }, 400);
-    }
+    // --- FIXED: Complete utterance, close interface ---
+    setTimeout(() => { toggleDock(false); }, 400);
   };
 
   kairosVoiceEngine.speak(utterance);
@@ -1495,13 +1419,12 @@ function fallbackSynthesisExecution(spokenText, words, transcriptCanvas) {
 // ==========================================
 function botMusicReply(statusNotification, file) {
     const trackTitle = formatTrackTitle(file);
-    const uiDisplayMessage = `Playing ${trackTitle} for you 🎧...`;
+    const uiDisplayMessage = `Playing ${trackTitle}...`;
 
     const deckA = document.getElementById('audioDeckA');
     const deckB = document.getElementById('audioDeckB');
     if (!deckA || !deckB) return;
 
-    // INTERCEPT: Safe flag declaration prevents microphone engagement upon speaking execution termination
     blockNextMicActivation = true; 
 
     speakResponse(uiDisplayMessage);
@@ -1577,7 +1500,6 @@ function setupTrackEndMonitor(audioDeck) {
                 const nextFile = musicQueue[currentTrackIndex];
                 let trackTitle = formatTrackTitle(nextFile);
 
-                // Varied transition phrases
                 const transitionPhrases = [
                     `Playing next, ${trackTitle}...`,
                     `Moving to next song in queue, ${trackTitle}...`,
@@ -1588,14 +1510,12 @@ function setupTrackEndMonitor(audioDeck) {
                     `Cueing up ${trackTitle} for you...`
                 ];
                 
-                // Pick a random phrase from the library
                 const randomAnnouncement = transitionPhrases[Math.floor(Math.random() * transitionPhrases.length)];
 
                 chatHistory = chatHistory || [];
                 chatHistory.push({ sender: 'bot', text: randomAnnouncement, type: 'text', actualSender: 'kairos' });
                 localStorage.setItem('tg_chat_history_v3', JSON.stringify(chatHistory));
 
-                // INTERCEPT: Block micro loop trigger from the automatic transition voice track
                 blockNextMicActivation = true; 
                 speakResponse(randomAnnouncement);
 
@@ -1605,8 +1525,7 @@ function setupTrackEndMonitor(audioDeck) {
                 let secondaryDeck = activeDeck === deckA ? deckA : deckB;
 
                 executeCrossfade(secondaryDeck, primaryDeck, nextFile);
-                // Inside setupTrackEndMonitor() right after executing the crossfade:
-                setTimeout(() => setWaveAnimationSpeed(true), 200); // Forces animation state confirmation
+                setTimeout(() => setWaveAnimationSpeed(true), 200); 
             } else {
                 audioDeck.onended = () => {
                     setWaveAnimationSpeed(false);
@@ -1620,7 +1539,7 @@ function setupTrackEndMonitor(audioDeck) {
 }
 
 // ==========================================
-// 9. HARDWARE VOICE RECOGNITION (DICTATION)
+// 9. HARDWARE VOICE RECOGNITION (DICTATION) - PATCHED INTERIM ENGINE
 // ==========================================
 function killSpeechEngineCompletely() {
   isKairosListeningActive = false;
@@ -1660,41 +1579,70 @@ function activateKairosVoiceOnDemand() {
 
   kairosSpeechRecognizer = new SpeechRecognition();
   kairosSpeechRecognizer.continuous = true;
-  kairosSpeechRecognizer.interimResults = false; 
+  
+  // --- PATCHED: Now streaming chunks live to clear micro-pauses cleanly ---
+  kairosSpeechRecognizer.interimResults = true; 
   kairosSpeechRecognizer.lang = 'en-US';
 
   kairosSpeechRecognizer.onresult = (event) => {
     if (isProcessingCommand) return; 
 
     let finalTranscript = '';
+    let interimTranscript = '';
+    let isFinalChunkDetected = false;
+
     for (let i = event.resultIndex; i < event.results.length; ++i) {
       if (event.results[i].isFinal) {
         finalTranscript += event.results[i][0].transcript;
+        isFinalChunkDetected = true; 
+      } else {
+        interimTranscript += event.results[i][0].transcript;
+      }
+    }
+
+    // Update canvas canvas dynamically with real-time feedback strings
+    if (transcriptCanvas) {
+      if (isFinalChunkDetected && finalTranscript.trim().length > 0) {
+        transcriptCanvas.innerText = finalTranscript.trim() + "...";
+      } else if (interimTranscript.trim().length > 0) {
+        transcriptCanvas.innerText = interimTranscript.trim() + "...";
       }
     }
 
     let processedText = finalTranscript.trim();
     if (processedText.length > 0) {
       gatheredUserCommand = processedText;
-      if (transcriptCanvas) transcriptCanvas.innerText = processedText + "...";
+    }
 
-      resetSilenceTimer(2500);
+    // Intelligent breakdown routing controller logic
+    if (isFinalChunkDetected) {
+      // Browser has cleanly segmented a sentence block. Start a safe 3-second thought recovery window.
+      resetSilenceTimer(3000); 
+    } else {
+      // User is actively formulating or outputting sounds; completely defer expiration
+      if (voiceSilenceTimer) clearTimeout(voiceSilenceTimer);
     }
   };
 
   kairosSpeechRecognizer.onerror = (err) => {
-    if (err.error === 'not-allowed') {
-      if (dockStatusText) dockStatusText.innerText = "Mic access blocked.";
-      if (statusText) statusText.innerText = "Mic access blocked.";
+    if (err.error === 'not-allowed' || err.error === 'no-speech') {
+      if (dockStatusText) dockStatusText.innerText = "Mic access closed.";
+      if (statusText) statusText.innerText = "Mic access closed.";
       isProcessingCommand = false;
-      toggleDock(false);
+      toggleDock(false); 
     }
   };
 
   function resetSilenceTimer(customWaitTime = 2500) {
     if (voiceSilenceTimer) clearTimeout(voiceSilenceTimer);
     voiceSilenceTimer = setTimeout(() => {
-      if (!gatheredUserCommand || gatheredUserCommand.trim().length === 0) return;
+      if (!gatheredUserCommand || gatheredUserCommand.trim().length === 0) {
+        console.log("No dictation detected from user within time frame. Auto-collapsing dock window.");
+        killSpeechEngineCompletely();
+        isProcessingCommand = false;
+        toggleDock(false);
+        return;
+      }
 
       isProcessingCommand = true; 
       killSpeechEngineCompletely();
@@ -1714,7 +1662,7 @@ function activateKairosVoiceOnDemand() {
     }, customWaitTime);
   }
 
-  resetSilenceTimer(10000);
+  resetSilenceTimer(SILENCE_WAIT_TIME); // Drops to collapse state after 10 seconds of pure idle space
 
   try {
     isKairosListeningActive = true;
@@ -1723,6 +1671,7 @@ function activateKairosVoiceOnDemand() {
     console.error(e);
   }
 }
+
 
 function stopActiveKairosVoice() {
   if (kairosVoiceEngine) kairosVoiceEngine.cancel();
@@ -1778,6 +1727,7 @@ window.addEventListener('DOMContentLoaded', () => {
     });
   }
 });
+
 
 
 
