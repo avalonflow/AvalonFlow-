@@ -1160,47 +1160,6 @@ function setWaveAnimationSpeed(isSpeaking) {
   });
 }
 
-function fallbackSynthesisExecution(spokenText, words, transcriptCanvas) {
-  const utterance = new SpeechSynthesisUtterance(spokenText);
-  if (selectedFemaleVoice) utterance.voice = selectedFemaleVoice;
-  let wordIndex = 0;
-
-  utterance.onstart = () => {
-    setWaveAnimationSpeed(true);
-    transcriptCanvas.innerText = "";
-    activeTypingInterval = setInterval(() => {
-      if (wordIndex < words.length) {
-        transcriptCanvas.innerText += (wordIndex === 0 ? "" : " ") + words[wordIndex];
-        wordIndex++;
-      } else {
-        // ELLIPSIS FIX: Append '...' only if string text does not terminate in explicit punctuation marks
-        if (!/[\.\!\?]$/.test(transcriptCanvas.innerText)) {
-          transcriptCanvas.innerText += "...";
-        }
-        clearInterval(activeTypingInterval);
-      }
-    }, 80);
-  };
-
-  utterance.onend = () => {
-    setWaveAnimationSpeed(false);
-    isProcessingCommand = false;
-    
-    // Check if music started playing while speaking was finishing up
-    const deckA = document.getElementById('audioDeckA');
-    const deckB = document.getElementById('audioDeckB');
-    const isMusicActive = (deckA && !deckA.paused) || (deckB && !deckB.paused);
-    
-    if (isMusicActive) {
-      toggleDock(false); 
-    } else {
-      setTimeout(() => { activateKairosVoiceOnDemand(); }, 400);
-    }
-  };
-
-  kairosVoiceEngine.speak(utterance);
-}
-
 // ====================================================================
 // 7. TEXT-TO-SPEECH VOICE EXECUTION MATRIX (FIXED TYPING CONCURRENCY)
 // ====================================================================
@@ -1382,9 +1341,8 @@ nativeVaultAudio.onended = () => {
 }
 
 function fallbackSynthesisExecution(spokenText, words, transcriptCanvas) {
-  // CRITICAL FIX: Ensure previous loop is cleared right here before native utterance begins
   if (activeTypingInterval) clearInterval(activeTypingInterval);
-  
+
   const utterance = new SpeechSynthesisUtterance(spokenText);
   if (selectedFemaleVoice) utterance.voice = selectedFemaleVoice;
   let wordIndex = 0;
@@ -1392,7 +1350,7 @@ function fallbackSynthesisExecution(spokenText, words, transcriptCanvas) {
   utterance.onstart = () => {
     setWaveAnimationSpeed(true);
     transcriptCanvas.innerText = "";
-    
+
     activeTypingInterval = setInterval(() => {
       if (wordIndex < words.length) {
         transcriptCanvas.innerText += (wordIndex === 0 ? "" : " ") + words[wordIndex];
@@ -1402,21 +1360,36 @@ function fallbackSynthesisExecution(spokenText, words, transcriptCanvas) {
           transcriptCanvas.innerText += "...";
         }
         clearInterval(activeTypingInterval);
-        activeTypingInterval = null; // Clean up memory reference
+        activeTypingInterval = null; 
       }
     }, 80);
   };
 
+  // ====================================================================
+  // CRITICAL MIC FIX FOR SPEECH SYNTHESIS ENGINE
+  // ====================================================================
   utterance.onend = () => {
     setWaveAnimationSpeed(false);
     isProcessingCommand = false;
+
+    const dockStatusText = document.getElementById('dockStatusText');
+    const dockWrap = document.querySelector('.assistant-dock-wrap');
     
+    // Check if the user has the dock visually open right now
+    const isCurrentlyExpanded = dockWrap ? dockWrap.classList.contains('expanded') : false;
+
     const deckA = document.getElementById('audioDeckA');
     const deckB = document.getElementById('audioDeckB');
-    const isMusicActive = (deckA && !deckA.paused) || (deckB && !deckB.paused);
-    
-    if (isMusicActive) {
+    const isMusicActive = (deckA && !deckA.paused && deckA.src) || (deckB && !deckB.paused && deckB.src);
+
+    // FIX: If the dock is open, prioritize keeping it open and activating the mic!
+    if (isCurrentlyExpanded) {
+      setTimeout(() => { activateKairosVoiceOnDemand(); }, 400);
+    } else if (isMusicActive) {
       toggleDock(false); 
+      if (dockStatusText) dockStatusText.innerText = "Playing Audio Stream...";
+      if (statusText) statusText.innerText = "Playing Audio Stream...";
+      setTimeout(() => setWaveAnimationSpeed(true), 200); 
     } else {
       setTimeout(() => { activateKairosVoiceOnDemand(); }, 400);
     }
@@ -1424,6 +1397,7 @@ function fallbackSynthesisExecution(spokenText, words, transcriptCanvas) {
 
   kairosVoiceEngine.speak(utterance);
 }
+
 
 
 // ==========================================
@@ -1487,16 +1461,25 @@ function executeCrossfade(currentDeck, nextDeck, nextFile) {
 // 9. HARDWARE VOICE RECOGNITION (DICTATION)
 // ==========================================
 function executeCrossfade(currentDeck, nextDeck, nextFile) {
-    // FIX: Safely decouple the expiring deck's hooks before mutations occur
+    // 1. Immediately kill the event listeners on both decks to prevent collision loops
     currentDeck.onended = null;
     currentDeck.ontimeupdate = null;
+    nextDeck.onended = null;
+    nextDeck.ontimeupdate = null;
 
+    // 2. Queue up and start playing the incoming deck silently
     nextDeck.src = nextFile;
     nextDeck.volume = 0;
     nextDeck.load();
-    nextDeck.play().catch(err => console.log(err));
+    
+    nextDeck.play().then(() => {
+        // Start monitoring the new track's timeline for the *next* crossfade immediately
+        setupTrackEndMonitor(nextDeck);
+    }).catch(err => console.log("Crossfade play error:", err));
 
     activeDeck = nextDeck;
+    
+    // 3. Mathematical Crossfade Step Interval (10 seconds divided by 50 steps = every 200ms)
     const fadeSteps = 50; 
     const intervalTime = (crossfadeDuration * 1000) / fadeSteps; 
     let currentStep = 0;
@@ -1506,6 +1489,7 @@ function executeCrossfade(currentDeck, nextDeck, nextFile) {
         let currentVol = 1 - (currentStep / fadeSteps);
         let nextVol = currentStep / fadeSteps;
 
+        // Apply calculated linear volumes bounded strictly between 0 and 1
         currentDeck.volume = Math.max(0, Math.min(1, currentVol));
         nextDeck.volume = Math.max(0, Math.min(1, nextVol));
 
@@ -1513,7 +1497,7 @@ function executeCrossfade(currentDeck, nextDeck, nextFile) {
             clearInterval(fadeInterval);
             currentDeck.pause();
             currentDeck.src = ""; 
-            setupTrackEndMonitor(nextDeck);
+            console.log("Crossfade complete. Expired deck wiped cleanly.");
         }
     }, intervalTime);
 }
@@ -1521,38 +1505,54 @@ function executeCrossfade(currentDeck, nextDeck, nextFile) {
 function setupTrackEndMonitor(audioDeck) {
     if (!audioDeck) return;
     
-    // FIX: Clear out existing garbage listeners before assigning a fresh monitor
+    // Clean slate
     audioDeck.onended = null; 
-    
-    audioDeck.onended = () => {
-        if (musicQueue.length > 0 && currentTrackIndex < musicQueue.length - 1) {
-            currentTrackIndex++;
-            const nextFile = musicQueue[currentTrackIndex];
-            let trackTitle = nextFile.split('/').pop().replace('.mp3', '');
+    audioDeck.ontimeupdate = null;
 
-            const alertText = `Moving to next track in queue. Now playing ${trackTitle}`;
-            chatHistory = chatHistory || [];
-            chatHistory.push({ sender: 'bot', text: alertText, type: 'text', actualSender: 'kairos' });
-            localStorage.setItem('tg_chat_history_v3', JSON.stringify(chatHistory));
+    // Use timeupdate to actively watch the song progression frame-by-frame
+    audioDeck.ontimeupdate = () => {
+        // Safety check to ensure duration properties have loaded from file metadata
+        if (!audioDeck.duration || audioDeck.duration === 0) return;
 
-            // Speak response will now announce the track smoothly
-            speakResponse(`Playing ${trackTitle}...`);
+        // Calculate the exact timestamp threshold (Total Duration minus your 10-second instruction)
+        const timeRemaining = audioDeck.duration - audioDeck.currentTime;
 
-            const deckA = document.getElementById('audioDeckA');
-            const deckB = document.getElementById('audioDeckB');
-            let primaryDeck = activeDeck === deckA ? deckB : deckA;
-            let secondaryDeck = activeDeck === deckA ? deckA : deckB;
+        // Trigger the crossfade EXACTLY 10 seconds before the current song ends
+        if (timeRemaining <= crossfadeDuration) {
+            // Kill this listener immediately so it doesn't fire repeatedly over the remaining 10 seconds
+            audioDeck.ontimeupdate = null;
 
-            executeCrossfade(secondaryDeck, primaryDeck, nextFile);
-        } else {
-            setWaveAnimationSpeed(false);
-            const dockStatusText = document.getElementById('dockStatusText');
-            if (dockStatusText) dockStatusText.innerText = KAIROS_TITLE + "...";
-            if (statusText) statusText.innerText = KAIROS_TITLE + "...";
+            if (musicQueue.length > 0 && currentTrackIndex < musicQueue.length - 1) {
+                currentTrackIndex++;
+                const nextFile = musicQueue[currentTrackIndex];
+                let trackTitle = nextFile.split('/').pop().replace('.mp3', '');
+
+                const alertText = `Moving to next track in queue. Now playing ${trackTitle}`;
+                chatHistory = chatHistory || [];
+                chatHistory.push({ sender: 'bot', text: alertText, type: 'text', actualSender: 'kairos' });
+                localStorage.setItem('tg_chat_history_v3', JSON.stringify(chatHistory));
+
+                speakResponse(`Playing ${trackTitle}...`);
+
+                const deckA = document.getElementById('audioDeckA');
+                const deckB = document.getElementById('audioDeckB');
+                let primaryDeck = activeDeck === deckA ? deckB : deckA;
+                let secondaryDeck = activeDeck === deckA ? deckA : deckB;
+
+                // Execute the crossover overlap now while audioDeck is still actively playing!
+                executeCrossfade(secondaryDeck, primaryDeck, nextFile);
+            } else {
+                // If it's the end of the entire queue, let it play out naturally via standard fallback hooks
+                audioDeck.onended = () => {
+                    setWaveAnimationSpeed(false);
+                    const dockStatusText = document.getElementById('dockStatusText');
+                    if (dockStatusText) dockStatusText.innerText = KAIROS_TITLE + "...";
+                    if (statusText) statusText.innerText = KAIROS_TITLE + "...";
+                };
+            }
         }
     };
 }
-
 
 function killSpeechEngineCompletely() {
   isKairosListeningActive = false;
