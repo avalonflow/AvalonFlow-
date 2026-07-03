@@ -460,6 +460,7 @@
 /**
  * AvalonFlow: Kairos Intelligent Voice & UI Controller
  * Comprehensive Master Core Edition (Flicker-Free Optimized)
+ * * PATCH VERIFIED: Mic Wakeup Suppressor Flag Integrated
  */
 
 // ==========================================
@@ -526,6 +527,9 @@ let voiceSilenceTimer = null;
 let gatheredUserCommand = "";
 let isProcessingCommand = false;
 let activeTypingInterval = null;
+
+// --- CRITICAL MIC CONTROL FIX ---
+let blockNextMicActivation = false; 
 
 let chatHistory = JSON.parse(localStorage.getItem('tg_chat_history_v3')) || [];
 let kairosChatHistory = []; 
@@ -708,6 +712,43 @@ function findFAQByIntent(input) {
     }
   }
   return maxSim > 0.40 ? bestKey : null; 
+}
+
+function formatTrackTitle(filePath) {
+    let name = filePath.split('/').pop().replace('.mp3', '').trim();
+    name = name.replace(/\(.*?\)/g, '').replace(/RodWave/gi, '').replace(/\s+/g, ' ').trim();
+
+    const toTitleCase = (str) => str.toLowerCase().split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+
+    const knownArtists = [
+        "Adele", "Asake", "Central Cee", "Charlie Puth", "Ed Sheeran", 
+        "Fridayy", "Future", "Gracie Abrams", "Gunna", "Justin Bieber", 
+        "Kate Bush", "Kodak Black", "Lil Durk", "Migos", "Post Malone", 
+        "Quavo", "Rod Wave", "Rylo Rodriguez", "SZA", "Tee Grizzley", 
+        "Whitney Houston", "Wiz Khalifa", "Young Thug", "YoungBoy Never Broke Again"
+    ];
+
+    if (name.toLowerCase().includes(' ft ') || name.toLowerCase().includes(' feat ')) {
+        let parts = name.split(/-| ft | feat /i);
+        let title = toTitleCase(parts[0].trim());
+        let featuredArtist = toTitleCase(parts[1].trim());
+        let leadArtist = parts[2] ? toTitleCase(parts[2].trim()) : "Rod Wave";
+        return `${title} by ${leadArtist} Ft ${featuredArtist}`;
+    }
+
+    if (name.includes('-')) {
+        let parts = name.split('-');
+        let part1 = parts[0].trim();
+        let part2 = parts[1] ? parts[1].trim() : "";
+        let artist = knownArtists.find(a => part1.toLowerCase().includes(a.toLowerCase()) || part2.toLowerCase().includes(a.toLowerCase()));
+
+        if (artist) {
+            let title = (part1.toLowerCase().includes(artist.toLowerCase())) ? part2 : part1;
+            return `${toTitleCase(title)} by ${toTitleCase(artist)}`;
+        }
+    }
+
+    return toTitleCase(name);
 }
 
 function getTypingDelay(text) {
@@ -900,9 +941,8 @@ function adaptTone(msg) {
 
 function humanize(text) {
   if (!text) return "";
-  // Check if text exists exactly inside vault to prevent corrupting lookup keys
   if (PREMIUM_AUDIO_VAULT[text]) return text;
-  
+
   const fillers = ["", "", "Alright… ", "Okay, so ", "Got it. ", "Hmm, ", "Let me see… ", "Right, ", "Makes sense. "];
   let prefix = fillers[Math.floor(Math.random() * fillers.length)];
 
@@ -963,7 +1003,6 @@ async function processUserCommandLocally(commandText) {
           if(deckA) deckA.ontimeupdate = null;
           if(deckB) deckB.ontimeupdate = null;
 
-          let trackTitle = nextFile.split('/').pop().replace('.mp3', '');
           botMusicReply(`Skipping forward.`, nextFile);
       } else if (musicQueue.length > 0) {
           speakResponse("You've reached the end of the current playlist stream");
@@ -984,7 +1023,6 @@ async function processUserCommandLocally(commandText) {
           if(deckA) deckA.ontimeupdate = null;
           if(deckB) deckB.ontimeupdate = null;
 
-          let trackTitle = prevFile.split('/').pop().replace('.mp3', '');
           botMusicReply(`Going back.`, prevFile);
       } else if (currentTrackIndex === 0) {
           speakResponse("This is the very first track in the queue");
@@ -1161,13 +1199,12 @@ function setWaveAnimationSpeed(isSpeaking) {
 }
 
 // ====================================================================
-// 7. TEXT-TO-SPEECH VOICE EXECUTION MATRIX (FIXED TYPING CONCURRENCY)
+// 7. TEXT-TO-SPEECH VOICE EXECUTION MATRIX (MIC WAKEUP BLOCKER READY)
 // ====================================================================
 async function speakResponse(rawResponseText) {
   stopActiveKairosVoice();
   killSpeechEngineCompletely(); 
-  
-  // CRITICAL FIX: Clear any lingering typing loops immediately to prevent UI race conditions
+
   if (activeTypingInterval) {
     clearInterval(activeTypingInterval);
     activeTypingInterval = null;
@@ -1224,31 +1261,36 @@ async function speakResponse(rawResponseText) {
       }, 80);
     };
 
-    // --- Inside speakResponse -> vaultAssetPath execution pipeline ---
-nativeVaultAudio.onended = () => {
-  setWaveAnimationSpeed(false);
-  isProcessingCommand = false;
-  const dockStatusText = document.getElementById('dockStatusText');
-  const dockWrap = document.querySelector('.assistant-dock-wrap');
-  const isCurrentlyExpanded = dockWrap ? dockWrap.classList.contains('expanded') : false;
+    nativeVaultAudio.onended = () => {
+      setWaveAnimationSpeed(false);
+      isProcessingCommand = false;
 
-  const deckA = document.getElementById('audioDeckA');
-  const deckB = document.getElementById('audioDeckB');
-  const isMusicActive = (deckA && !deckA.paused && deckA.src) || (deckB && !deckB.paused && deckB.src);
+      // CHECK AND TRAP SYSTEM WAKEUP
+      if (blockNextMicActivation) {
+        blockNextMicActivation = false;
+        console.log("Mic activation skipped via Suppressor Flag (Vault Asset Path).");
+        return;
+      }
 
-  // FIX: If the dock is open, do NOT minimize it. Keep it open and wake up the mic.
-  if (isCurrentlyExpanded) {
-    setTimeout(() => { activateKairosVoiceOnDemand(); }, 400);
-  } else if (isMusicActive) {
-    toggleDock(false); 
-    if (dockStatusText) dockStatusText.innerText = "Playing Audio Stream...";
-    if (statusText) statusText.innerText = "Playing Audio Stream...";
-    setTimeout(() => setWaveAnimationSpeed(true), 200); 
-  } else {
-    setTimeout(() => { activateKairosVoiceOnDemand(); }, 400);
-  }
-};
+      const dockStatusText = document.getElementById('dockStatusText');
+      const dockWrap = document.querySelector('.assistant-dock-wrap');
+      const isCurrentlyExpanded = dockWrap ? dockWrap.classList.contains('expanded') : false;
 
+      const deckA = document.getElementById('audioDeckA');
+      const deckB = document.getElementById('audioDeckB');
+      const isMusicActive = (deckA && !deckA.paused && deckA.src) || (deckB && !deckB.paused && deckB.src);
+
+      if (isCurrentlyExpanded) {
+        setTimeout(() => { activateKairosVoiceOnDemand(); }, 400);
+      } else if (isMusicActive) {
+        toggleDock(false); 
+        if (dockStatusText) dockStatusText.innerText = "Playing Audio Stream...";
+        if (statusText) statusText.innerText = "Playing Audio Stream...";
+        setTimeout(() => setWaveAnimationSpeed(true), 200); 
+      } else {
+        setTimeout(() => { activateKairosVoiceOnDemand(); }, 400);
+      }
+    };
 
     nativeVaultAudio.onerror = () => {
       if (firedFallback) return;
@@ -1311,31 +1353,35 @@ nativeVaultAudio.onended = () => {
       };
 
       nativeCloudAudio.onended = () => {
-  setWaveAnimationSpeed(false);
-  isProcessingCommand = false;
-  const dockStatusText = document.getElementById('dockStatusText');
-  
-  // FIX: Look at the current dock window state
-  const dockWrap = document.querySelector('.assistant-dock-wrap');
-  const isCurrentlyExpanded = dockWrap ? dockWrap.classList.contains('expanded') : false;
+        setWaveAnimationSpeed(false);
+        isProcessingCommand = false;
 
-  const deckA = document.getElementById('audioDeckA');
-  const deckB = document.getElementById('audioDeckB');
-  const isMusicActive = (deckA && !deckA.paused && deckA.src) || (deckB && !deckB.paused && deckB.src);
+        // CHECK AND TRAP SYSTEM WAKEUP
+        if (blockNextMicActivation) {
+          blockNextMicActivation = false;
+          console.log("Mic activation skipped via Suppressor Flag (Cloud Path).");
+          return;
+        }
 
-  // FIX: Force mic up if dock is open, over-riding the background stream
-  if (isCurrentlyExpanded) {
-    setTimeout(() => { activateKairosVoiceOnDemand(); }, 400);
-  } else if (isMusicActive) {
-    toggleDock(false); 
-    if (dockStatusText) dockStatusText.innerText = "Playing Audio Stream...";
-    if (statusText) statusText.innerText = "Playing Audio Stream...";
-    setTimeout(() => setWaveAnimationSpeed(true), 200); 
-  } else {
-    setTimeout(() => { activateKairosVoiceOnDemand(); }, 400);
-  }
-};
+        const dockStatusText = document.getElementById('dockStatusText');
+        const dockWrap = document.querySelector('.assistant-dock-wrap');
+        const isCurrentlyExpanded = dockWrap ? dockWrap.classList.contains('expanded') : false;
 
+        const deckA = document.getElementById('audioDeckA');
+        const deckB = document.getElementById('audioDeckB');
+        const isMusicActive = (deckA && !deckA.paused && deckA.src) || (deckB && !deckB.paused && deckB.src);
+
+        if (isCurrentlyExpanded) {
+          setTimeout(() => { activateKairosVoiceOnDemand(); }, 400);
+        } else if (isMusicActive) {
+          toggleDock(false); 
+          if (dockStatusText) dockStatusText.innerText = "Playing Audio Stream...";
+          if (statusText) statusText.innerText = "Playing Audio Stream...";
+          setTimeout(() => setWaveAnimationSpeed(true), 200); 
+        } else {
+          setTimeout(() => { activateKairosVoiceOnDemand(); }, 400);
+        }
+      };
 
       await nativeCloudAudio.play();
       return; 
@@ -1373,24 +1419,25 @@ function fallbackSynthesisExecution(spokenText, words, transcriptCanvas) {
     }, 80);
   };
 
-  // ====================================================================
-  // CRITICAL MIC FIX FOR SPEECH SYNTHESIS ENGINE
-  // ====================================================================
   utterance.onend = () => {
     setWaveAnimationSpeed(false);
     isProcessingCommand = false;
 
+    // CHECK AND TRAP SYSTEM WAKEUP
+    if (blockNextMicActivation) {
+      blockNextMicActivation = false;
+      console.log("Mic activation skipped via Suppressor Flag (Fallback Utterance Path).");
+      return;
+    }
+
     const dockStatusText = document.getElementById('dockStatusText');
     const dockWrap = document.querySelector('.assistant-dock-wrap');
-    
-    // Check if the user has the dock visually open right now
     const isCurrentlyExpanded = dockWrap ? dockWrap.classList.contains('expanded') : false;
 
     const deckA = document.getElementById('audioDeckA');
     const deckB = document.getElementById('audioDeckB');
     const isMusicActive = (deckA && !deckA.paused && deckA.src) || (deckB && !deckB.paused && deckB.src);
 
-    // FIX: If the dock is open, prioritize keeping it open and activating the mic!
     if (isCurrentlyExpanded) {
       setTimeout(() => { activateKairosVoiceOnDemand(); }, 400);
     } else if (isMusicActive) {
@@ -1407,19 +1454,20 @@ function fallbackSynthesisExecution(spokenText, words, transcriptCanvas) {
 }
 
 
-
 // ==========================================
 // 8. MULTI-DECK CROSSFADE ENGINE
 // ==========================================
 function botMusicReply(statusNotification, file) {
-    const trackTitle = file.split('/').pop().replace('.mp3', '');
+    const trackTitle = formatTrackTitle(file);
     const uiDisplayMessage = `Playing ${trackTitle}...`;
 
     const deckA = document.getElementById('audioDeckA');
     const deckB = document.getElementById('audioDeckB');
     if (!deckA || !deckB) return;
 
-    // Use a unified string to update transcript canvases without adding duplicate strings
+    // INTERCEPT: Safe flag declaration prevents microphone engagement upon speaking execution termination
+    blockNextMicActivation = true; 
+
     speakResponse(uiDisplayMessage);
 
     let primaryDeck = activeDeck === deckA ? deckB : deckA;
@@ -1438,56 +1486,21 @@ function botMusicReply(statusNotification, file) {
 }
 
 function executeCrossfade(currentDeck, nextDeck, nextFile) {
-    nextDeck.src = nextFile;
-    nextDeck.volume = 0;
-    nextDeck.load();
-    nextDeck.play().catch(err => console.log(err));
-
-    activeDeck = nextDeck;
-    const fadeSteps = 50; 
-    const intervalTime = (crossfadeDuration * 1000) / fadeSteps; 
-    let currentStep = 0;
-
-    const fadeInterval = setInterval(() => {
-        currentStep++;
-        let currentVol = 1 - (currentStep / fadeSteps);
-        let nextVol = currentStep / fadeSteps;
-
-        currentDeck.volume = Math.max(0, Math.min(1, currentVol));
-        nextDeck.volume = Math.max(0, Math.min(1, nextVol));
-
-        if (currentStep >= fadeSteps) {
-            clearInterval(fadeInterval);
-            currentDeck.pause();
-            currentDeck.src = ""; 
-            setupTrackEndMonitor(nextDeck);
-        }
-    }, intervalTime);
-}
-
-// ==========================================
-// 9. HARDWARE VOICE RECOGNITION (DICTATION)
-// ==========================================
-function executeCrossfade(currentDeck, nextDeck, nextFile) {
-    // 1. Immediately kill the event listeners on both decks to prevent collision loops
     currentDeck.onended = null;
     currentDeck.ontimeupdate = null;
     nextDeck.onended = null;
     nextDeck.ontimeupdate = null;
 
-    // 2. Queue up and start playing the incoming deck silently
     nextDeck.src = nextFile;
     nextDeck.volume = 0;
     nextDeck.load();
-    
+
     nextDeck.play().then(() => {
-        // Start monitoring the new track's timeline for the *next* crossfade immediately
         setupTrackEndMonitor(nextDeck);
     }).catch(err => console.log("Crossfade play error:", err));
 
     activeDeck = nextDeck;
-    
-    // 3. Mathematical Crossfade Step Interval (10 seconds divided by 50 steps = every 200ms)
+
     const fadeSteps = 50; 
     const intervalTime = (crossfadeDuration * 1000) / fadeSteps; 
     let currentStep = 0;
@@ -1497,7 +1510,6 @@ function executeCrossfade(currentDeck, nextDeck, nextFile) {
         let currentVol = 1 - (currentStep / fadeSteps);
         let nextVol = currentStep / fadeSteps;
 
-        // Apply calculated linear volumes bounded strictly between 0 and 1
         currentDeck.volume = Math.max(0, Math.min(1, currentVol));
         nextDeck.volume = Math.max(0, Math.min(1, nextVol));
 
@@ -1512,34 +1524,30 @@ function executeCrossfade(currentDeck, nextDeck, nextFile) {
 
 function setupTrackEndMonitor(audioDeck) {
     if (!audioDeck) return;
-    
-    // Clean slate
+
     audioDeck.onended = null; 
     audioDeck.ontimeupdate = null;
 
-    // Use timeupdate to actively watch the song progression frame-by-frame
     audioDeck.ontimeupdate = () => {
-        // Safety check to ensure duration properties have loaded from file metadata
         if (!audioDeck.duration || audioDeck.duration === 0) return;
 
-        // Calculate the exact timestamp threshold (Total Duration minus your 10-second instruction)
         const timeRemaining = audioDeck.duration - audioDeck.currentTime;
 
-        // Trigger the crossfade EXACTLY 10 seconds before the current song ends
         if (timeRemaining <= crossfadeDuration) {
-            // Kill this listener immediately so it doesn't fire repeatedly over the remaining 10 seconds
             audioDeck.ontimeupdate = null;
 
             if (musicQueue.length > 0 && currentTrackIndex < musicQueue.length - 1) {
                 currentTrackIndex++;
                 const nextFile = musicQueue[currentTrackIndex];
-                let trackTitle = nextFile.split('/').pop().replace('.mp3', '');
+                let trackTitle = formatTrackTitle(nextFile);
 
                 const alertText = `Moving to next track in queue. Now playing ${trackTitle}`;
                 chatHistory = chatHistory || [];
                 chatHistory.push({ sender: 'bot', text: alertText, type: 'text', actualSender: 'kairos' });
                 localStorage.setItem('tg_chat_history_v3', JSON.stringify(chatHistory));
 
+                // INTERCEPT: Block micro loop trigger from the automatic transition voice track
+                blockNextMicActivation = true; 
                 speakResponse(`Playing ${trackTitle}...`);
 
                 const deckA = document.getElementById('audioDeckA');
@@ -1547,10 +1555,8 @@ function setupTrackEndMonitor(audioDeck) {
                 let primaryDeck = activeDeck === deckA ? deckB : deckA;
                 let secondaryDeck = activeDeck === deckA ? deckA : deckB;
 
-                // Execute the crossover overlap now while audioDeck is still actively playing!
                 executeCrossfade(secondaryDeck, primaryDeck, nextFile);
             } else {
-                // If it's the end of the entire queue, let it play out naturally via standard fallback hooks
                 audioDeck.onended = () => {
                     setWaveAnimationSpeed(false);
                     const dockStatusText = document.getElementById('dockStatusText');
@@ -1562,6 +1568,9 @@ function setupTrackEndMonitor(audioDeck) {
     };
 }
 
+// ==========================================
+// 9. HARDWARE VOICE RECOGNITION (DICTATION)
+// ==========================================
 function killSpeechEngineCompletely() {
   isKairosListeningActive = false;
   if (kairosSpeechRecognizer) {
@@ -1600,7 +1609,6 @@ function activateKairosVoiceOnDemand() {
 
   kairosSpeechRecognizer = new SpeechRecognition();
   kairosSpeechRecognizer.continuous = true;
-  // Set interimResults to false to resolve speech cut-offs and play back duplication errors
   kairosSpeechRecognizer.interimResults = false; 
   kairosSpeechRecognizer.lang = 'en-US';
 
@@ -1618,8 +1626,7 @@ function activateKairosVoiceOnDemand() {
     if (processedText.length > 0) {
       gatheredUserCommand = processedText;
       if (transcriptCanvas) transcriptCanvas.innerText = processedText + "...";
-      
-      // Fixed: Extended the response buffer to give 2.5 seconds of silence before processing strings
+
       resetSilenceTimer(2500);
     }
   };
@@ -1656,7 +1663,6 @@ function activateKairosVoiceOnDemand() {
     }, customWaitTime);
   }
 
-  // Large initial time window for voice detection startup delay
   resetSilenceTimer(10000);
 
   try {
@@ -1721,6 +1727,7 @@ window.addEventListener('DOMContentLoaded', () => {
     });
   }
 });
+
 
 
 
