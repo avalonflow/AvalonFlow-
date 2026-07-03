@@ -1265,24 +1265,31 @@ async function speakResponse(rawResponseText) {
       }, 80);
     };
 
-    nativeVaultAudio.onended = () => {
-      setWaveAnimationSpeed(false);
-      isProcessingCommand = false;
-      const dockStatusText = document.getElementById('dockStatusText');
+    // --- Inside speakResponse -> vaultAssetPath execution pipeline ---
+nativeVaultAudio.onended = () => {
+  setWaveAnimationSpeed(false);
+  isProcessingCommand = false;
+  const dockStatusText = document.getElementById('dockStatusText');
+  const dockWrap = document.querySelector('.assistant-dock-wrap');
+  const isCurrentlyExpanded = dockWrap ? dockWrap.classList.contains('expanded') : false;
 
-      const deckA = document.getElementById('audioDeckA');
-      const deckB = document.getElementById('audioDeckB');
-      const isMusicActive = (deckA && !deckA.paused) || (deckB && !deckB.paused);
+  const deckA = document.getElementById('audioDeckA');
+  const deckB = document.getElementById('audioDeckB');
+  const isMusicActive = (deckA && !deckA.paused && deckA.src) || (deckB && !deckB.paused && deckB.src);
 
-      if (isMusicActive || transcriptCanvas.innerText.includes("Playing") || transcriptCanvas.innerText.includes("track")) {
-        toggleDock(false); 
-        if (dockStatusText) dockStatusText.innerText = "Playing Audio Stream...";
-        if (statusText) statusText.innerText = "Playing Audio Stream...";
-        setTimeout(() => setWaveAnimationSpeed(true), 200); 
-      } else {
-        setTimeout(() => { activateKairosVoiceOnDemand(); }, 400);
-      }
-    };
+  // FIX: If the dock is open, do NOT minimize it. Keep it open and wake up the mic.
+  if (isCurrentlyExpanded) {
+    setTimeout(() => { activateKairosVoiceOnDemand(); }, 400);
+  } else if (isMusicActive) {
+    toggleDock(false); 
+    if (dockStatusText) dockStatusText.innerText = "Playing Audio Stream...";
+    if (statusText) statusText.innerText = "Playing Audio Stream...";
+    setTimeout(() => setWaveAnimationSpeed(true), 200); 
+  } else {
+    setTimeout(() => { activateKairosVoiceOnDemand(); }, 400);
+  }
+};
+
 
     nativeVaultAudio.onerror = () => {
       if (firedFallback) return;
@@ -1479,8 +1486,44 @@ function executeCrossfade(currentDeck, nextDeck, nextFile) {
 // ==========================================
 // 9. HARDWARE VOICE RECOGNITION (DICTATION)
 // ==========================================
+function executeCrossfade(currentDeck, nextDeck, nextFile) {
+    // FIX: Safely decouple the expiring deck's hooks before mutations occur
+    currentDeck.onended = null;
+    currentDeck.ontimeupdate = null;
+
+    nextDeck.src = nextFile;
+    nextDeck.volume = 0;
+    nextDeck.load();
+    nextDeck.play().catch(err => console.log(err));
+
+    activeDeck = nextDeck;
+    const fadeSteps = 50; 
+    const intervalTime = (crossfadeDuration * 1000) / fadeSteps; 
+    let currentStep = 0;
+
+    const fadeInterval = setInterval(() => {
+        currentStep++;
+        let currentVol = 1 - (currentStep / fadeSteps);
+        let nextVol = currentStep / fadeSteps;
+
+        currentDeck.volume = Math.max(0, Math.min(1, currentVol));
+        nextDeck.volume = Math.max(0, Math.min(1, nextVol));
+
+        if (currentStep >= fadeSteps) {
+            clearInterval(fadeInterval);
+            currentDeck.pause();
+            currentDeck.src = ""; 
+            setupTrackEndMonitor(nextDeck);
+        }
+    }, intervalTime);
+}
+
 function setupTrackEndMonitor(audioDeck) {
     if (!audioDeck) return;
+    
+    // FIX: Clear out existing garbage listeners before assigning a fresh monitor
+    audioDeck.onended = null; 
+    
     audioDeck.onended = () => {
         if (musicQueue.length > 0 && currentTrackIndex < musicQueue.length - 1) {
             currentTrackIndex++;
@@ -1492,7 +1535,8 @@ function setupTrackEndMonitor(audioDeck) {
             chatHistory.push({ sender: 'bot', text: alertText, type: 'text', actualSender: 'kairos' });
             localStorage.setItem('tg_chat_history_v3', JSON.stringify(chatHistory));
 
-            speakSilentlyInBackground(alertText);
+            // Speak response will now announce the track smoothly
+            speakResponse(`Playing ${trackTitle}...`);
 
             const deckA = document.getElementById('audioDeckA');
             const deckB = document.getElementById('audioDeckB');
@@ -1508,6 +1552,7 @@ function setupTrackEndMonitor(audioDeck) {
         }
     };
 }
+
 
 function killSpeechEngineCompletely() {
   isKairosListeningActive = false;
