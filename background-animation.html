@@ -1311,22 +1311,20 @@ async function speakResponse(rawResponseText) {
           clearInterval(activeTypingInterval);
           activeTypingInterval = null;
         }
-      }, 80);
+      }, 60);
     };
 
     nativeVaultAudio.onended = () => {
       setWaveAnimationSpeed(false);
+      if (activeTypingInterval) clearInterval(activeTypingInterval);
+      transcriptCanvas.innerText = typedChatText;
 
-      // CHECK AND TRAP SYSTEM WAKEUP (e.g. Media Commands)
       if (blockNextMicActivation) {
         blockNextMicActivation = false;
-        console.log("Mic activation skipped via Suppressor Flag (Vault Asset Path).");
         toggleDock(false); 
         return;
       }
-
-      // --- PATCHED LOOP: Open mic for follow-ups instead of closing dock window ---
-      setTimeout(() => { listenForFollowUp(); }, 300);
+      setTimeout(() => { listenForFollowUp(); }, 400);
     };
 
     nativeVaultAudio.onerror = () => {
@@ -1345,80 +1343,17 @@ async function speakResponse(rawResponseText) {
     return;
   }
 
-  // --- PREMIUM CLOUD TTS DISPATCH ARCHITECTURE ---
-  const isChromeNanoPath = !!(window.ai && window.ai.languageModel);
-
-  if (!isChromeNanoPath) {
-    try {
-      const GOOGLE_CLOUD_TTS_API_KEY = "YOUR_GOOGLE_CLOUD_API_KEY_HERE";
-      const ttsUrl = `https://texttospeech.googleapis.com/v1/text:synthesize?key=${GOOGLE_CLOUD_TTS_API_KEY}`;
-
-      let voiceRate = 1.0;
-      if (personality.tone === "calm" || personality.userMood === "frustrated") voiceRate = 0.95;
-
-      const ttsPayload = {
-        input: { text: spokenText },
-        voice: { languageCode: "en-US", name: "en-US-Studio-O" },
-        audioConfig: { audioEncoding: "MP3", speakingRate: voiceRate }
-      };
-
-      const response = await fetch(ttsUrl, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(ttsPayload)
-      });
-
-      if (!response.ok) throw new Error();
-
-      const data = await response.json();
-      const nativeCloudAudio = new Audio(`data:audio/mp3;base64,${data.audioContent}`);
-
-      nativeCloudAudio.onplay = () => {
-        setWaveAnimationSpeed(true);
-        if (activeTypingInterval) clearInterval(activeTypingInterval);
-        transcriptCanvas.innerText = ""; 
-
-        activeTypingInterval = setInterval(() => {
-          if (wordIndex < words.length) {
-            transcriptCanvas.innerText += (wordIndex === 0 ? "" : " ") + words[wordIndex];
-            wordIndex++;
-          } else {
-            clearInterval(activeTypingInterval);
-            activeTypingInterval = null;
-          }
-        }, 80);
-      };
-
-      nativeCloudAudio.onended = () => {
-        setWaveAnimationSpeed(false);
-
-        if (blockNextMicActivation) {
-          blockNextMicActivation = false;
-          console.log("Mic activation skipped via Suppressor Flag (Cloud Path).");
-          toggleDock(false); 
-          return;
-        }
-
-        // --- PATCHED LOOP: Open mic for follow-ups instead of closing dock window ---
-        setTimeout(() => { listenForFollowUp(); }, 300);
-      };
-
-      await nativeCloudAudio.play();
-      return; 
-
-    } catch (e) {
-      console.warn("Cloud fallback dropping out.");
-    }
-  }
-
+  // --- DIRECT ROUTING TO LOCAL ENGINE (Bypassing broken Cloud Key) ---
   fallbackSynthesisExecution(spokenText, words, transcriptCanvas);
 }
 
 function fallbackSynthesisExecution(spokenText, words, transcriptCanvas) {
   if (activeTypingInterval) clearInterval(activeTypingInterval);
+  if (kairosVoiceEngine) kairosVoiceEngine.cancel(); 
 
   const utterance = new SpeechSynthesisUtterance(spokenText);
   if (selectedFemaleVoice) utterance.voice = selectedFemaleVoice;
+  utterance.rate = 1.0; 
   let wordIndex = 0;
 
   utterance.onstart = () => {
@@ -1430,27 +1365,33 @@ function fallbackSynthesisExecution(spokenText, words, transcriptCanvas) {
         transcriptCanvas.innerText += (wordIndex === 0 ? "" : " ") + words[wordIndex];
         wordIndex++;
       } else {
-        if (!/[\.\!\?]$/.test(transcriptCanvas.innerText)) {
-          transcriptCanvas.innerText += "...";
-        }
         clearInterval(activeTypingInterval);
         activeTypingInterval = null; 
       }
-    }, 80);
+    }, 60);
   };
 
   utterance.onend = () => {
     setWaveAnimationSpeed(false);
+    if (activeTypingInterval) clearInterval(activeTypingInterval);
+    
+    // Ensure text is completed visually
+    transcriptCanvas.innerText = words.join(" ");
 
     if (blockNextMicActivation) {
       blockNextMicActivation = false;
-      console.log("Mic activation skipped via Suppressor Flag (Fallback Utterance Path).");
       toggleDock(false); 
       return;
     }
 
-    // --- PATCHED LOOP: Open mic for follow-ups instead of closing dock window ---
-    setTimeout(() => { listenForFollowUp(); }, 300);
+    // Mic triggers ONLY when the long voice paragraph is 100% finished speaking
+    setTimeout(() => { listenForFollowUp(); }, 500);
+  };
+
+  utterance.onerror = () => {
+    setWaveAnimationSpeed(false);
+    if (activeTypingInterval) clearInterval(activeTypingInterval);
+    toggleDock(false);
   };
 
   kairosVoiceEngine.speak(utterance);
