@@ -805,11 +805,11 @@ async function loadLocalKeys() {
   try {
     const response = await fetch('keys.txt');
     const text = await response.text();
-    
+
     // Snag the new parts out of the quotes
     const partAMatch = text.match(/PART_A:\s*"(.*?)"/);
     const partBMatch = text.match(/PART_B:\s*"(.*?)"/);
-    
+
     if (partAMatch && partBMatch) {
       // Reassemble the full new key string seamlessly
       KAIROS_KEYS.gemini = partAMatch[1].trim() + partBMatch[1].trim();
@@ -878,13 +878,13 @@ function toggleDock(forcedState = null) {
 function listenForFollowUp() {
   isProcessingCommand = false;
   gatheredUserCommand = "";
-  
+
   const dockStatusText = document.getElementById('dockStatusText');
   const transcriptCanvas = document.getElementById('kairosTranscript');
-  
+
   if (dockStatusText) dockStatusText.innerText = "Listening for follow-up...";
   if (statusText) statusText.innerText = "Listening for follow-up...";
-  
+
   if (transcriptCanvas) {
     // Keep the canvas visual state smooth, just add a dimmed status indicator beneath
     const currentText = transcriptCanvas.innerText || "";
@@ -1189,7 +1189,8 @@ async function processUserCommandLocally(commandText) {
       const caps = await window.ai.languageModel.capabilities();
       if (caps.available !== 'no') {
         const session = await window.ai.languageModel.create({
-          systemPrompt: "You are Kairos, a deeply intuitive, calm, and supportive assistant. Respond under two sentences."
+          // FIXED: Removed 2 sentence restriction rule constraint
+          systemPrompt: "You are Kairos, a deeply intuitive, calm, and supportive assistant. Provide complete and helpful responses."
         });
         const aiReply = await session.prompt(commandText);
         session.destroy();
@@ -1217,10 +1218,12 @@ async function processUserCommandLocally(commandText) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         contents: requestContents,
+        // FIXED: System prompt updated to generate full paragraphs naturally
         systemInstruction: {
-          parts: [{ text: "You are Kairos, a deeply intuitive, calm, and supportive assistant. Respond with genuine empathy and concise warmth under two sentences." }]
+          parts: [{ text: "You are Kairos, a deeply intuitive, calm, and supportive assistant. Respond with genuine empathy, detailed insight, and comprehensive warmth." }]
         },
-        generationConfig: { maxOutputTokens: 80 }
+        // FIXED: Token maximum ceiling raised from 80 to 512 to ensure complex outputs aren't prematurely severed
+        generationConfig: { maxOutputTokens: 512 }
       })
     });
 
@@ -1374,7 +1377,7 @@ function fallbackSynthesisExecution(spokenText, words, transcriptCanvas) {
   utterance.onend = () => {
     setWaveAnimationSpeed(false);
     if (activeTypingInterval) clearInterval(activeTypingInterval);
-    
+
     // Ensure text is completed visually
     transcriptCanvas.innerText = words.join(" ");
 
@@ -1558,7 +1561,7 @@ function activateKairosVoiceOnDemand() {
   if (statusText && !statusText.innerText.includes("follow-up")) {
     statusText.innerText = "Kairos is listening...";
   }
-  
+
   toggleDock(true);
 
   if (navigator.vibrate) navigator.vibrate(40);
@@ -1706,6 +1709,7 @@ window.addEventListener('DOMContentLoaded', () => {
     });
   }
 });
+
 
 
 
