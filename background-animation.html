@@ -1184,7 +1184,7 @@ async function processUserCommandLocally(commandText) {
 
   // Fallback B: Cloud Endpoint Session
   try {
-    const GEMINI_API_KEY = "PASTE_YOUR_GEMINI_API_KEY_HERE"; 
+    const GEMINI_API_KEY = ""; 
     const MODEL_NAME = "gemini-3.5-flash"; 
     const URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_NAME}:generateContent?key=${GEMINI_API_KEY}`;
 
