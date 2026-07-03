@@ -460,7 +460,7 @@
 /**
  * AvalonFlow: Kairos Intelligent Voice & UI Controller
  * Comprehensive Master Core Edition (Flicker-Free Optimized)
- * * PATCH VERIFIED: Mic Wakeup Suppressor Flag & Auto-Collapse Integrated
+ * * PATCH VERIFIED: Multi-Turn Conversation Loop, Follow-Up Mic Logic & Auto-Collapse Integrated
  */
 
 // ==========================================
@@ -850,6 +850,29 @@ function toggleDock(forcedState = null) {
 }
 
 // ==========================================
+// 5a. CONTINUOUS TURN FOLLOW-UP LOOPER
+// ==========================================
+function listenForFollowUp() {
+  isProcessingCommand = false;
+  gatheredUserCommand = "";
+  
+  const dockStatusText = document.getElementById('dockStatusText');
+  const transcriptCanvas = document.getElementById('kairosTranscript');
+  
+  if (dockStatusText) dockStatusText.innerText = "Listening for follow-up...";
+  if (statusText) statusText.innerText = "Listening for follow-up...";
+  
+  if (transcriptCanvas) {
+    // Keep the canvas visual state smooth, just add a dimmed status indicator beneath
+    const currentText = transcriptCanvas.innerText || "";
+    transcriptCanvas.innerHTML = `${currentText}<br><br><span style='opacity:0.5; font-size:0.85em;'>🎧 Listening for follow-up...</span>`;
+  }
+
+  // Safely spin the hardware back up to expect input
+  activateKairosVoiceOnDemand();
+}
+
+// ==========================================
 // 6. UNIFIED BRAIN & INTENT ROUTER ENGINE
 // ==========================================
 function generateFollowUp(msg) {
@@ -1196,7 +1219,7 @@ async function processUserCommandLocally(commandText) {
 // ==========================================
 function setWaveAnimationSpeed(isSpeaking) {
   const strokes = document.querySelectorAll('.audio-wave-pill .stroke');
-  
+
   const deckA = document.getElementById('audioDeckA');
   const deckB = document.getElementById('audioDeckB');
   const isMusicPlaying = (deckA && !deckA.paused && deckA.src) || (deckB && !deckB.paused && deckB.src);
@@ -1242,7 +1265,7 @@ async function speakResponse(rawResponseText) {
 
   if (!spokenText) {
     isProcessingCommand = false;
-    toggleDock(false); // --- FIXED: Collapse if response has no spoken text context ---
+    toggleDock(false); 
     return;
   }
 
@@ -1270,18 +1293,17 @@ async function speakResponse(rawResponseText) {
 
     nativeVaultAudio.onended = () => {
       setWaveAnimationSpeed(false);
-      isProcessingCommand = false;
 
-      // CHECK AND TRAP SYSTEM WAKEUP
+      // CHECK AND TRAP SYSTEM WAKEUP (e.g. Media Commands)
       if (blockNextMicActivation) {
         blockNextMicActivation = false;
         console.log("Mic activation skipped via Suppressor Flag (Vault Asset Path).");
-        toggleDock(false); // --- FIXED: Always smoothly collapse after a blocked mic stream statement finishes ---
+        toggleDock(false); 
         return;
       }
 
-      // --- FIXED: After normal asset finishing speech statement, close pill seamlessly ---
-      setTimeout(() => { toggleDock(false); }, 400);
+      // --- PATCHED LOOP: Open mic for follow-ups instead of closing dock window ---
+      setTimeout(() => { listenForFollowUp(); }, 300);
     };
 
     nativeVaultAudio.onerror = () => {
@@ -1346,17 +1368,16 @@ async function speakResponse(rawResponseText) {
 
       nativeCloudAudio.onended = () => {
         setWaveAnimationSpeed(false);
-        isProcessingCommand = false;
 
         if (blockNextMicActivation) {
           blockNextMicActivation = false;
           console.log("Mic activation skipped via Suppressor Flag (Cloud Path).");
-          toggleDock(false); // --- FIXED: Close dock after music command speech block ends ---
+          toggleDock(false); 
           return;
         }
 
-        // --- FIXED: Standard query completes, collapse pill container window cleanly ---
-        setTimeout(() => { toggleDock(false); }, 400);
+        // --- PATCHED LOOP: Open mic for follow-ups instead of closing dock window ---
+        setTimeout(() => { listenForFollowUp(); }, 300);
       };
 
       await nativeCloudAudio.play();
@@ -1397,17 +1418,16 @@ function fallbackSynthesisExecution(spokenText, words, transcriptCanvas) {
 
   utterance.onend = () => {
     setWaveAnimationSpeed(false);
-    isProcessingCommand = false;
 
     if (blockNextMicActivation) {
       blockNextMicActivation = false;
       console.log("Mic activation skipped via Suppressor Flag (Fallback Utterance Path).");
-      toggleDock(false); // --- FIXED ---
+      toggleDock(false); 
       return;
     }
 
-    // --- FIXED: Complete utterance, close interface ---
-    setTimeout(() => { toggleDock(false); }, 400);
+    // --- PATCHED LOOP: Open mic for follow-ups instead of closing dock window ---
+    setTimeout(() => { listenForFollowUp(); }, 300);
   };
 
   kairosVoiceEngine.speak(utterance);
@@ -1509,7 +1529,7 @@ function setupTrackEndMonitor(audioDeck) {
                     `Switching gears, here is ${trackTitle}...`,
                     `Cueing up ${trackTitle} for you...`
                 ];
-                
+
                 const randomAnnouncement = transitionPhrases[Math.floor(Math.random() * transitionPhrases.length)];
 
                 chatHistory = chatHistory || [];
@@ -1567,20 +1587,20 @@ function activateKairosVoiceOnDemand() {
   const dockStatusText = document.getElementById('dockStatusText');
   const transcriptCanvas = document.getElementById('kairosTranscript');
 
-  if (dockStatusText) dockStatusText.innerText = "Kairos is listening...";
-  if (statusText) statusText.innerText = "Kairos is listening...";
-  toggleDock(true);
-
-  if (transcriptCanvas) {
-    transcriptCanvas.innerHTML = "I'm right here let me know what you need<br><br><span style='opacity:0.6; font-size:0.9em;'>Listening</span>";
+  // Prevent overriding the tracking label if we are in an ongoing follow-up sequence
+  if (dockStatusText && !dockStatusText.innerText.includes("follow-up")) {
+    dockStatusText.innerText = "Kairos is listening...";
   }
+  if (statusText && !statusText.innerText.includes("follow-up")) {
+    statusText.innerText = "Kairos is listening...";
+  }
+  
+  toggleDock(true);
 
   if (navigator.vibrate) navigator.vibrate(40);
 
   kairosSpeechRecognizer = new SpeechRecognition();
   kairosSpeechRecognizer.continuous = true;
-  
-  // --- PATCHED: Now streaming chunks live to clear micro-pauses cleanly ---
   kairosSpeechRecognizer.interimResults = true; 
   kairosSpeechRecognizer.lang = 'en-US';
 
@@ -1600,7 +1620,6 @@ function activateKairosVoiceOnDemand() {
       }
     }
 
-    // Update canvas canvas dynamically with real-time feedback strings
     if (transcriptCanvas) {
       if (isFinalChunkDetected && finalTranscript.trim().length > 0) {
         transcriptCanvas.innerText = finalTranscript.trim() + "...";
@@ -1614,12 +1633,9 @@ function activateKairosVoiceOnDemand() {
       gatheredUserCommand = processedText;
     }
 
-    // Intelligent breakdown routing controller logic
     if (isFinalChunkDetected) {
-      // Browser has cleanly segmented a sentence block. Start a safe 3-second thought recovery window.
       resetSilenceTimer(3000); 
     } else {
-      // User is actively formulating or outputting sounds; completely defer expiration
       if (voiceSilenceTimer) clearTimeout(voiceSilenceTimer);
     }
   };
@@ -1662,7 +1678,7 @@ function activateKairosVoiceOnDemand() {
     }, customWaitTime);
   }
 
-  resetSilenceTimer(SILENCE_WAIT_TIME); // Drops to collapse state after 10 seconds of pure idle space
+  resetSilenceTimer(SILENCE_WAIT_TIME); 
 
   try {
     isKairosListeningActive = true;
@@ -1671,7 +1687,6 @@ function activateKairosVoiceOnDemand() {
     console.error(e);
   }
 }
-
 
 function stopActiveKairosVoice() {
   if (kairosVoiceEngine) kairosVoiceEngine.cancel();
@@ -1727,6 +1742,7 @@ window.addEventListener('DOMContentLoaded', () => {
     });
   }
 });
+
 
 
 
