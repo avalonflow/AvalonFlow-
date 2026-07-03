@@ -1311,23 +1311,31 @@ nativeVaultAudio.onended = () => {
       };
 
       nativeCloudAudio.onended = () => {
-        setWaveAnimationSpeed(false);
-        isProcessingCommand = false;
-        const dockStatusText = document.getElementById('dockStatusText');
+  setWaveAnimationSpeed(false);
+  isProcessingCommand = false;
+  const dockStatusText = document.getElementById('dockStatusText');
+  
+  // FIX: Look at the current dock window state
+  const dockWrap = document.querySelector('.assistant-dock-wrap');
+  const isCurrentlyExpanded = dockWrap ? dockWrap.classList.contains('expanded') : false;
 
-        const deckA = document.getElementById('audioDeckA');
-        const deckB = document.getElementById('audioDeckB');
-        const isMusicActive = (deckA && !deckA.paused) || (deckB && !deckB.paused);
+  const deckA = document.getElementById('audioDeckA');
+  const deckB = document.getElementById('audioDeckB');
+  const isMusicActive = (deckA && !deckA.paused && deckA.src) || (deckB && !deckB.paused && deckB.src);
 
-        if (isMusicActive) {
-          toggleDock(false); 
-          if (dockStatusText) dockStatusText.innerText = "Playing Audio Stream...";
-          if (statusText) statusText.innerText = "Playing Audio Stream...";
-          setTimeout(() => setWaveAnimationSpeed(true), 200); 
-        } else {
-          setTimeout(() => { activateKairosVoiceOnDemand(); }, 400);
-        }
-      };
+  // FIX: Force mic up if dock is open, over-riding the background stream
+  if (isCurrentlyExpanded) {
+    setTimeout(() => { activateKairosVoiceOnDemand(); }, 400);
+  } else if (isMusicActive) {
+    toggleDock(false); 
+    if (dockStatusText) dockStatusText.innerText = "Playing Audio Stream...";
+    if (statusText) statusText.innerText = "Playing Audio Stream...";
+    setTimeout(() => setWaveAnimationSpeed(true), 200); 
+  } else {
+    setTimeout(() => { activateKairosVoiceOnDemand(); }, 400);
+  }
+};
+
 
       await nativeCloudAudio.play();
       return; 
