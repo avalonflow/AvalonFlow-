@@ -1191,16 +1191,25 @@ async function processUserCommandLocally(commandText) {
   }
 }
 
+// ==========================================
+// 7. TEXT-TO-SPEECH VOICE EXECUTION MATRIX (MIC WAKEUP BLOCKER READY)
+// ==========================================
 function setWaveAnimationSpeed(isSpeaking) {
   const strokes = document.querySelectorAll('.audio-wave-pill .stroke');
+  
+  // FEATURE 2 FIX: Check if background music decks are running even if voice finished speaking
+  const deckA = document.getElementById('audioDeckA');
+  const deckB = document.getElementById('audioDeckB');
+  const isMusicPlaying = (deckA && !deckA.paused && deckA.src) || (deckB && !deckB.paused && deckB.src);
+
+  // Keep running if Kairos is actively speaking OR if music streams are outputting audio
+  const shouldAnimate = isSpeaking || isMusicPlaying;
+
   strokes.forEach((stroke) => {
-    stroke.style.animationPlayState = isSpeaking ? 'running' : 'paused';
+    stroke.style.animationPlayState = shouldAnimate ? 'running' : 'paused';
   });
 }
 
-// ====================================================================
-// 7. TEXT-TO-SPEECH VOICE EXECUTION MATRIX (MIC WAKEUP BLOCKER READY)
-// ====================================================================
 async function speakResponse(rawResponseText) {
   stopActiveKairosVoice();
   killSpeechEngineCompletely(); 
@@ -1269,6 +1278,15 @@ async function speakResponse(rawResponseText) {
       if (blockNextMicActivation) {
         blockNextMicActivation = false;
         console.log("Mic activation skipped via Suppressor Flag (Vault Asset Path).");
+        
+        // FEATURE 1 FIX: If music is active/playing, close the pill immediately 
+        const deckA = document.getElementById('audioDeckA');
+        const deckB = document.getElementById('audioDeckB');
+        const isMusicActive = (deckA && !deckA.paused && deckA.src) || (deckB && !deckB.paused && deckB.src);
+        
+        if (isMusicActive) {
+          toggleDock(false); // Seamlessly collapses the expanded pill view
+        }
         return;
       }
 
@@ -1360,6 +1378,15 @@ async function speakResponse(rawResponseText) {
         if (blockNextMicActivation) {
           blockNextMicActivation = false;
           console.log("Mic activation skipped via Suppressor Flag (Cloud Path).");
+          
+          // FEATURE 1 FIX: If music is active/playing, close the pill immediately 
+          const deckA = document.getElementById('audioDeckA');
+          const deckB = document.getElementById('audioDeckB');
+          const isMusicActive = (deckA && !deckA.paused && deckA.src) || (deckB && !deckB.paused && deckB.src);
+          
+          if (isMusicActive) {
+            toggleDock(false); // Seamlessly collapses the expanded pill view
+          }
           return;
         }
 
@@ -1427,6 +1454,15 @@ function fallbackSynthesisExecution(spokenText, words, transcriptCanvas) {
     if (blockNextMicActivation) {
       blockNextMicActivation = false;
       console.log("Mic activation skipped via Suppressor Flag (Fallback Utterance Path).");
+      
+      // FEATURE 1 FIX: If music is active/playing, close the pill immediately 
+      const deckA = document.getElementById('audioDeckA');
+      const deckB = document.getElementById('audioDeckB');
+      const isMusicActive = (deckA && !deckA.paused && deckA.src) || (deckB && !deckB.paused && deckB.src);
+      
+      if (isMusicActive) {
+        toggleDock(false); // Seamlessly collapses the expanded pill view
+      }
       return;
     }
 
@@ -1541,14 +1577,27 @@ function setupTrackEndMonitor(audioDeck) {
                 const nextFile = musicQueue[currentTrackIndex];
                 let trackTitle = formatTrackTitle(nextFile);
 
-                const alertText = `Moving to next track in queue. Now playing ${trackTitle}`;
+                // Varied transition phrases
+                const transitionPhrases = [
+                    `Playing next, ${trackTitle}...`,
+                    `Moving to next song in queue, ${trackTitle}...`,
+                    `Queue update! Next up is ${trackTitle}...`,
+                    `Dropping into ${trackTitle} right now...`,
+                    `Let's keep it rolling with ${trackTitle}...`,
+                    `Switching gears, here is ${trackTitle}...`,
+                    `Cueing up ${trackTitle} for you...`
+                ];
+                
+                // Pick a random phrase from the library
+                const randomAnnouncement = transitionPhrases[Math.floor(Math.random() * transitionPhrases.length)];
+
                 chatHistory = chatHistory || [];
-                chatHistory.push({ sender: 'bot', text: alertText, type: 'text', actualSender: 'kairos' });
+                chatHistory.push({ sender: 'bot', text: randomAnnouncement, type: 'text', actualSender: 'kairos' });
                 localStorage.setItem('tg_chat_history_v3', JSON.stringify(chatHistory));
 
                 // INTERCEPT: Block micro loop trigger from the automatic transition voice track
                 blockNextMicActivation = true; 
-                speakResponse(`Playing ${trackTitle}...`);
+                speakResponse(randomAnnouncement);
 
                 const deckA = document.getElementById('audioDeckA');
                 const deckB = document.getElementById('audioDeckB');
@@ -1556,6 +1605,8 @@ function setupTrackEndMonitor(audioDeck) {
                 let secondaryDeck = activeDeck === deckA ? deckA : deckB;
 
                 executeCrossfade(secondaryDeck, primaryDeck, nextFile);
+                // Inside setupTrackEndMonitor() right after executing the crossfade:
+                setTimeout(() => setWaveAnimationSpeed(true), 200); // Forces animation state confirmation
             } else {
                 audioDeck.onended = () => {
                     setWaveAnimationSpeed(false);
@@ -1727,6 +1778,7 @@ window.addEventListener('DOMContentLoaded', () => {
     });
   }
 });
+
 
 
 
