@@ -1223,7 +1223,7 @@ async function processUserCommandLocally(commandText) {
           parts: [{ text: "You are Kairos, a deeply intuitive, calm, and supportive assistant. Respond with genuine empathy, detailed insight, and comprehensive warmth." }]
         },
         // FIXED: Token maximum ceiling raised from 80 to 512 to ensure complex outputs aren't prematurely severed
-        generationConfig: { maxOutputTokens: 512 }
+        generationConfig: { maxOutputTokens: 51233 }
       })
     });
 
