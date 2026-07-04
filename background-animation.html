@@ -1245,7 +1245,13 @@ async function executeCloudSession(commandText) {
     if (!response.ok) throw new Error("Primary model endpoint failed");
     
     const data = await response.json();
-    const replyText = data.candidates[0].content.parts[0].text.trim();
+    
+    // SAFE SEARCH CHECK: Pull text safely even if grounding or tool metadata structures are present
+    const candidate = data.candidates?.[0];
+    const part = candidate?.content?.parts?.[0];
+    const replyText = part && part.text ? part.text.trim() : "";
+
+    if (!replyText) throw new Error("No text returned from search generation cycle");
 
     kairosChatHistory.push({ role: "user", parts: [{ text: commandText }] });
     kairosChatHistory.push({ role: "model", parts: [{ text: replyText }] });
@@ -1285,7 +1291,13 @@ async function executeCloudSession(commandText) {
       if (!response.ok) throw new Error("Fallback model endpoint failed");
 
       const data = await response.json();
-      const replyText = data.candidates[0].content.parts[0].text.trim();
+      
+      // SAFE SEARCH CHECK: Pull text safely even if grounding or tool metadata structures are present
+      const candidate = data.candidates?.[0];
+      const part = candidate?.content?.parts?.[0];
+      const replyText = part && part.text ? part.text.trim() : "";
+
+      if (!replyText) throw new Error("No text returned from search fallback cycle");
 
       kairosChatHistory.push({ role: "user", parts: [{ text: commandText }] });
       kairosChatHistory.push({ role: "model", parts: [{ text: replyText }] });
@@ -1305,6 +1317,8 @@ async function executeCloudSession(commandText) {
     speakResponse(coreReplyText || "What would you like help with—support, rewards, or dashboard settings?");
   }
 }
+}
+
 
 
 
