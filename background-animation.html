@@ -1209,7 +1209,7 @@ async function processUserCommandLocally(commandText) {
     // Fallback B: Cloud Endpoint Session
   try {
     const GEMINI_API_KEY = KAIROS_KEYS.gemini || "";
-    const PRIMARY_MODEL = "gemini-3.5-flash"; 
+    const PRIMARY_MODEL = "gemini-3.1-flash-lite"; 
     const URL = `https://generativelanguage.googleapis.com/v1beta/models/${PRIMARY_MODEL}:generateContent?key=${GEMINI_API_KEY}`;
 
     const requestContents = [...kairosChatHistory, { role: "user", parts: [{ text: commandText }] }];
@@ -1239,7 +1239,7 @@ async function processUserCommandLocally(commandText) {
     // TIER 2: Cascade seamlessly into the high-volume engine if primary hits a limit
     try {
       const GEMINI_API_KEY = KAIROS_KEYS.gemini || "";
-      const FALLBACK_MODEL = "gemini-3.1-flash-lite"; 
+      const FALLBACK_MODEL = "gemini-3.5-flash"; 
       const URL = `https://generativelanguage.googleapis.com/v1beta/models/${FALLBACK_MODEL}:generateContent?key=${GEMINI_API_KEY}`;
 
       const requestContents = [...kairosChatHistory, { role: "user", parts: [{ text: commandText }] }];
