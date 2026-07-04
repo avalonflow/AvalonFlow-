@@ -1207,24 +1207,13 @@ async function processUserCommandLocally(commandText) {
   }
 
     // Fallback B: Cloud Endpoint Session
-async function executeCloudSession(commandText) {
-  const GEMINI_API_KEY = KAIROS_KEYS.gemini || "";
-  
-  // DYNAMIC METADATA: Injects exact local time context dynamically into the request payload
-  const localTimeContext = `[Local System Context | Current Time: ${new Date().toLocaleString()}] ${commandText}`;
-  
-  // Track success to prevent falling through to the final safeguard
-  let sessionSuccessful = false;
-
-  // ==========================================
-  // TIER 1: PRIMARY MODEL EXECUTION
-  // ==========================================
   try {
+    const GEMINI_API_KEY = KAIROS_KEYS.gemini || "";
     const PRIMARY_MODEL = "gemini-3.1-flash-lite"; 
-    const URL_PRIMARY = `https://generativelanguage.googleapis.com/v1beta/models/${PRIMARY_MODEL}:generateContent?key=${GEMINI_API_KEY}`;
-    const requestContents = [...kairosChatHistory, { role: "user", parts: [{ text: localTimeContext }] }];
+    const URL = `https://generativelanguage.googleapis.com/v1beta/models/${PRIMARY_MODEL}:generateContent?key=${GEMINI_API_KEY}`;
 
-    const response = await fetch(URL_PRIMARY, {
+    const requestContents = [...kairosChatHistory, { role: "user", parts: [{ text: commandText }] }];
+    const response = await fetch(URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -1242,37 +1231,23 @@ async function executeCloudSession(commandText) {
       })
     });
 
-    if (!response.ok) throw new Error("Primary model endpoint failed");
-    
+    if (!response.ok) throw new Error();
     const data = await response.json();
-    
-    // SAFE SEARCH CHECK: Pull text safely even if grounding or tool metadata structures are present
-    const candidate = data.candidates?.[0];
-    const part = candidate?.content?.parts?.[0];
-    const replyText = part && part.text ? part.text.trim() : "";
-
-    if (!replyText) throw new Error("No text returned from search generation cycle");
+    const replyText = data.candidates[0].content.parts[0].text.trim();
 
     kairosChatHistory.push({ role: "user", parts: [{ text: commandText }] });
     kairosChatHistory.push({ role: "model", parts: [{ text: replyText }] });
 
     speakResponse(replyText);
-    sessionSuccessful = true;
-    return; // Exit execution completely on success
   } catch (err) {
-    console.warn("⚠️ Tier 1 Primary Cloud Engine failed. Cascading to Tier 2...", err);
-  }
-
-  // ==========================================
-  // TIER 2: SECONDARY FALLBACK MODEL
-  // ==========================================
-  if (!sessionSuccessful) {
+    // TIER 2: Cascade seamlessly into the high-volume engine if primary hits a limit
     try {
+      const GEMINI_API_KEY = KAIROS_KEYS.gemini || "";
       const FALLBACK_MODEL = "gemini-3.5-flash"; 
-      const URL_FALLBACK = `https://generativelanguage.googleapis.com/v1beta/models/${FALLBACK_MODEL}:generateContent?key=${GEMINI_API_KEY}`;
-      const requestContents = [...kairosChatHistory, { role: "user", parts: [{ text: localTimeContext }] }];
+      const URL = `https://generativelanguage.googleapis.com/v1beta/models/${FALLBACK_MODEL}:generateContent?key=${GEMINI_API_KEY}`;
 
-      const response = await fetch(URL_FALLBACK, {
+      const requestContents = [...kairosChatHistory, { role: "user", parts: [{ text: commandText }] }];
+      const response = await fetch(URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -1288,36 +1263,21 @@ async function executeCloudSession(commandText) {
         })
       });
 
-      if (!response.ok) throw new Error("Fallback model endpoint failed");
-
+      if (!response.ok) throw new Error();
       const data = await response.json();
-      
-      // SAFE SEARCH CHECK: Pull text safely even if grounding or tool metadata structures are present
-      const candidate = data.candidates?.[0];
-      const part = candidate?.content?.parts?.[0];
-      const replyText = part && part.text ? part.text.trim() : "";
-
-      if (!replyText) throw new Error("No text returned from search fallback cycle");
+      const replyText = data.candidates[0].content.parts[0].text.trim();
 
       kairosChatHistory.push({ role: "user", parts: [{ text: commandText }] });
       kairosChatHistory.push({ role: "model", parts: [{ text: replyText }] });
 
       speakResponse(replyText);
-      sessionSuccessful = true;
-      return; // Exit execution completely on success
     } catch (fallbackErr) {
-      console.error("❌ Tier 2 Fallback Cloud Engine failed. Falling back to local tier...", fallbackErr);
+      // TIER 3: Absolute Local Safeguard
+      speakResponse(coreReplyText || "What would you like help with—support, rewards, or dashboard settings?");
     }
   }
+}
 
-  // ==========================================
-  // TIER 3: ABSOLUTE LOCAL SAFEGUARD
-  // ==========================================
-  if (!sessionSuccessful) {
-    speakResponse(coreReplyText || "What would you like help with—support, rewards, or dashboard settings?");
-  }
-}
-}
 
 
 
