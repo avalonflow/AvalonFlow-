@@ -1207,16 +1207,24 @@ async function processUserCommandLocally(commandText) {
   }
 
     // Fallback B: Cloud Endpoint Session
+async function executeCloudSession(commandText) {
   const GEMINI_API_KEY = KAIROS_KEYS.gemini || "";
+  
+  // DYNAMIC METADATA: Injects exact local time context dynamically into the request payload
   const localTimeContext = `[Local System Context | Current Time: ${new Date().toLocaleString()}] ${commandText}`;
+  
+  // Track success to prevent falling through to the final safeguard
   let sessionSuccessful = false;
 
+  // ==========================================
+  // TIER 1: PRIMARY MODEL EXECUTION
+  // ==========================================
   try {
     const PRIMARY_MODEL = "gemini-3.1-flash-lite"; 
-    const URL = `https://generativelanguage.googleapis.com/v1beta/models/${PRIMARY_MODEL}:generateContent?key=${GEMINI_API_KEY}`;
-
+    const URL_PRIMARY = `https://generativelanguage.googleapis.com/v1beta/models/${PRIMARY_MODEL}:generateContent?key=${GEMINI_API_KEY}`;
     const requestContents = [...kairosChatHistory, { role: "user", parts: [{ text: localTimeContext }] }];
-    const response = await fetch(URL, {
+
+    const response = await fetch(URL_PRIMARY, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -1225,13 +1233,17 @@ async function processUserCommandLocally(commandText) {
         systemInstruction: {
           parts: [{ text: "You are Kairos, an intuitive, calm, and supportive assistant. Respond with genuine empathy in a natural conversational tone." }]
         },
-        tools: [{ googleSearch: {} }],
+        // INTEGRATED: Google Search tool configuration for internet and real-time grounding
+        tools: [{
+          googleSearch: {}
+        }],
         // FIXED: Token maximum ceiling raised from 80 to 512 to ensure complex outputs aren't prematurely severed
         generationConfig: { maxOutputTokens: 51233 }
       })
     });
 
-    if (!response.ok) throw new Error();
+    if (!response.ok) throw new Error("Primary model endpoint failed");
+    
     const data = await response.json();
     const replyText = data.candidates[0].content.parts[0].text.trim();
 
@@ -1240,42 +1252,59 @@ async function processUserCommandLocally(commandText) {
 
     speakResponse(replyText);
     sessionSuccessful = true;
+    return; // Exit execution completely on success
   } catch (err) {
-    // TIER 2: Cascade seamlessly into the high-volume engine if primary hits a limit
-    if (!sessionSuccessful) {
-      try {
-        const FALLBACK_MODEL = "gemini-3.5-flash"; 
-        const URL_FALLBACK = `https://generativelanguage.googleapis.com/v1beta/models/${FALLBACK_MODEL}:generateContent?key=${GEMINI_API_KEY}`;
+    console.warn("⚠️ Tier 1 Primary Cloud Engine failed. Cascading to Tier 2...", err);
+  }
 
-        const requestContents = [...kairosChatHistory, { role: "user", parts: [{ text: localTimeContext }] }];
-        const response = await fetch(URL_FALLBACK, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            contents: requestContents,
-            systemInstruction: {
-              parts: [{ text: "You are Kairos, an intuitive, calm, and supportive assistant. Respond with genuine empathy in a natural conversational tone." }]
-            },
-            tools: [{ googleSearch: {} }],
-            generationConfig: { maxOutputTokens: 51233 }
-          })
-        });
+  // ==========================================
+  // TIER 2: SECONDARY FALLBACK MODEL
+  // ==========================================
+  if (!sessionSuccessful) {
+    try {
+      const FALLBACK_MODEL = "gemini-3.5-flash"; 
+      const URL_FALLBACK = `https://generativelanguage.googleapis.com/v1beta/models/${FALLBACK_MODEL}:generateContent?key=${GEMINI_API_KEY}`;
+      const requestContents = [...kairosChatHistory, { role: "user", parts: [{ text: localTimeContext }] }];
 
-        if (!response.ok) throw new Error();
-        const data = await response.json();
-        const replyText = data.candidates[0].content.parts[0].text.trim();
+      const response = await fetch(URL_FALLBACK, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: requestContents,
+          systemInstruction: {
+            parts: [{ text: "You are Kairos, an intuitive, calm, and supportive assistant. Respond with genuine empathy in a natural conversational tone." }]
+          },
+          // INTEGRATED: Google Search tool configuration for internet and real-time grounding
+          tools: [{
+            googleSearch: {}
+          }],
+          generationConfig: { maxOutputTokens: 51233 }
+        })
+      });
 
-        kairosChatHistory.push({ role: "user", parts: [{ text: commandText }] });
-        kairosChatHistory.push({ role: "model", parts: [{ text: replyText }] });
+      if (!response.ok) throw new Error("Fallback model endpoint failed");
 
-        speakResponse(replyText);
-        sessionSuccessful = true;
-      } catch (fallbackErr) {
-        // TIER 3: Absolute Local Safeguard
-        speakResponse(coreReplyText || "What would you like help with—support, rewards, or dashboard settings?");
-      }
+      const data = await response.json();
+      const replyText = data.candidates[0].content.parts[0].text.trim();
+
+      kairosChatHistory.push({ role: "user", parts: [{ text: commandText }] });
+      kairosChatHistory.push({ role: "model", parts: [{ text: replyText }] });
+
+      speakResponse(replyText);
+      sessionSuccessful = true;
+      return; // Exit execution completely on success
+    } catch (fallbackErr) {
+      console.error("❌ Tier 2 Fallback Cloud Engine failed. Falling back to local tier...", fallbackErr);
     }
   }
+
+  // ==========================================
+  // TIER 3: ABSOLUTE LOCAL SAFEGUARD
+  // ==========================================
+  if (!sessionSuccessful) {
+    speakResponse(coreReplyText || "What would you like help with—support, rewards, or dashboard settings?");
+  }
+}
 }
 
 
