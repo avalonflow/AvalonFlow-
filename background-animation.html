@@ -1272,7 +1272,7 @@ async function processUserCommandLocally(commandText) {
 
 
 // ==========================================
-// 7. TEXT-TO-SPEECH VOICE EXECUTION MATRIX (MIC WAKEUP BLOCKER READY)
+// 7. TEXT-TO-SPEECH VOICE EXECUTION MATRIX (FIXED SYNC & DIVIDERS)
 // ==========================================
 function setWaveAnimationSpeed(isSpeaking) {
   const strokes = document.querySelectorAll('.audio-wave-pill .stroke');
@@ -1299,13 +1299,15 @@ async function speakResponse(rawResponseText) {
 
   const vaultAssetPath = PREMIUM_AUDIO_VAULT[rawResponseText];
   let typedChatText = vaultAssetPath ? rawResponseText : humanize(rawResponseText);
-  
+
   // ==========================================
-  // PATCH: Strip Markdown symbols for clean voice synthesis
+  // PATCH VERIFIED: Strip markdown dividers (---) and formatting elements
   // ==========================================
   let spokenText = rawResponseText
-    .replace(/[#*`_~]/g, '') // Strips out #, *, `, _, and ~ so she won't read them
+    .replace(/-{3,}/g, '')        // Removes horizontal lines / divider rules like --- completely
+    .replace(/[#*`_~]/g, '')       // Strips out #, *, `, _, and ~ so she won't read symbols out loud
     .replace(/[^\x00-\x7F]/g, "") // Keeps the existing emoji/special character strip
+    .replace(/\s+/g, ' ')         // Collapses multiple whitespaces down cleanly
     .trim();
 
   if (!vaultAssetPath) {
@@ -1384,7 +1386,7 @@ async function speakResponse(rawResponseText) {
     return;
   }
 
-  // --- DIRECT ROUTING TO LOCAL ENGINE (Bypassing broken Cloud Key) ---
+  // --- DIRECT ROUTING TO LOCAL ENGINE ---
   fallbackSynthesisExecution(spokenText, words, transcriptCanvas);
 }
 
@@ -1394,29 +1396,31 @@ function fallbackSynthesisExecution(spokenText, words, transcriptCanvas) {
 
   const utterance = new SpeechSynthesisUtterance(spokenText);
   if (selectedFemaleVoice) utterance.voice = selectedFemaleVoice;
-  utterance.rate = 1.0; 
+  
+  utterance.rate = 1.05; // Slightly bumped rate for crisp, natural pacing
   let wordIndex = 0;
+
+  // DYNAMIC SYNC HOOK: Instantly map text rendering chunks to boundary event steps
+  utterance.onboundary = (event) => {
+    if (event.name === 'word') {
+      if (wordIndex < words.length) {
+        // Build words naturally exactly as the native sound boundaries move forward
+        transcriptCanvas.innerText = words.slice(0, wordIndex + 1).join(" ");
+        wordIndex++;
+      }
+    }
+  };
 
   utterance.onstart = () => {
     setWaveAnimationSpeed(true);
     transcriptCanvas.innerText = "";
-
-    activeTypingInterval = setInterval(() => {
-      if (wordIndex < words.length) {
-        transcriptCanvas.innerText += (wordIndex === 0 ? "" : " ") + words[wordIndex];
-        wordIndex++;
-      } else {
-        clearInterval(activeTypingInterval);
-        activeTypingInterval = null; 
-      }
-    }, 60);
   };
 
   utterance.onend = () => {
     setWaveAnimationSpeed(false);
     if (activeTypingInterval) clearInterval(activeTypingInterval);
 
-    // Ensure text is completed visually
+    // Hard fallback text preservation layout block
     transcriptCanvas.innerText = words.join(" ");
 
     if (blockNextMicActivation) {
@@ -1437,6 +1441,7 @@ function fallbackSynthesisExecution(spokenText, words, transcriptCanvas) {
 
   kairosVoiceEngine.speak(utterance);
 }
+
 
 
 // ==========================================
