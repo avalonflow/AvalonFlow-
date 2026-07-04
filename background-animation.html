@@ -1190,7 +1190,7 @@ async function processUserCommandLocally(commandText) {
       if (caps.available !== 'no') {
         const session = await window.ai.languageModel.create({
           // FIXED: Removed 2 sentence restriction rule constraint
-          systemPrompt: "You are Kairos, a deeply intuitive, calm, and supportive assistant. Provide complete and helpful responses."
+          systemPrompt: "You are Kairos, an intuitive, calm, and supportive assistant. Provide complete and helpful responses."
         });
         const aiReply = await session.prompt(commandText);
         session.destroy();
@@ -1220,7 +1220,7 @@ async function processUserCommandLocally(commandText) {
         contents: requestContents,
         // FIXED: System prompt updated to generate full paragraphs naturally
         systemInstruction: {
-          parts: [{ text: "You are Kairos, a deeply intuitive, calm, and supportive assistant. Respond with genuine empathy, detailed insight, and comprehensive warmth." }]
+          parts: [{ text: "You are Kairos, an intuitive, calm, and supportive assistant. Respond with genuine empathy in a natural conversational tone." }]
         },
         // FIXED: Token maximum ceiling raised from 80 to 512 to ensure complex outputs aren't prematurely severed
         generationConfig: { maxOutputTokens: 51233 }
@@ -1249,7 +1249,7 @@ async function processUserCommandLocally(commandText) {
         body: JSON.stringify({
           contents: requestContents,
           systemInstruction: {
-            parts: [{ text: "You are Kairos, a deeply intuitive, calm, and supportive assistant. Respond with genuine empathy, detailed insight, and comprehensive warmth." }]
+            parts: [{ text: "You are Kairos, an intuitive, calm, and supportive assistant. Respond with genuine empathy in a natural conversational tone." }]
           },
           generationConfig: { maxOutputTokens: 51233 }
         })
@@ -1272,7 +1272,7 @@ async function processUserCommandLocally(commandText) {
 
 
 // ==========================================
-// 7. TEXT-TO-SPEECH VOICE EXECUTION MATRIX (FIXED SYNC & DIVIDERS)
+// 7. TEXT-TO-SPEECH VOICE EXECUTION MATRIX (REAL-TIME STEP SYNC)
 // ==========================================
 function setWaveAnimationSpeed(isSpeaking) {
   const strokes = document.querySelectorAll('.audio-wave-pill .stroke');
@@ -1310,9 +1310,10 @@ async function speakResponse(rawResponseText) {
     .replace(/\s+/g, ' ')         // Collapses multiple whitespaces down cleanly
     .trim();
 
+  // Clean layout formatting adjustment (No trailing ellipsis)
   if (!vaultAssetPath) {
     if (!/[\.\!\?]$/.test(typedChatText)) {
-      typedChatText = typedChatText.replace(/[\.\!\?]+$/, "").trim() + "...";
+      typedChatText = typedChatText.replace(/[\.\!\?]+$/, "").trim() + ".";
     }
   }
 
@@ -1374,40 +1375,48 @@ async function speakResponse(rawResponseText) {
       if (firedFallback) return;
       firedFallback = true;
       if (activeTypingInterval) clearInterval(activeTypingInterval);
-      fallbackSynthesisExecution(spokenText, words, transcriptCanvas);
+      fallbackSynthesisExecution(spokenText, typedChatText, transcriptCanvas);
     };
 
     await nativeVaultAudio.play().catch(() => {
       if (firedFallback) return;
       firedFallback = true;
       if (activeTypingInterval) clearInterval(activeTypingInterval);
-      fallbackSynthesisExecution(spokenText, words, transcriptCanvas);
+      fallbackSynthesisExecution(spokenText, typedChatText, transcriptCanvas);
     });
     return;
   }
 
   // --- DIRECT ROUTING TO LOCAL ENGINE ---
-  fallbackSynthesisExecution(spokenText, words, transcriptCanvas);
+  fallbackSynthesisExecution(spokenText, typedChatText, transcriptCanvas);
 }
 
-function fallbackSynthesisExecution(spokenText, words, transcriptCanvas) {
+function fallbackSynthesisExecution(spokenText, typedChatText, transcriptCanvas) {
   if (activeTypingInterval) clearInterval(activeTypingInterval);
   if (kairosVoiceEngine) kairosVoiceEngine.cancel(); 
 
   const utterance = new SpeechSynthesisUtterance(spokenText);
   if (selectedFemaleVoice) utterance.voice = selectedFemaleVoice;
   
-  utterance.rate = 1.05; // Slightly bumped rate for crisp, natural pacing
-  let wordIndex = 0;
+  utterance.rate = 1.05; 
 
-  // DYNAMIC SYNC HOOK: Instantly map text rendering chunks to boundary event steps
+  // FIXED REAL-TIME SYNC HOOK: Uses exact character positioning measurements 
   utterance.onboundary = (event) => {
     if (event.name === 'word') {
-      if (wordIndex < words.length) {
-        // Build words naturally exactly as the native sound boundaries move forward
-        transcriptCanvas.innerText = words.slice(0, wordIndex + 1).join(" ");
-        wordIndex++;
-      }
+      // Find the position of the currently spoken word within the display context
+      const currentPosition = event.charIndex;
+      
+      // Look ahead to find the end boundary marker of the current word segment
+      const remainingText = spokenText.substring(currentPosition);
+      const nextSpaceIdx = remainingText.indexOf(' ');
+      
+      const absoluteEndIdx = nextSpaceIdx === -1 
+        ? spokenText.length 
+        : currentPosition + nextSpaceIdx;
+
+      // Extract and safely project the spoken substring path directly onto the UI layout
+      const dynamicProgressSegment = spokenText.substring(0, absoluteEndIdx);
+      transcriptCanvas.innerText = dynamicProgressSegment;
     }
   };
 
@@ -1420,8 +1429,8 @@ function fallbackSynthesisExecution(spokenText, words, transcriptCanvas) {
     setWaveAnimationSpeed(false);
     if (activeTypingInterval) clearInterval(activeTypingInterval);
 
-    // Hard fallback text preservation layout block
-    transcriptCanvas.innerText = words.join(" ");
+    // Lock entire text presentation visible upon completion
+    transcriptCanvas.innerText = typedChatText;
 
     if (blockNextMicActivation) {
       blockNextMicActivation = false;
@@ -1429,7 +1438,6 @@ function fallbackSynthesisExecution(spokenText, words, transcriptCanvas) {
       return;
     }
 
-    // Mic triggers ONLY when the long voice paragraph is 100% finished speaking
     setTimeout(() => { listenForFollowUp(); }, 500);
   };
 
@@ -1441,6 +1449,7 @@ function fallbackSynthesisExecution(spokenText, words, transcriptCanvas) {
 
   kairosVoiceEngine.speak(utterance);
 }
+
 
 
 
