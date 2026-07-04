@@ -1288,6 +1288,26 @@ function setWaveAnimationSpeed(isSpeaking) {
   });
 }
 
+/**
+ * Dynamically animates text onto the canvas synchronized with a word-interval pacing
+ */
+function startSyncedTextAnimation(transcriptCanvas, words, msPerWord) {
+  if (activeTypingInterval) clearInterval(activeTypingInterval);
+  
+  let wordIndex = 0;
+  transcriptCanvas.innerText = ""; 
+
+  activeTypingInterval = setInterval(() => {
+    if (wordIndex < words.length) {
+      transcriptCanvas.innerText += (wordIndex === 0 ? "" : " ") + words[wordIndex];
+      wordIndex++;
+    } else {
+      clearInterval(activeTypingInterval);
+      activeTypingInterval = null;
+    }
+  }, msPerWord);
+}
+
 async function speakResponse(rawResponseText) {
   stopActiveKairosVoice();
   killSpeechEngineCompletely(); 
@@ -1304,13 +1324,12 @@ async function speakResponse(rawResponseText) {
   // PATCH VERIFIED: Strip markdown dividers (---) and formatting elements
   // ==========================================
   let spokenText = rawResponseText
-    .replace(/-{3,}/g, '')        // Removes horizontal lines / divider rules like --- completely
-    .replace(/[#*`_~]/g, '')       // Strips out #, *, `, _, and ~ so she won't read symbols out loud
-    .replace(/[^\x00-\x7F]/g, "") // Keeps the existing emoji/special character strip
-    .replace(/\s+/g, ' ')         // Collapses multiple whitespaces down cleanly
+    .replace(/-{3,}/g, '')        
+    .replace(/[#*`_~]/g, '')       
+    .replace(/[^\x00-\x7F]/g, "") 
+    .replace(/\s+/g, ' ')         
     .trim();
 
-  // Clean layout formatting adjustment (No trailing ellipsis)
   if (!vaultAssetPath) {
     if (!/[\.\!\?]$/.test(typedChatText)) {
       typedChatText = typedChatText.replace(/[\.\!\?]+$/, "").trim() + ".";
@@ -1328,7 +1347,6 @@ async function speakResponse(rawResponseText) {
   if (!transcriptCanvas) return;
 
   const words = typedChatText.split(" ");
-  let wordIndex = 0;
 
   if (!spokenText) {
     isProcessingCommand = false;
@@ -1336,7 +1354,7 @@ async function speakResponse(rawResponseText) {
     return;
   }
 
-  // --- VAULT PIPELINE ---
+  // --- VAULT PIPELINE (Pre-recorded Audio Assets) ---
   if (vaultAssetPath) {
     console.log(`🎵 Playing Premium Vault Audio Asset directly: ${vaultAssetPath}`);
     const nativeVaultAudio = new Audio(vaultAssetPath);
@@ -1344,18 +1362,8 @@ async function speakResponse(rawResponseText) {
 
     nativeVaultAudio.onplay = () => {
       setWaveAnimationSpeed(true);
-      if (activeTypingInterval) clearInterval(activeTypingInterval);
-      transcriptCanvas.innerText = ""; 
-
-      activeTypingInterval = setInterval(() => {
-        if (wordIndex < words.length) {
-          transcriptCanvas.innerText += (wordIndex === 0 ? "" : " ") + words[wordIndex];
-          wordIndex++;
-        } else {
-          clearInterval(activeTypingInterval);
-          activeTypingInterval = null;
-        }
-      }, 60);
+      // Premium vault items typically speak faster, ~280ms per word pacing
+      startSyncedTextAnimation(transcriptCanvas, words, 280);
     };
 
     nativeVaultAudio.onended = () => {
@@ -1398,38 +1406,27 @@ function fallbackSynthesisExecution(spokenText, typedChatText, transcriptCanvas)
   const utterance = new SpeechSynthesisUtterance(spokenText);
   if (selectedFemaleVoice) utterance.voice = selectedFemaleVoice;
   
-  utterance.rate = 1.05; 
+  // Rate modifier balance
+  const speechRate = 1.05; 
+  utterance.rate = speechRate; 
 
-  // FIXED REAL-TIME SYNC HOOK: Uses exact character positioning measurements 
-  utterance.onboundary = (event) => {
-    if (event.name === 'word') {
-      // Find the position of the currently spoken word within the display context
-      const currentPosition = event.charIndex;
-      
-      // Look ahead to find the end boundary marker of the current word segment
-      const remainingText = spokenText.substring(currentPosition);
-      const nextSpaceIdx = remainingText.indexOf(' ');
-      
-      const absoluteEndIdx = nextSpaceIdx === -1 
-        ? spokenText.length 
-        : currentPosition + nextSpaceIdx;
-
-      // Extract and safely project the spoken substring path directly onto the UI layout
-      const dynamicProgressSegment = spokenText.substring(0, absoluteEndIdx);
-      transcriptCanvas.innerText = dynamicProgressSegment;
-    }
-  };
+  const words = typedChatText.split(" ");
+  
+  // Calculate a reliable word delivery interval based on standard conversational speed.
+  // At rate 1.0, typical speech is ~150 WPM (~400ms per word). 
+  // We divide by speechRate to cleanly match the speed increases dynamically.
+  const msPerWord = (60000 / 155) / speechRate; 
 
   utterance.onstart = () => {
     setWaveAnimationSpeed(true);
-    transcriptCanvas.innerText = "";
+    startSyncedTextAnimation(transcriptCanvas, words, msPerWord);
   };
 
   utterance.onend = () => {
     setWaveAnimationSpeed(false);
     if (activeTypingInterval) clearInterval(activeTypingInterval);
 
-    // Lock entire text presentation visible upon completion
+    // Hard seal structural alignment at the exact ending frame
     transcriptCanvas.innerText = typedChatText;
 
     if (blockNextMicActivation) {
@@ -1449,6 +1446,7 @@ function fallbackSynthesisExecution(spokenText, typedChatText, transcriptCanvas)
 
   kairosVoiceEngine.speak(utterance);
 }
+
 
 
 
