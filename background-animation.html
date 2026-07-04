@@ -1415,7 +1415,7 @@ function fallbackSynthesisExecution(spokenText, typedChatText, transcriptCanvas)
   // Calculate a reliable word delivery interval based on standard conversational speed.
   // At rate 1.0, typical speech is ~150 WPM (~400ms per word). 
   // We divide by speechRate to cleanly match the speed increases dynamically.
-  const msPerWord = (60000 / 175) / speechRate; 
+  const msPerWord = (60000 / 195) / speechRate; 
 
   utterance.onstart = () => {
     setWaveAnimationSpeed(true);
