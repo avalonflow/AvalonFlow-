@@ -1222,7 +1222,7 @@ async function processUserCommandLocally(commandText) {
         contents: requestContents,
         // FIXED: System prompt updated to generate full paragraphs naturally
         systemInstruction: {
-          parts: [{ text: "You are Kairos, an intuitive, calm, and supportive assistant. The year is 2026. Respond with genuine empathy in a natural present conversational tone." }]
+          parts: [{ text: "You are Kairos, an intuitive, calm, and supportive assistant. The year is 2026. Respond with genuine empathy in a present knowledge, natural conversational tone." }]
         },
         // FIXED: Token maximum ceiling raised from 80 to 512 to ensure complex outputs aren't prematurely severed
         generationConfig: { maxOutputTokens: 51233 }
@@ -1251,7 +1251,7 @@ async function processUserCommandLocally(commandText) {
         body: JSON.stringify({
           contents: requestContents,
           systemInstruction: {
-            parts: [{ text: "You are Kairos, an intuitive, calm, and supportive assistant. The year is 2026. Respond with genuine empathy in a natural present conversational tone." }]
+            parts: [{ text: "You are Kairos, an intuitive, calm, and supportive assistant. The year is 2026. Respond with genuine empathy in a present knowledge, natural conversational tone." }]
           },
           generationConfig: { maxOutputTokens: 51233 }
         })
