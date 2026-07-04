@@ -1206,7 +1206,9 @@ async function processUserCommandLocally(commandText) {
     }
   }
 
-    // Fallback B: Cloud Endpoint Session
+   
+
+// Fallback B: Cloud Endpoint Session
   try {
     const GEMINI_API_KEY = KAIROS_KEYS.gemini || "";
     const PRIMARY_MODEL = "gemini-3.1-flash-lite"; 
@@ -1220,12 +1222,8 @@ async function processUserCommandLocally(commandText) {
         contents: requestContents,
         // FIXED: System prompt updated to generate full paragraphs naturally
         systemInstruction: {
-          parts: [{ text: "You are Kairos, an intuitive, calm, and supportive assistant. Respond with genuine empathy in a natural conversational tone." }]
+          parts: [{ text: "You are Kairos, an intuitive, calm, and supportive assistant. The year is 2026. Respond with genuine empathy in a natural present conversational tone." }]
         },
-        // INTEGRATED: Google Search tool configuration for internet and real-time grounding
-        tools: [{
-          googleSearch: {}
-        }],
         // FIXED: Token maximum ceiling raised from 80 to 512 to ensure complex outputs aren't prematurely severed
         generationConfig: { maxOutputTokens: 51233 }
       })
@@ -1253,12 +1251,8 @@ async function processUserCommandLocally(commandText) {
         body: JSON.stringify({
           contents: requestContents,
           systemInstruction: {
-            parts: [{ text: "You are Kairos, an intuitive, calm, and supportive assistant. Respond with genuine empathy in a natural conversational tone." }]
+            parts: [{ text: "You are Kairos, an intuitive, calm, and supportive assistant. The year is 2026. Respond with genuine empathy in a natural present conversational tone." }]
           },
-          // INTEGRATED: Google Search tool configuration for internet and real-time grounding
-          tools: [{
-            googleSearch: {}
-          }],
           generationConfig: { maxOutputTokens: 51233 }
         })
       });
@@ -1277,6 +1271,7 @@ async function processUserCommandLocally(commandText) {
     }
   }
 }
+
 
 
 
