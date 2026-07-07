@@ -397,7 +397,7 @@
                         <div class="value-display" id="balance-value-container">
                             <span id="balance-lock" class="lock-icon">🔒</span>
                             <span id="balance-unit-symbol">$</span><span id="balance-amount">0.00</span> 
-                            <span class="currency-tag" id="balance-currency-tag">USD</span>
+                            <span class="currency-tag" id="balance-currency-tag">CAD</span>
                         </div>
                     </div>
 
@@ -406,7 +406,7 @@
                         <span class="label" id="send-card-title">Retention Bonus</span>
                         <div class="value-display" id="send-value-container">
                             <span id="send-lock" class="lock-icon" style="display: none;">🔒</span>
-                            <span id="send-currency-symbol">$</span><span id="send-amount">0.00</span><span class="currency-tag" id="send-currency-tag">USD</span>
+                            <span id="send-currency-symbol">$</span><span id="send-amount">0.00</span><span class="currency-tag" id="send-currency-tag">CAD</span>
                         </div>
                     </div>
 
@@ -429,7 +429,7 @@
                     </div>
                     <div class="detail-item">
                         <span class="detail-label">Net Settlement Amount</span>
-                        <span id="net-usd-display" class="detail-value">$0.00 USD</span>
+                        <span id="net-cad-display" class="detail-value">$0.00 CAD</span>
                     </div>
                     <div class="detail-item">
                         <span class="detail-label">Estimated Arrival</span>
@@ -479,7 +479,7 @@
                     </div>
                     <div class="receipt-row">
                         <span class="detail-label">Routing Hash</span>
-                        <span class="hash-text">av_tx_8804x92Bf</span>
+                        <span id="receipt-hash" class="hash-text">-</span>
                     </div>
                 </div>
 
@@ -515,11 +515,21 @@
         }
         setInterval(particle,800);
 
+        // Helper to generate a completely randomized routing hash
+        function generateRandomHash() {
+            const chars = '0123456789ABCDEFabcdef';
+            let result = '';
+            for (let i = 0; i < 8; i++) {
+                result += chars[Math.floor(Math.random() * chars.length)];
+            }
+            return `av_tx_${result}`;
+        }
+
         let runtimeSessionData = {
             region: "UK", 
             selectedAssetOrBank: "NatWest",
-            baseAmountUSD: 1250.00,
-            availableBalanceUSD: 5000.00,
+            baseAmountCAD: 1250.00,
+            availableBalanceCAD: 5000.00,
             balanceUnlockedFlag: true // Set to true to execute 'open' configuration layout
         };
 
@@ -549,15 +559,32 @@
             const config = regionConfig[sessionData.region];
             if (!config) return;
 
-            let liveRate = sessionData.region === "UK" ? 0.7796 : 1.3642;
+            // Strict base rate rule defined by user fallback configuration rule
+            let liveRate = 0.53; 
+
+            /* --- MULTI-API FAILOVER FALLBACK SEQUENCE --- */
             try {
-                const response = await fetch('https://open.er-api.com/v6/latest/USD');
-                if (response.ok) {
-                    const data = await response.json();
+                // Primary Network Request Layer
+                const primaryResponse = await fetch('https://open.er-api.com/v6/latest/CAD');
+                if (primaryResponse.ok) {
+                    const data = await primaryResponse.json();
                     liveRate = data.rates[config.currency] || liveRate;
+                } else {
+                    throw new Error("Primary API state down. Initializing backup stack route.");
                 }
-            } catch (error) {
-                console.warn("API unavailable. Falling back to default baseline rate calculations.", error);
+            } catch (primaryError) {
+                console.warn(primaryError.message);
+                try {
+                    // Secondary Network Failover Routing Layer
+                    const secondaryResponse = await fetch('https://api.frankfurter.dev/v2/rates?base=CAD&quotes=GBP');
+                    if (secondaryResponse.ok) {
+                        const data = await secondaryResponse.json();
+                        liveRate = data.rates[config.currency] || liveRate;
+                    }
+                } catch (secondaryError) {
+                    console.error("All production live currency networks down. Enforcing structural fallback rate 1 CAD = 0.53 GBP.");
+                    liveRate = 0.53;
+                }
             }
 
             const isSecurityOpen = sessionData.balanceUnlockedFlag;
@@ -569,38 +596,39 @@
             document.getElementById("payout-method").innerText = `${sessionData.selectedAssetOrBank}`;
             document.getElementById("arrival-time").innerText = config.eta;
 
+            // Generate a fresh random hash on update cycle
+            const activeHash = generateRandomHash();
+            document.getElementById("receipt-hash").innerText = activeHash;
+
             if (isSecurityOpen) {
                 /* 1. CARDS REPOSITION ENGINE (DOM Order Flip) */
-                sendBox.className = "amount-box locked order-1";       // Retention Bonus jumps to Card 1 position
-                balanceBox.className = "amount-box highlight order-2"; // Available Balance falls into Card 2 position
-                arrowIndicator.style.top = "61%";                     // Shift pointer arrow context below card 2
+                sendBox.className = "amount-box locked order-1";       
+                balanceBox.className = "amount-box highlight order-2"; 
+                arrowIndicator.style.top = "61%";                     
 
                 /* 2. VALUE STATE SYNCHRONIZATION */
-                // Card 1: Retention Bonus morphs to showing frozen lock state
                 document.getElementById("send-lock").style.display = "inline-flex";
                 document.getElementById("send-currency-symbol").innerText = "";
                 document.getElementById("send-amount").innerText = "Withdrawn";
                 document.getElementById("send-currency-tag").innerText = "";
 
-                // Card 2: Available Balance morphs to clear conversion field state
                 document.getElementById("balance-lock").style.display = "none";
                 document.getElementById("balance-unit-symbol").innerText = "$";
-                document.getElementById("balance-amount").innerText = sessionData.availableBalanceUSD.toLocaleString('en-US', { minimumFractionDigits: 2 });
-                document.getElementById("balance-currency-tag").innerText = "USD";
+                document.getElementById("balance-amount").innerText = sessionData.availableBalanceCAD.toLocaleString('en-US', { minimumFractionDigits: 2 });
+                document.getElementById("balance-currency-tag").innerText = "CAD";
 
-                // Calculations based on transforming Available Balance to destination currency
-                const feeUSD = sessionData.availableBalanceUSD * 0.04;
-                const usdNet = sessionData.availableBalanceUSD - feeUSD;
-                const finalCalculatedReceive = usdNet * liveRate;
+                const feeCAD = sessionData.availableBalanceCAD * 0.04;
+                const cadNet = sessionData.availableBalanceCAD - feeCAD;
+                const finalCalculatedReceive = cadNet * liveRate;
 
-                document.getElementById("fee-display").innerText = `-$${feeUSD.toLocaleString('en-US', { minimumFractionDigits: 2 })} USD`;
-                document.getElementById("net-usd-display").innerText = `$${usdNet.toLocaleString('en-US', { minimumFractionDigits: 2 })} USD`;
+                document.getElementById("fee-display").innerText = `-$${feeCAD.toLocaleString('en-US', { minimumFractionDigits: 2 })} CAD`;
+                document.getElementById("net-cad-display").innerText = `$${cadNet.toLocaleString('en-US', { minimumFractionDigits: 2 })} CAD`;
                 document.getElementById("receive-amount").innerText = finalCalculatedReceive.toLocaleString('en-US', { 
                     minimumFractionDigits: 2,
                     maximumFractionDigits: 2 
                 });
 
-                document.getElementById("receipt-fee").innerText = `-$${feeUSD.toLocaleString('en-US', { minimumFractionDigits: 2 })} USD`;
+                document.getElementById("receipt-fee").innerText = `-$${feeCAD.toLocaleString('en-US', { minimumFractionDigits: 2 })} CAD`;
                 document.getElementById("receipt-payout").innerText = `${config.symbol}${finalCalculatedReceive.toLocaleString('en-US', { 
                     minimumFractionDigits: 2,
                     maximumFractionDigits: 2 
@@ -613,26 +641,26 @@
 
                 document.getElementById("balance-lock").style.display = "inline-flex";
                 document.getElementById("balance-unit-symbol").innerText = "$";
-                document.getElementById("balance-amount").innerText = sessionData.availableBalanceUSD.toLocaleString('en-US', { minimumFractionDigits: 2 });
-                document.getElementById("balance-currency-tag").innerText = "USD";
+                document.getElementById("balance-amount").innerText = sessionData.availableBalanceCAD.toLocaleString('en-US', { minimumFractionDigits: 2 });
+                document.getElementById("balance-currency-tag").innerText = "CAD";
 
                 document.getElementById("send-lock").style.display = "none";
                 document.getElementById("send-currency-symbol").innerText = "$";
-                document.getElementById("send-amount").innerText = sessionData.baseAmountUSD.toLocaleString('en-US', { minimumFractionDigits: 2 });
-                document.getElementById("send-currency-tag").innerText = "USD";
+                document.getElementById("send-amount").innerText = sessionData.baseAmountCAD.toLocaleString('en-US', { minimumFractionDigits: 2 });
+                document.getElementById("send-currency-tag").innerText = "CAD";
 
-                const feeUSD = sessionData.baseAmountUSD * 0.04;
-                const usdNet = sessionData.baseAmountUSD - feeUSD;
-                const finalCalculatedReceive = usdNet * liveRate;
+                const feeCAD = sessionData.baseAmountCAD * 0.04;
+                const cadNet = sessionData.baseAmountCAD - feeCAD;
+                const finalCalculatedReceive = cadNet * liveRate;
 
-                document.getElementById("fee-display").innerText = `-$${feeUSD.toLocaleString('en-US', { minimumFractionDigits: 2 })} USD`;
-                document.getElementById("net-usd-display").innerText = `$${usdNet.toLocaleString('en-US', { minimumFractionDigits: 2 })} USD`;
+                document.getElementById("fee-display").innerText = `-$${feeCAD.toLocaleString('en-US', { minimumFractionDigits: 2 })} CAD`;
+                document.getElementById("net-cad-display").innerText = `$${cadNet.toLocaleString('en-US', { minimumFractionDigits: 2 })} CAD`;
                 document.getElementById("receive-amount").innerText = finalCalculatedReceive.toLocaleString('en-US', { 
                     minimumFractionDigits: 2,
                     maximumFractionDigits: 2 
                 });
 
-                document.getElementById("receipt-fee").innerText = `-$${feeUSD.toLocaleString('en-US', { minimumFractionDigits: 2 })} USD`;
+                document.getElementById("receipt-fee").innerText = `-$${feeCAD.toLocaleString('en-US', { minimumFractionDigits: 2 })} CAD`;
                 document.getElementById("receipt-payout").innerText = `${config.symbol}${finalCalculatedReceive.toLocaleString('en-US', { 
                     minimumFractionDigits: 2,
                     maximumFractionDigits: 2 
