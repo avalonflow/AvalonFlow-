@@ -92,17 +92,9 @@
         }
 
         @keyframes floatParticles {
-            0% {
-                transform: translateY(100vh) scale(0.3);
-                opacity: 0;
-            }
-            50% {
-                opacity: 1;
-            }
-            100% {
-                transform: translateY(-10vh) scale(1);
-                opacity: 0;
-            }
+            0% { transform: translateY(100vh) scale(0.3); opacity: 0; }
+            50% { opacity: 1; }
+            100% { transform: translateY(-10vh) scale(1); opacity: 0; }
         }
 
         .container {
@@ -113,7 +105,6 @@
             z-index: 1;
         }
 
-        /* Premium Transparent Glassmorphism Card */
         .transaction-card {
             background: var(--card-bg);
             backdrop-filter: blur(30px);
@@ -153,7 +144,7 @@
             margin-bottom: 24px;
         }
 
-        /* Conversion Interface Elements */
+        /* Conversion Container layout adjustments */
         .conversion-container {
             display: flex;
             flex-direction: column;
@@ -168,8 +159,14 @@
             border-radius: 20px;
             padding: 18px;
             box-shadow: inset 0 2px 4px rgba(0,0,0,0.01);
-            transition: background 0.3s ease, border-color 0.3s ease;
+            transition: all 0.3s ease;
         }
+
+        /* Order helpers to allow quick swapping */
+        .order-1 { order: 1; }
+        .order-2 { order: 2; }
+        .order-3 { order: 3; }
+        .order-4 { order: 4; }
 
         .amount-box.highlight {
             border-color: rgba(124, 58, 237, 0.25);
@@ -217,7 +214,7 @@
         .conversion-arrow {
             position: absolute;
             left: 36px;
-            top: 61%; /* Shifted down slightly to align between boxes 2 and 3 */
+            top: 48%; /* Adjusted dynamically via JS layout updates if needed */
             transform: translateY(-50%);
             background: var(--accent-purple);
             border: 4px solid #ffffff;
@@ -229,6 +226,7 @@
             align-items: center;
             z-index: 2;
             box-shadow: 0 4px 10px rgba(124, 58, 237, 0.3);
+            transition: top 0.3s ease;
         }
 
         .conversion-arrow svg {
@@ -237,7 +235,6 @@
             stroke: white;
         }
 
-        /* Metadata List styling */
         .details-list {
             display: flex;
             flex-direction: column;
@@ -256,26 +253,11 @@
             font-size: 0.9rem;
         }
 
-        .detail-label {
-            color: var(--text-secondary);
-            font-weight: 500;
-        }
+        .detail-label { color: var(--text-secondary); font-weight: 500; }
+        .detail-value { font-weight: 600; color: var(--text-primary); }
+        .font-gradient { color: var(--accent-purple); }
+        .fee-deducted { color: var(--red-fee); font-weight: 600; }
 
-        .detail-value {
-            font-weight: 600;
-            color: var(--text-primary);
-        }
-
-        .font-gradient {
-            color: var(--accent-purple);
-        }
-
-        .fee-deducted {
-            color: var(--red-fee);
-            font-weight: 600;
-        }
-
-        /* Security Note */
         .security-note {
             display: flex;
             align-items: center;
@@ -294,7 +276,6 @@
             flex-shrink: 0;
         }
 
-        /* Primary Form Action Button */
         .btn-primary {
             width: 100%;
             background: var(--accent-purple);
@@ -323,7 +304,6 @@
             transform: none;
         }
 
-        /* Overlays styled as clean transparent panels */
         .overlay-screen {
             position: absolute;
             top: 0;
@@ -345,12 +325,7 @@
             transition: opacity 0.4s ease;
         }
 
-        .overlay-screen.active {
-            opacity: 1;
-            pointer-events: auto;
-        }
-
-        /* Spinner Styles */
+        .overlay-screen.active { opacity: 1; pointer-events: auto; }
         .spinner {
             width: 50px;
             height: 50px;
@@ -361,11 +336,8 @@
             margin-bottom: 20px;
         }
 
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
+        @keyframes spin { to { transform: rotate(360deg); } }
 
-        /* Success Check Animated Styles */
         .success-icon-wrap {
             width: 72px;
             height: 72px;
@@ -378,25 +350,9 @@
             margin-bottom: 24px;
         }
 
-        .success-icon-wrap svg {
-            width: 36px;
-            height: 36px;
-            stroke: #10b981;
-        }
-
-        .status-title {
-            font-size: 1.4rem;
-            font-weight: 700;
-            margin-bottom: 8px;
-            color: var(--text-primary);
-        }
-
-        .status-desc {
-            font-size: 0.9rem;
-            color: var(--text-secondary);
-            margin-bottom: 24px;
-            line-height: 1.5;
-        }
+        .success-icon-wrap svg { width: 36px; height: 36px; stroke: #10b981; }
+        .status-title { font-size: 1.4rem; font-weight: 700; margin-bottom: 8px; color: var(--text-primary); }
+        .status-desc { font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 24px; line-height: 1.5; }
 
         .receipt-mini {
             background: rgba(255, 255, 255, 0.5);
@@ -411,25 +367,13 @@
             text-align: left;
         }
 
-        .receipt-row {
-            display: flex;
-            justify-content: space-between;
-            font-size: 0.9rem;
-        }
-
-        .hash-text {
-            font-family: monospace;
-            color: var(--accent-purple);
-            font-weight: 600;
-        }
+        .receipt-row { display: flex; justify-content: space-between; font-size: 0.9rem; }
+        .hash-text { font-family: monospace; color: var(--accent-purple); font-weight: 600; }
     </style>
 </head>
 <body>
 
-    <!-- Notification Bar -->
     <div id="planNotification" class="notification-bar"></div>
-
-    <!-- Floating Background -->
     <div id="floating-bg"></div>
 
     <div class="container">
@@ -444,28 +388,33 @@
 
                 <hr class="divider">
 
-                <div class="conversion-container">
-                    <!-- NEW FIELD: Available Balance (Locked State) -->
-                    <div class="amount-box locked" id="balance-box">
-                        <span class="label">Available Balance</span>
-                        <div class="value-display">
+                <div class="conversion-container" id="cards-wrapper">
+                    <!-- Available Balance Field (Card A) -->
+                    <div class="amount-box locked order-1" id="balance-box">
+                        <span class="label" id="balance-card-title">Available Balance</span>
+                        <div class="value-display" id="balance-value-container">
                             <span id="balance-lock" class="lock-icon">🔒</span>
-                            $ <span id="balance-amount">0.00</span> 
-                            <span class="currency-tag">USD</span>
+                            <span id="balance-unit-symbol">$</span><span id="balance-amount">0.00</span> 
+                            <span class="currency-tag" id="balance-currency-tag">USD</span>
                         </div>
                     </div>
 
-                    <!-- UPDATED FIELD: Retention Bonus -->
-                    <div class="amount-box">
-                        <span class="label">Retention Bonus</span>
-                        <div class="value-display">$ <span id="send-amount">0.00</span> <span class="currency-tag">USD</span></div>
+                    <!-- Retention Bonus Field (Card B) -->
+                    <div class="amount-box order-2" id="send-box">
+                        <span class="label" id="send-card-title">Retention Bonus</span>
+                        <div class="value-display" id="send-value-container">
+                            <span id="send-lock" class="lock-icon" style="display: none;">🔒</span>
+                            <span id="send-currency-symbol">$</span><span id="send-amount">0.00</span><span class="currency-tag" id="send-currency-tag">USD</span>
+                        </div>
                     </div>
 
-                    <div class="conversion-arrow">
+                    <!-- Visual Indicator Arrow -->
+                    <div class="conversion-arrow order-3" id="indicator-arrow">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg>
                     </div>
 
-                    <div class="amount-box highlight">
+                    <!-- Final Conversion Recipient View (Card C) -->
+                    <div class="amount-box highlight order-4" id="receive-box">
                         <span class="label">They Receive (Post-Fee Conversion)</span>
                         <div class="value-display"><span id="receive-symbol">£</span> <span id="receive-amount">0.00</span> <span id="receive-currency" class="currency-tag">GBP</span></div>
                     </div>
@@ -539,33 +488,23 @@
     </div>
 
     <script>
-        /* --------------------------
-        NOTIFICATION SYSTEM
-        -------------------------- */
         const notification = document.getElementById("planNotification");
 
         function showNotification(message, duration = 3000) {
             if (!notification) return;
-
             notification.textContent = message;
             notification.classList.add("show");
-
             clearTimeout(notification.hideTimer);
-
-            notification.hideTimer = setTimeout(() => {
-                notification.classList.remove("show");
-            }, duration);
+            notification.hideTimer = setTimeout(() => { notification.classList.remove("show"); }, duration);
         }
 
-        // Floating particles background generation logic
         const bg = document.getElementById('floating-bg');
         const colors = ['#6b2cd8','#9b59b6','#8e44ad'];
         function particle() {
             const p = document.createElement('div');
             p.className = 'particle';
             const s = Math.random()*20+10;
-            p.style.width = s+'px';
-            p.style.height = s+'px';
+            p.style.width = s+'px'; p.style.height = s+'px';
             p.style.left = Math.random()*100+'vw';
             p.style.background = `radial-gradient(circle, ${colors[Math.floor(Math.random()*3)]}, transparent)`;
             p.style.animationDuration = (Math.random()*20+10)+'s';
@@ -574,58 +513,34 @@
         }
         setInterval(particle,800);
 
-        // State & Layout Logic
-        const mockPreviousFormState = {
+        let runtimeSessionData = {
             region: "UK", 
             selectedAssetOrBank: "NatWest",
             baseAmountUSD: 1250.00,
-            availableBalanceUSD: 5000.00 // Baseline mock parameter for the new field
+            availableBalanceUSD: 5000.00,
+            balanceUnlockedFlag: true // Set to true to execute 'open' configuration layout
         };
 
         const regionConfig = {
-            UK: {
-                flag: "🇬🇧",
-                text: "United Kingdom",
-                currency: "GBP",
-                symbol: "£",
-                eta: "Instant via Faster Payments"
-            },
-            CA: {
-                flag: "🇨🇦",
-                text: "Canada",
-                currency: "CAD",
-                symbol: "$",
-                eta: "1-2 hours via Interac"
-            }
+            UK: { flag: "🇬🇧", currency: "GBP", symbol: "£", eta: "Instant via Faster Payments" },
+            CA: { flag: "🇨🇦", currency: "CAD", symbol: "$", eta: "1-2 hours via Interac" }
         };
 
-        /* --------------------------
-        BALANCE LOCK CONTROLLER ENGINE
-        -------------------------- */
-        // Execute unlockAvailableBalance() dynamically in your custom script context to clear lock
-        function unlockAvailableBalance() {
-            const box = document.getElementById("balance-box");
-            const lock = document.getElementById("balance-lock");
-            if(box) box.classList.remove("locked");
-            if(lock) lock.style.display = "none";
+        /* ------------------------------------------------------------------
+        STRUCTURAL CONTROLLER ENGINE - HANDLES THE CARD ORDER SWAP
+        ------------------------------------------------------------------ */
+        function setBalanceState(status) {
+            if (status === "open") {
+                runtimeSessionData.balanceUnlockedFlag = true;
+            } else if (status === "closed") {
+                runtimeSessionData.balanceUnlockedFlag = false;
+            }
+            initiateLiveTransaction(runtimeSessionData);
         }
 
-        /* --------------------------
-        BOOT FLOW
-        -------------------------- */
         document.addEventListener("DOMContentLoaded", () => {
-            initiateLiveTransaction(mockPreviousFormState);
+            initiateLiveTransaction(runtimeSessionData);
             setupEventHandlers();
-
-            // Run check for saved data to trigger first notification before next step
-            const saved = JSON.parse(localStorage.getItem("section3Data") || "{}");
-            const hasSavedData = Object.values(saved).some(
-                v => v && v.toString().trim() !== ""
-            );
-
-            if (hasSavedData) {
-                showNotification("Payout method linked successfully");
-            }
         });
 
         async function initiateLiveTransaction(sessionData) {
@@ -633,7 +548,6 @@
             if (!config) return;
 
             let liveRate = sessionData.region === "UK" ? 0.7796 : 1.3642;
-
             try {
                 const response = await fetch('https://open.er-api.com/v6/latest/USD');
                 if (response.ok) {
@@ -641,34 +555,79 @@
                     liveRate = data.rates[config.currency] || liveRate;
                 }
             } catch (error) {
-                console.warn("External API dropped. Reverting to session baseline parameters.", error);
+                console.warn("API unavailable. Falling back to default baseline rate calculations.", error);
             }
 
-            // Math Processing Core Engine (4% deduction computed strictly in USD)
-            const usdGross = sessionData.baseAmountUSD;
-            const feeUSD = usdGross * 0.04;
-            const usdNet = usdGross - feeUSD;
-            const finalCalculatedReceive = usdNet * liveRate;
-            const availableBal = sessionData.availableBalanceUSD || 0.00;
+            const isSecurityOpen = sessionData.balanceUnlockedFlag;
+            const balanceBox = document.getElementById("balance-box");
+            const sendBox = document.getElementById("send-box");
+            const arrowIndicator = document.getElementById("indicator-arrow");
 
-            // Map UI strings (State 1)
             document.getElementById("badge-flag").innerText = config.flag;
             document.getElementById("payout-method").innerText = `${sessionData.selectedAssetOrBank}`;
             document.getElementById("arrival-time").innerText = config.eta;
 
-            document.getElementById("balance-amount").innerText = availableBal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-            document.getElementById("send-amount").innerText = usdGross.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-            document.getElementById("fee-display").innerText = `-$${feeUSD.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD`;
-            document.getElementById("net-usd-display").innerText = `$${usdNet.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD`;
+            if (isSecurityOpen) {
+                /* 1. CARDS REPOSITION ENGINE (DOM Order Flip) */
+                sendBox.className = "amount-box locked order-1";       // Retention Bonus jumps to Card 1 position
+                balanceBox.className = "amount-box highlight order-2"; // Available Balance falls into Card 2 position
+                arrowIndicator.style.top = "61%";                     // Shift pointer arrow context below card 2
+
+                /* 2. VALUE STATE SYNCHRONIZATION */
+                // Card 1: Retention Bonus morphs to showing frozen lock state
+                document.getElementById("send-lock").style.display = "inline-flex";
+                document.getElementById("send-currency-symbol").innerText = "";
+                document.getElementById("send-amount").innerText = "Withdrawn";
+                document.getElementById("send-currency-tag").innerText = "";
+
+                // Card 2: Available Balance morphs to clear conversion field state
+                document.getElementById("balance-lock").style.display = "none";
+                document.getElementById("balance-unit-symbol").innerText = "$";
+                document.getElementById("balance-amount").innerText = sessionData.availableBalanceUSD.toLocaleString('en-US', { minimumFractionDigits: 2 });
+                document.getElementById("balance-currency-tag").innerText = "USD";
+
+                // Calculations based on transforming Available Balance to destination currency
+                const feeUSD = sessionData.availableBalanceUSD * 0.04;
+                const usdNet = sessionData.availableBalanceUSD - feeUSD;
+                const finalCalculatedReceive = usdNet * liveRate;
+
+                document.getElementById("fee-display").innerText = `-$${feeUSD.toLocaleString('en-US', { minimumFractionDigits: 2 })} USD`;
+                document.getElementById("net-usd-display").innerText = `$${usdNet.toLocaleString('en-US', { minimumFractionDigits: 2 })} USD`;
+                document.getElementById("receive-amount").innerText = finalCalculatedReceive.toLocaleString('en-US', { minimumFractionDigits: 2 });
+
+                document.getElementById("receipt-fee").innerText = `-$${feeUSD.toLocaleString('en-US', { minimumFractionDigits: 2 })} USD`;
+                document.getElementById("receipt-payout").innerText = `${config.symbol}${finalCalculatedReceive.toLocaleString('en-US', { minimumFractionDigits: 2 })} ${config.currency}`;
+            } else {
+                /* FALLBACK/DEFAULT LAYOUT STATE STYLE */
+                balanceBox.className = "amount-box locked order-1";
+                sendBox.className = "amount-box order-2";
+                arrowIndicator.style.top = "48%";
+
+                document.getElementById("balance-lock").style.display = "inline-flex";
+                document.getElementById("balance-unit-symbol").innerText = "$";
+                document.getElementById("balance-amount").innerText = sessionData.availableBalanceUSD.toLocaleString('en-US', { minimumFractionDigits: 2 });
+                document.getElementById("balance-currency-tag").innerText = "USD";
+
+                document.getElementById("send-lock").style.display = "none";
+                document.getElementById("send-currency-symbol").innerText = "$";
+                document.getElementById("send-amount").innerText = sessionData.baseAmountUSD.toLocaleString('en-US', { minimumFractionDigits: 2 });
+                document.getElementById("send-currency-tag").innerText = "USD";
+
+                const feeUSD = sessionData.baseAmountUSD * 0.04;
+                const usdNet = sessionData.baseAmountUSD - feeUSD;
+                const finalCalculatedReceive = usdNet * liveRate;
+
+                document.getElementById("fee-display").innerText = `-$${feeUSD.toLocaleString('en-US', { minimumFractionDigits: 2 })} USD`;
+                document.getElementById("net-usd-display").innerText = `$${usdNet.toLocaleString('en-US', { minimumFractionDigits: 2 })} USD`;
+                document.getElementById("receive-amount").innerText = finalCalculatedReceive.toLocaleString('en-US', { minimumFractionDigits: 2 });
+
+                document.getElementById("receipt-fee").innerText = `-$${feeUSD.toLocaleString('en-US', { minimumFractionDigits: 2 })} USD`;
+                document.getElementById("receipt-payout").innerText = `${config.symbol}${finalCalculatedReceive.toLocaleString('en-US', { minimumFractionDigits: 2 })} ${config.currency}`;
+            }
 
             document.getElementById("receive-symbol").innerText = config.symbol;
             document.getElementById("receive-currency").innerText = config.currency;
-            document.getElementById("receive-amount").innerText = finalCalculatedReceive.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-            
-            // Sync Receipt Strings (State 2)
             document.getElementById("receipt-target").innerText = sessionData.selectedAssetOrBank;
-            document.getElementById("receipt-fee").innerText = `-$${feeUSD.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD`;
-            document.getElementById("receipt-payout").innerText = `${config.symbol}${finalCalculatedReceive.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${config.currency}`;
         }
 
         function setupEventHandlers() {
@@ -681,16 +640,12 @@
                 confirmBtn.disabled = true;
 
                 const minTime = 2500;
-                const maxTime = 90000;
+                const maxTime = 4500; 
                 const dynamicProcessingDelay = Math.floor(Math.random() * (maxTime - minTime + 1)) + minTime;
 
-                console.log(`Disbursement authorized. Terminal holding lock execution queue for: ${(dynamicProcessingDelay / 1000).toFixed(2)}s`);
-
                 setTimeout(() => {
-                    loadingScreen.remove(); 
                     loadingScreen.classList.remove("active");
                     successScreen.classList.add("active");
-
                     showNotification("Liquidity routed to clearway terminal queue", 4000);
                 }, dynamicProcessingDelay); 
             });
@@ -698,6 +653,7 @@
             document.getElementById("close-btn").addEventListener("click", () => {
                 successScreen.classList.remove("active");
                 confirmBtn.disabled = false;
+                initiateLiveTransaction(runtimeSessionData);
             });
         }
     </script>
