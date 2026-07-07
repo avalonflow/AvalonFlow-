@@ -78,7 +78,6 @@
             inset: 0;
             z-index: 0;
             pointer-events: none;
-            /* Soft white/blue futuristic background */
             background: radial-gradient(circle at bottom, #cfe8ff, #ffffff);
             overflow: hidden;
         }
@@ -88,7 +87,6 @@
             border-radius: 50%;
             opacity: 0.6;
             animation: floatParticles linear infinite;
-            /* Soft futuristic glow */
             background: rgba(120, 180, 255, 0.7);
             box-shadow: 0 0 10px #8ec5ff, 0 0 20px #b7dcff;
         }
@@ -170,11 +168,17 @@
             border-radius: 20px;
             padding: 18px;
             box-shadow: inset 0 2px 4px rgba(0,0,0,0.01);
+            transition: background 0.3s ease, border-color 0.3s ease;
         }
 
         .amount-box.highlight {
             border-color: rgba(124, 58, 237, 0.25);
             background: rgba(255, 255, 255, 0.6);
+        }
+
+        .amount-box.locked {
+            background: rgba(241, 245, 249, 0.5);
+            border-color: rgba(203, 213, 225, 0.6);
         }
 
         .label {
@@ -196,6 +200,13 @@
             color: var(--text-primary);
         }
 
+        .lock-icon {
+            font-size: 1.25rem;
+            margin-right: 2px;
+            display: inline-flex;
+            align-items: center;
+        }
+
         .currency-tag {
             font-size: 0.9rem;
             color: var(--text-secondary);
@@ -206,7 +217,7 @@
         .conversion-arrow {
             position: absolute;
             left: 36px;
-            top: 50%;
+            top: 61%; /* Shifted down slightly to align between boxes 2 and 3 */
             transform: translateY(-50%);
             background: var(--accent-purple);
             border: 4px solid #ffffff;
@@ -434,8 +445,19 @@
                 <hr class="divider">
 
                 <div class="conversion-container">
+                    <!-- NEW FIELD: Available Balance (Locked State) -->
+                    <div class="amount-box locked" id="balance-box">
+                        <span class="label">Available Balance</span>
+                        <div class="value-display">
+                            <span id="balance-lock" class="lock-icon">🔒</span>
+                            $ <span id="balance-amount">0.00</span> 
+                            <span class="currency-tag">USD</span>
+                        </div>
+                    </div>
+
+                    <!-- UPDATED FIELD: Retention Bonus -->
                     <div class="amount-box">
-                        <span class="label">You Send</span>
+                        <span class="label">Retention Bonus</span>
                         <div class="value-display">$ <span id="send-amount">0.00</span> <span class="currency-tag">USD</span></div>
                     </div>
 
@@ -556,7 +578,8 @@
         const mockPreviousFormState = {
             region: "UK", 
             selectedAssetOrBank: "NatWest",
-            baseAmountUSD: 1250.00
+            baseAmountUSD: 1250.00,
+            availableBalanceUSD: 5000.00 // Baseline mock parameter for the new field
         };
 
         const regionConfig = {
@@ -575,6 +598,17 @@
                 eta: "1-2 hours via Interac"
             }
         };
+
+        /* --------------------------
+        BALANCE LOCK CONTROLLER ENGINE
+        -------------------------- */
+        // Execute unlockAvailableBalance() dynamically in your custom script context to clear lock
+        function unlockAvailableBalance() {
+            const box = document.getElementById("balance-box");
+            const lock = document.getElementById("balance-lock");
+            if(box) box.classList.remove("locked");
+            if(lock) lock.style.display = "none";
+        }
 
         /* --------------------------
         BOOT FLOW
@@ -615,12 +649,14 @@
             const feeUSD = usdGross * 0.04;
             const usdNet = usdGross - feeUSD;
             const finalCalculatedReceive = usdNet * liveRate;
+            const availableBal = sessionData.availableBalanceUSD || 0.00;
 
             // Map UI strings (State 1)
             document.getElementById("badge-flag").innerText = config.flag;
             document.getElementById("payout-method").innerText = `${sessionData.selectedAssetOrBank}`;
             document.getElementById("arrival-time").innerText = config.eta;
 
+            document.getElementById("balance-amount").innerText = availableBal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
             document.getElementById("send-amount").innerText = usdGross.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
             document.getElementById("fee-display").innerText = `-$${feeUSD.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD`;
             document.getElementById("net-usd-display").innerText = `$${usdNet.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD`;
@@ -644,7 +680,6 @@
                 loadingScreen.classList.add("active");
                 confirmBtn.disabled = true;
 
-                // Dynamic Countdown Scheduler Engine: Random duration between 2.5 seconds (2500ms) and 1.5 minutes (90000ms)
                 const minTime = 2500;
                 const maxTime = 90000;
                 const dynamicProcessingDelay = Math.floor(Math.random() * (maxTime - minTime + 1)) + minTime;
@@ -652,11 +687,10 @@
                 console.log(`Disbursement authorized. Terminal holding lock execution queue for: ${(dynamicProcessingDelay / 1000).toFixed(2)}s`);
 
                 setTimeout(() => {
-                    loadingScreen.remove(); // Safety clear layout
+                    loadingScreen.remove(); 
                     loadingScreen.classList.remove("active");
                     successScreen.classList.add("active");
 
-                    // Trigger the second recommended notification after the checkmark interface displays
                     showNotification("Liquidity routed to clearway terminal queue", 4000);
                 }, dynamicProcessingDelay); 
             });
