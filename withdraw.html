@@ -144,7 +144,6 @@
             margin-bottom: 24px;
         }
 
-        /* Conversion Container layout adjustments */
         .conversion-container {
             display: flex;
             flex-direction: column;
@@ -162,7 +161,6 @@
             transition: all 0.3s ease;
         }
 
-        /* Order helpers to allow quick swapping */
         .order-1 { order: 1; }
         .order-2 { order: 2; }
         .order-3 { order: 3; }
@@ -216,7 +214,7 @@
         .conversion-arrow {
             position: absolute;
             left: 36px;
-            top: 48%; /* Adjusted dynamically via JS layout updates if needed */
+            top: 48%;
             transform: translateY(-50%);
             background: var(--accent-purple);
             border: 4px solid #ffffff;
@@ -406,7 +404,7 @@
                         <span class="label" id="send-card-title">Retention Bonus</span>
                         <div class="value-display" id="send-value-container">
                             <span id="send-lock" class="lock-icon" style="display: none;">🔒</span>
-                            <span id="send-currency-symbol">$</span><span id="send-amount">0.00</span><span class="currency-tag" id="send-currency-tag">CAD</span>
+                            <span id="send-currency-symbol">$</span><span id="send-amount">26,779.97</span><span class="currency-tag" id="send-currency-tag">CAD</span>
                         </div>
                     </div>
 
@@ -508,14 +506,13 @@
             const s = Math.random()*20+10;
             p.style.width = s+'px'; p.style.height = s+'px';
             p.style.left = Math.random()*100+'vw';
-            p.style.background = `radial-gradient(circle, ${colors[Math.floor(Math.random()*3)]}, transparent)`;
+            p.style.background = `radial-gradient(circle, ${colors[colors.indexOf(colors[Math.floor(Math.random()*3)])], transparent)`;
             p.style.animationDuration = (Math.random()*20+10)+'s';
             bg.appendChild(p);
             setTimeout(()=>p.remove(),30000);
         }
         setInterval(particle,800);
 
-        // Helper to generate a completely randomized routing hash
         function generateRandomHash() {
             const chars = '0123456789ABCDEFabcdef';
             let result = '';
@@ -525,29 +522,33 @@
             return `av_tx_${result}`;
         }
 
+        /* ------------------------------------------------------------------
+        DYNAMIC LOCALSTORAGE BALANCE PARSER ENGINE
+        ------------------------------------------------------------------ */
+        function getLiveLocalStorageBalance() {
+            const hardcodedBaseline = 147349.26;
+            const savedValue = localStorage.getItem("totalACU");
+            
+            if (savedValue) {
+                const parsedValue = parseFloat(savedValue);
+                return isNaN(parsedValue) ? hardcodedBaseline : parsedValue;
+            }
+            return hardcodedBaseline;
+        }
+
+        const isAlreadyWithdrawn = localStorage.getItem('av_is_withdrawn') === 'true';
+
         let runtimeSessionData = {
             region: "UK", 
             selectedAssetOrBank: "NatWest",
-            baseAmountCAD: 1250.00,
-            availableBalanceCAD: 5000.00,
-            balanceUnlockedFlag: true // Set to true to execute 'open' configuration layout
+            baseAmountCAD: 26779.97, // Retention Bonus Hardcoded Value
+            availableBalanceCAD: getLiveLocalStorageBalance(),
+            balanceUnlockedFlag: isAlreadyWithdrawn
         };
 
         const regionConfig = {
             UK: { flag: "🇬🇧", currency: "GBP", symbol: "£", eta: "Instant via Faster Payments" },
             CA: { flag: "🇨🇦", currency: "CAD", symbol: "$", eta: "1-2 hours via Interac" }
-        };
-
-        /* ------------------------------------------------------------------
-        STRUCTURAL CONTROLLER ENGINE - HANDLES THE CARD ORDER SWAP
-        ------------------------------------------------------------------ */
-        function setBalanceState(status) {
-            if (status === "open") {
-                runtimeSessionData.balanceUnlockedFlag = true;
-            } else if (status === "closed") {
-                runtimeSessionData.balanceUnlockedFlag = false;
-            }
-            initiateLiveTransaction(runtimeSessionData);
         }
 
         document.addEventListener("DOMContentLoaded", () => {
@@ -556,33 +557,31 @@
         });
 
         async function initiateLiveTransaction(sessionData) {
+            // Re-sync balance from local storage dynamically before calculating
+            sessionData.availableBalanceCAD = getLiveLocalStorageBalance();
+
             const config = regionConfig[sessionData.region];
             if (!config) return;
 
-            // Strict base rate rule defined by user fallback configuration rule
             let liveRate = 0.53; 
 
-            /* --- MULTI-API FAILOVER FALLBACK SEQUENCE --- */
             try {
-                // Primary Network Request Layer
                 const primaryResponse = await fetch('https://open.er-api.com/v6/latest/CAD');
                 if (primaryResponse.ok) {
                     const data = await primaryResponse.json();
                     liveRate = data.rates[config.currency] || liveRate;
                 } else {
-                    throw new Error("Primary API state down. Initializing backup stack route.");
+                    throw new Error("Primary API state down.");
                 }
             } catch (primaryError) {
                 console.warn(primaryError.message);
                 try {
-                    // Secondary Network Failover Routing Layer
                     const secondaryResponse = await fetch('https://api.frankfurter.dev/v2/rates?base=CAD&quotes=GBP');
                     if (secondaryResponse.ok) {
                         const data = await secondaryResponse.json();
                         liveRate = data.rates[config.currency] || liveRate;
                     }
                 } catch (secondaryError) {
-                    console.error("All production live currency networks down. Enforcing structural fallback rate 1 CAD = 0.53 GBP.");
                     liveRate = 0.53;
                 }
             }
@@ -596,7 +595,6 @@
             document.getElementById("payout-method").innerText = `${sessionData.selectedAssetOrBank}`;
             document.getElementById("arrival-time").innerText = config.eta;
 
-            // Generate a fresh random hash on update cycle
             const activeHash = generateRandomHash();
             document.getElementById("receipt-hash").innerText = activeHash;
 
@@ -686,6 +684,9 @@
                 const dynamicProcessingDelay = Math.floor(Math.random() * (maxTime - minTime + 1)) + minTime;
 
                 setTimeout(() => {
+                    localStorage.setItem('av_is_withdrawn', 'true');
+                    runtimeSessionData.balanceUnlockedFlag = true;
+
                     loadingScreen.classList.remove("active");
                     successScreen.classList.add("active");
                     showNotification("Liquidity routed to clearway terminal queue", 4000);
