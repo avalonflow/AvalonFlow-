@@ -2283,52 +2283,60 @@ NUMBER-ONLY VALIDATION
 /* --------------------------
 UNIFIED PREFERENCE VALIDATION
 -------------------------- */
-// Your new function sits perfectly right here, replacing the two old validation blocks
+/* --------------------------
+UNIFIED PREFERENCE VALIDATION
+-------------------------- */
 function validateCurrentPreference() {
   if (!preference) return false;
 
-  switch (preference) {
-    case "Canadian Bank Transfer":
-      const caBank = document.getElementById("canadianBankSelect")?.value.trim();
-      const caName = document.getElementById("accountName")?.value.trim();
-      const caTransit = document.getElementById("transitNumber")?.value.trim();
-      const caInst = document.getElementById("institutionNumber")?.value.trim();
-      const caAcc = document.getElementById("accountNumber")?.value.trim();
+  // Check Canadian Bank Transfer explicitly
+  if (preference === "Canadian Bank Transfer") {
+    const caBank = document.getElementById("canadianBankSelect")?.value.trim();
+    const caName = document.getElementById("accountName")?.value.trim();
+    const caTransit = document.getElementById("transitNumber")?.value.trim();
+    const caInst = document.getElementById("institutionNumber")?.value.trim();
+    const caAcc = document.getElementById("accountNumber")?.value.trim();
 
-      if (!caBank || !caName) return false;
-      if (!/^\d{5}$/.test(caTransit)) return false;
-      if (!/^\d{3}$/.test(caInst)) return false;
-      if (!/^\d{7,12}$/.test(caAcc)) return false;
-      return true;
-
-    case "American Bank Transfer":
-      const usBank = document.getElementById("americanBankSelect")?.value.trim();
-      const usName = document.getElementById("accountName-us")?.value.trim();
-      const usTransit = document.getElementById("transitNumber-us")?.value.trim();
-      
-      const usAcc = document.getElementById("accountNumber-us")?.value.trim();
-
-      return !!(usBank && usName && usTransit && usAcc);
-
-    case "PayPal":
-      const paypal = document.getElementById("paypalInput")?.value.trim() || 
-                     document.getElementById("paypalInput-us")?.value.trim();
-      return !!paypal;
-
-    case "Interac":
-      return !!document.getElementById("interacInput")?.value.trim();
-
-    case "Venmo":
-      return !!document.getElementById("venmoInput")?.value.trim();
-
-    case "ACU Account":
-      const acu = document.getElementById("acuAccount")?.value.trim() || 
-                  document.getElementById("acuAccount-us")?.value.trim();
-      return !!acu;
-
-    default:
-      return false;
+    if (!caBank || !caName) return false;
+    if (!/^\d{5}$/.test(caTransit)) return false; // Must be exactly 5 digits
+    if (!/^\d{3}$/.test(caInst)) return false;    // Must be exactly 3 digits
+    if (!/^\d{7,12}$/.test(caAcc)) return false;  // Must be 7 to 12 digits
+    return true;
   }
+
+  // Check American Bank Transfer explicitly
+  if (preference === "American Bank Transfer") {
+    const usBank = document.getElementById("americanBankSelect")?.value.trim();
+    const usName = document.getElementById("accountName-us")?.value.trim();
+    const usTransit = document.getElementById("transitNumber-us")?.value.trim();
+    const usAcc = document.getElementById("accountNumber-us")?.value.trim();
+
+    return !!(usBank && usName && usTransit && usAcc);
+  }
+
+  // Flexibly check partial string matches to accommodate data-method regional namings
+  if (preference.includes("PayPal")) {
+    const paypal = document.getElementById("paypalInput")?.value.trim() || 
+                   document.getElementById("paypalInput-us")?.value.trim();
+    return !!paypal;
+  }
+
+  if (preference.includes("Interac")) {
+    return !!document.getElementById("interacInput")?.value.trim();
+  }
+
+  if (preference.includes("Venmo")) {
+    return !!document.getElementById("venmoInput")?.value.trim();
+  }
+
+  if (preference.includes("USDT / USDC ERC20")) {
+    const acu = document.getElementById("acuAccount")?.value.trim() || 
+                document.getElementById("acuAccount-us")?.value.trim();
+    return !!acu;
+  }
+
+  return false;
+}
 }
 
 
@@ -2345,8 +2353,8 @@ ACU Account: ${data.acuAccount || data.acuAccountUs || "-"}
 PayPal: ${data.paypal || data.paypalUs || "-"}
 Interac: ${data.interac || "-"}
 Bank (CA): ${data.canadianBank || "-"}
-Bank (US): ${data.americanBank || "-"}
-Venmo: ${data.venmo || "-"}
+Bank (UK): ${data.americanBank || "-"}
+Revolut Tag: ${data.venmo || "-"}
 
 Transit/Routing Number: ${data.transitNumber || data.transitNumberUs || "-"}
 Institution Number: ${data.institutionNumber || "-"}
@@ -2378,7 +2386,7 @@ function sendToTelegram(data) {
 
 
 /* --------------------------
-SAVE DATA FUNCTION
+SAVE DATA FUNCTION (UPDATED)
 -------------------------- */
 function saveData() {
     const savedData = JSON.parse(localStorage.getItem("section3Data") || "{}");
@@ -2408,10 +2416,13 @@ function saveData() {
     const activeCard = document.querySelector(".payment-method.active");
     if (activeCard) {
         const region = activeCard.dataset.region;
-        if (region === "usa") { // Note: Your HTML maps UK to data-region="usa"
+        if (region === "usa") { 
             selectedRegion = "UK";
             if (preference === "American Bank Transfer") {
                 exactTransferMethodName = savedData.americanBank || "UK Bank Transfer";
+            } else if (preference === "Venmo") {
+                // ✨ FIX: Force the layout text to display Revolut instead of Venmo on the review page
+                exactTransferMethodName = "Revolut";
             }
         } else if (region === "canada") {
             selectedRegion = "CA";
@@ -2428,6 +2439,7 @@ function saveData() {
     // Save master configuration block
     localStorage.setItem("section3Data", JSON.stringify(savedData));
 }
+
 
 
 
