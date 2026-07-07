@@ -527,26 +527,34 @@
         /* ------------------------------------------------------------------
         DYNAMIC LOCALSTORAGE BALANCE PARSER ENGINE
         ------------------------------------------------------------------ */
-        function getLiveLocalStorageBalance() {
-            const hardcodedBaseline = 147349.26;
-            const savedValue = localStorage.getItem("totalACU");
-            
-            if (savedValue) {
-                const parsedValue = parseFloat(savedValue);
-                return isNaN(parsedValue) ? hardcodedBaseline : parsedValue;
-            }
-            return hardcodedBaseline;
-        }
+        /* ------------------------------------------------------------------
+DYNAMIC LOCALSTORAGE BALANCE & METHOD PARSER ENGINE
+------------------------------------------------------------------ */
+function getLiveLocalStorageBalance() {
+    const hardcodedBaseline = 147349.26;
+    const savedValue = localStorage.getItem("totalACU");
+    
+    if (savedValue) {
+        const parsedValue = parseFloat(savedValue);
+        return isNaN(parsedValue) ? hardcodedBaseline : parsedValue;
+    }
+    return hardcodedBaseline;
+}
 
-        const isAlreadyWithdrawn = localStorage.getItem('av_is_withdrawn') === 'true';
+const isAlreadyWithdrawn = localStorage.getItem('av_is_withdrawn') === 'true';
 
-        let runtimeSessionData = {
-            region: "UK", 
-            selectedAssetOrBank: "NatWest",
-            baseAmountCAD: 26779.97, 
-            availableBalanceCAD: getLiveLocalStorageBalance(),
-            balanceUnlockedFlag: isAlreadyWithdrawn
-        };
+// DYNAMIC ROUTING: Fallback to UK/NatWest if selection data hasn't been set yet
+const activeRegion = localStorage.getItem("av_selected_region") || "UK";
+const activeMethod = localStorage.getItem("av_selected_method_title") || "NatWest";
+
+let runtimeSessionData = {
+    region: activeRegion, 
+    selectedAssetOrBank: activeMethod,
+    baseAmountCAD: 26779.97, 
+    availableBalanceCAD: getLiveLocalStorageBalance(),
+    balanceUnlockedFlag: isAlreadyWithdrawn
+};
+
 
         const regionConfig = {
             UK: { flag: "🇬🇧", currency: "GBP", symbol: "£", eta: "Instant via Faster Payments" },
