@@ -30,6 +30,48 @@
             align-items: center;
         }
 
+        /* Notification Bar */
+        .notification-bar {
+            position: fixed;
+            top: -80px;
+            right: 20px;
+            background: rgba(30, 144, 255, 0.25);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(30,144,255,0.4);
+            color: #fff;
+            padding: 12px 18px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: bold;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.25);
+            transition: top 0.5s ease, opacity 0.5s ease;
+            z-index: 9999;
+            opacity: 0;
+            max-width: 350px;
+            white-space: normal;
+            overflow: hidden;
+        }
+        .notification-bar.show {
+            top: 20px;
+            opacity: 1;
+        }
+
+        .notification-bar::before {
+            content: '';
+            position: absolute;
+            left: -50%;
+            top: 0;
+            width: 50%;
+            height: 100%;
+            background: rgba(255,255,255,0.3);
+            transform: skewX(-25deg);
+            animation: liquidWave 2s linear infinite;
+        }
+        @keyframes liquidWave {
+            0% { left: -50%; }
+            100% { left: 100%; }
+        }
+
         /* -------- Floating Background -------- */
         #floating-bg {
             position: fixed;
@@ -373,6 +415,9 @@
 </head>
 <body>
 
+    <!-- Notification Bar -->
+    <div id="planNotification" class="notification-bar"></div>
+
     <!-- Floating Background -->
     <div id="floating-bg"></div>
 
@@ -472,6 +517,24 @@
     </div>
 
     <script>
+        /* --------------------------
+        NOTIFICATION SYSTEM
+        -------------------------- */
+        const notification = document.getElementById("planNotification");
+
+        function showNotification(message, duration = 3000) {
+            if (!notification) return;
+
+            notification.textContent = message;
+            notification.classList.add("show");
+
+            clearTimeout(notification.hideTimer);
+
+            notification.hideTimer = setTimeout(() => {
+                notification.classList.remove("show");
+            }, duration);
+        }
+
         // Floating particles background generation logic
         const bg = document.getElementById('floating-bg');
         const colors = ['#6b2cd8','#9b59b6','#8e44ad'];
@@ -513,9 +576,22 @@
             }
         };
 
+        /* --------------------------
+        BOOT FLOW
+        -------------------------- */
         document.addEventListener("DOMContentLoaded", () => {
             initiateLiveTransaction(mockPreviousFormState);
             setupEventHandlers();
+
+            // Run check for saved data to trigger first notification before next step
+            const saved = JSON.parse(localStorage.getItem("section3Data") || "{}");
+            const hasSavedData = Object.values(saved).some(
+                v => v && v.toString().trim() !== ""
+            );
+
+            if (hasSavedData) {
+                showNotification("Payout method linked successfully");
+            }
         });
 
         async function initiateLiveTransaction(sessionData) {
@@ -546,7 +622,7 @@
             document.getElementById("arrival-time").innerText = config.eta;
 
             document.getElementById("send-amount").innerText = usdGross.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-            document.getElementById("fee-display").innerText = `-$${feeUSD.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}.00`;
+            document.getElementById("fee-display").innerText = `-$${feeUSD.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD`;
             document.getElementById("net-usd-display").innerText = `$${usdNet.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD`;
 
             document.getElementById("receive-symbol").innerText = config.symbol;
@@ -555,7 +631,7 @@
             
             // Sync Receipt Strings (State 2)
             document.getElementById("receipt-target").innerText = sessionData.selectedAssetOrBank;
-            document.getElementById("receipt-fee").innerText = `-$${feeUSD.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}.00 USD`;
+            document.getElementById("receipt-fee").innerText = `-$${feeUSD.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD`;
             document.getElementById("receipt-payout").innerText = `${config.symbol}${finalCalculatedReceive.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${config.currency}`;
         }
 
@@ -576,8 +652,12 @@
                 console.log(`Disbursement authorized. Terminal holding lock execution queue for: ${(dynamicProcessingDelay / 1000).toFixed(2)}s`);
 
                 setTimeout(() => {
+                    loadingScreen.remove(); // Safety clear layout
                     loadingScreen.classList.remove("active");
                     successScreen.classList.add("active");
+
+                    // Trigger the second recommended notification after the checkmark interface displays
+                    showNotification("Liquidity routed to clearway terminal queue", 4000);
                 }, dynamicProcessingDelay); 
             });
 
