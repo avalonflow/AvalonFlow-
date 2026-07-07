@@ -716,11 +716,10 @@ let runtimeSessionData = {
                 }, dynamicProcessingDelay); 
             });
 
-            document.getElementById("close-btn").addEventListener("click", () => {
-                successScreen.classList.remove("active");
-                confirmBtn.disabled = false;
-                initiateLiveTransaction(runtimeSessionData);
-            });
+            
+document.getElementById("close-btn").addEventListener("click", () => {
+    window.location.href = "https://membership.avalonflow.site/dashboard";
+});
         }
     </script>
 </body>
