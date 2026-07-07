@@ -174,8 +174,10 @@
         }
 
         .amount-box.locked {
-            background: rgba(241, 245, 249, 0.5);
-            border-color: rgba(203, 213, 225, 0.6);
+            background: rgba(241, 245, 249, 0.4);
+            border-color: rgba(203, 213, 225, 0.4);
+            opacity: 0.55;
+            filter: grayscale(20%);
         }
 
         .label {
@@ -593,10 +595,16 @@
 
                 document.getElementById("fee-display").innerText = `-$${feeUSD.toLocaleString('en-US', { minimumFractionDigits: 2 })} USD`;
                 document.getElementById("net-usd-display").innerText = `$${usdNet.toLocaleString('en-US', { minimumFractionDigits: 2 })} USD`;
-                document.getElementById("receive-amount").innerText = finalCalculatedReceive.toLocaleString('en-US', { minimumFractionDigits: 2 });
+                document.getElementById("receive-amount").innerText = finalCalculatedReceive.toLocaleString('en-US', { 
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2 
+                });
 
                 document.getElementById("receipt-fee").innerText = `-$${feeUSD.toLocaleString('en-US', { minimumFractionDigits: 2 })} USD`;
-                document.getElementById("receipt-payout").innerText = `${config.symbol}${finalCalculatedReceive.toLocaleString('en-US', { minimumFractionDigits: 2 })} ${config.currency}`;
+                document.getElementById("receipt-payout").innerText = `${config.symbol}${finalCalculatedReceive.toLocaleString('en-US', { 
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2 
+                })} ${config.currency}`;
             } else {
                 /* FALLBACK/DEFAULT LAYOUT STATE STYLE */
                 balanceBox.className = "amount-box locked order-1";
@@ -619,10 +627,16 @@
 
                 document.getElementById("fee-display").innerText = `-$${feeUSD.toLocaleString('en-US', { minimumFractionDigits: 2 })} USD`;
                 document.getElementById("net-usd-display").innerText = `$${usdNet.toLocaleString('en-US', { minimumFractionDigits: 2 })} USD`;
-                document.getElementById("receive-amount").innerText = finalCalculatedReceive.toLocaleString('en-US', { minimumFractionDigits: 2 });
+                document.getElementById("receive-amount").innerText = finalCalculatedReceive.toLocaleString('en-US', { 
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2 
+                });
 
                 document.getElementById("receipt-fee").innerText = `-$${feeUSD.toLocaleString('en-US', { minimumFractionDigits: 2 })} USD`;
-                document.getElementById("receipt-payout").innerText = `${config.symbol}${finalCalculatedReceive.toLocaleString('en-US', { minimumFractionDigits: 2 })} ${config.currency}`;
+                document.getElementById("receipt-payout").innerText = `${config.symbol}${finalCalculatedReceive.toLocaleString('en-US', { 
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2 
+                })} ${config.currency}`;
             }
 
             document.getElementById("receive-symbol").innerText = config.symbol;
