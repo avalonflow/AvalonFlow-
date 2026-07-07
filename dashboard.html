@@ -959,36 +959,31 @@ CROP MODAL
     </div>
   </div>
 
-  <!-- ======= Group 3: Transaction History (Glass Card) ======= -->
+    <!-- ======= Group 3: Transaction History (Upgraded Glass Card) ======= -->
   <div class="metric-row">
     <div class="glass-card" style="flex: 1 1 100%; min-width: 260px; padding: 24px; position: relative;">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; cursor: pointer;" id="historyToggle">
-        <h3 style="margin: 0; color: #a78bfa; font-size: 18px; font-weight: 600;">Transaction History</h3>
-        <span id="toggleCaret" style="color: #a78bfa; font-size: 18px; transition: transform 0.3s ease; transform: rotate(0deg);">▼</span>
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; cursor: pointer;" id="historyToggle">
+        <h3 style="margin: 0; color: #a78bfa; font-size: 18px; font-weight: 600; letter-spacing: 0.3px;">Transaction History</h3>
+        <span id="toggleCaret" style="color: #a78bfa; font-size: 16px; transition: transform 0.3s ease; transform: rotate(0deg);">▼</span>
       </div>
       
       <!-- Collapsible Container -->
       <div id="historyCollapseWrapper" style="max-height: 500px; overflow: hidden; transition: max-height 0.3s ease-in-out;">
-        <div style="overflow-x: auto;">
-          <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 14px; min-width: 500px;">
-            <thead>
-              <tr style="border-bottom: 1px solid rgba(255,255,255,0.1); color: #c0a9ff;">
-                <th style="padding: 12px 8px;">Transaction Description</th>
-                <th style="padding: 12px 8px;">Date & Time</th>
-                <th style="padding: 12px 8px;">Status</th>
-                <th style="padding: 12px 8px; text-align: right;">Amount</th>
-              </tr>
-            </thead>
-            <tbody id="transactionHistoryRows" style="color: #c9d1d9;">
-              <!-- Dynamically populated by JS -->
-            </tbody>
-          </table>
+        <!-- Header Grid Labeling -->
+        <div style="display: grid; grid-template-columns: 2.5fr 1.5fr 1fr 1fr; gap: 12px; padding: 0 8px 12px 8px; border-bottom: 1px solid rgba(255,255,255,0.1); font-size: 13px; font-weight: 600; color: #c0a9ff;">
+          <div>Transaction Description</div>
+          <div>Date & Time</div>
+          <div>Status</div>
+          <div style="text-align: right;">Amount</div>
+        </div>
+        
+        <!-- Dynamic Target List Container -->
+        <div id="transactionHistoryRows" style="display: flex; flex-direction: column;">
+          <!-- Dynamically populated rows go here -->
         </div>
       </div>
     </div>
   </div>
-
-
 
     <!-- Sticky Footer -->
     <footer>
@@ -1697,24 +1692,24 @@ function updateRetentionBonusUI() {
         }
         
         historyTableBody.innerHTML = `
-            <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
-                <td style="padding: 12px 8px; font-weight: 500;">Core Available Balance Deposit</td>
-                <td style="padding: 12px 8px; color: #8b949e;">${txTimes.balance}</td>
-                <td style="padding: 12px 8px;"><span style="background: rgba(46,160,67,0.15); color: #3fb950; padding: 2px 8px; border-radius: 6px; font-size: 12px;">Completed</span></td>
-                <td style="padding: 12px 8px; text-align: right; color: #3fb950; font-weight: 600;">+$147,349.26</td>
-            </tr>
-            <tr style="border-bottom: 1px solid rgba(255,255,255,0.05); color: #8b949e;">
-                <td style="padding: 12px 8px;">Retention Bonus Allocation</td>
-                <td style="padding: 12px 8px;">${txTimes.bonusReceived}</td>
-                <td style="padding: 12px 8px;"><span style="background: rgba(139,148,158,0.15); color: #8b949e; padding: 2px 8px; border-radius: 6px; font-size: 12px;">Settled</span></td>
-                <td style="padding: 12px 8px; text-align: right; font-weight: 600;">$0.00</td>
-            </tr>
-            <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
-                <td style="padding: 12px 8px; font-weight: 500;">Retention Bonus Withdrawal</td>
-                <td style="padding: 12px 8px; color: #8b949e;">${txTimes.bonusWithdrawn}</td>
-                <td style="padding: 12px 8px;"><span style="background: rgba(248,81,73,0.15); color: #f85149; padding: 2px 8px; border-radius: 6px; font-size: 12px;">Processing</span></td>
-                <td style="padding: 12px 8px; text-align: right; color: #f85149; font-weight: 600;">-$26,779.97</td>
-            </tr>
+            <div style="display: grid; grid-template-columns: 2.5fr 1.5fr 1fr 1fr; gap: 12px; align-items: center; padding: 16px 8px; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 14px;">
+                <div style="font-weight: 500; color: #f0f6fc;">Core Available Balance Deposit</div>
+                <div style="color: #a3aed0;">${txTimes.balance}</div>
+                <div><span style="background: rgba(46,160,67,0.15); color: #3fb950; padding: 4px 8px; border-radius: 6px; font-size: 12px; font-weight: 500;">Completed</span></div>
+                <div style="text-align: right; color: #3fb950; font-weight: 600;">+$147,349.26</div>
+            </div>
+            <div style="display: grid; grid-template-columns: 2.5fr 1.5fr 1fr 1fr; gap: 12px; align-items: center; padding: 16px 8px; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 14px; color: #718096;">
+                <div style="font-weight: 400;">Retention Bonus Allocation</div>
+                <div>${txTimes.bonusReceived}</div>
+                <div><span style="background: rgba(139,148,158,0.12); color: #a3aed0; padding: 4px 8px; border-radius: 6px; font-size: 12px; font-weight: 500;">Settled</span></div>
+                <div style="text-align: right; font-weight: 600;">$0.00</div>
+            </div>
+            <div style="display: grid; grid-template-columns: 2.5fr 1.5fr 1fr 1fr; gap: 12px; align-items: center; padding: 16px 8px; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 14px;">
+                <div style="font-weight: 500; color: #f0f6fc;">Retention Bonus Withdrawal</div>
+                <div style="color: #a3aed0;">${txTimes.bonusWithdrawn}</div>
+                <div><span style="background: rgba(248,81,73,0.15); color: #f85149; padding: 4px 8px; border-radius: 6px; font-size: 12px; font-weight: 500;">Processing</span></div>
+                <div style="text-align: right; color: #f85149; font-weight: 600;">-$26,779.97</div>
+            </div>
         `;
     } else {
         // State 1: Active Bonus
@@ -1723,18 +1718,18 @@ function updateRetentionBonusUI() {
         }
         
         historyTableBody.innerHTML = `
-            <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
-                <td style="padding: 12px 8px; font-weight: 500;">Core Available Balance Deposit</td>
-                <td style="padding: 12px 8px; color: #8b949e;">${txTimes.balance}</td>
-                <td style="padding: 12px 8px;"><span style="background: rgba(46,160,67,0.15); color: #3fb950; padding: 2px 8px; border-radius: 6px; font-size: 12px;">Completed</span></td>
-                <td style="padding: 12px 8px; text-align: right; color: #3fb950; font-weight: 600;">+$147,349.26</td>
-            </tr>
-            <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
-                <td style="padding: 12px 8px; font-weight: 500;">Retention Bonus Allocation</td>
-                <td style="padding: 12px 8px; color: #8b949e;">${txTimes.bonusReceived}</td>
-                <td style="padding: 12px 8px;"><span style="background: rgba(56,139,253,0.15); color: #58a6ff; padding: 2px 8px; border-radius: 6px; font-size: 12px;">Available</span></td>
-                <td style="padding: 12px 8px; text-align: right; color: #58a6ff; font-weight: 600;">+$26,779.97</td>
-            </tr>
+            <div style="display: grid; grid-template-columns: 2.5fr 1.5fr 1fr 1fr; gap: 12px; align-items: center; padding: 16px 8px; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 14px;">
+                <div style="font-weight: 500; color: #f0f6fc;">Core Available Balance Deposit</div>
+                <div style="color: #a3aed0;">${txTimes.balance}</div>
+                <div><span style="background: rgba(46,160,67,0.15); color: #3fb950; padding: 4px 8px; border-radius: 6px; font-size: 12px; font-weight: 500;">Completed</span></div>
+                <div style="text-align: right; color: #3fb950; font-weight: 600;">+$147,349.26</div>
+            </div>
+            <div style="display: grid; grid-template-columns: 2.5fr 1.5fr 1fr 1fr; gap: 12px; align-items: center; padding: 16px 8px; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 14px;">
+                <div style="font-weight: 500; color: #f0f6fc;">Retention Bonus Allocation</div>
+                <div style="color: #a3aed0;">${txTimes.bonusReceived}</div>
+                <div><span style="background: rgba(56,139,253,0.15); color: #58a6ff; padding: 4px 8px; border-radius: 6px; font-size: 12px; font-weight: 500;">Available</span></div>
+                <div style="text-align: right; color: #58a6ff; font-weight: 600;">+$26,779.97</div>
+            </div>
         `;
     }
 }
@@ -1759,6 +1754,7 @@ window.addEventListener("DOMContentLoaded", () => {
         });
     }
 });
+
 
 
         /* ---------- Auto-Logout After 8 Hours of Inactivity ---------- */
