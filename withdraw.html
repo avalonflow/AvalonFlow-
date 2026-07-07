@@ -214,7 +214,7 @@
         .conversion-arrow {
             position: absolute;
             left: 36px;
-            top: 48%;
+            top: 41.5%;
             transform: translateY(-50%);
             background: var(--accent-purple);
             border: 4px solid #ffffff;
@@ -538,13 +538,12 @@
             return hardcodedBaseline;
         }
 
-        // Consolidated check using the matching key string across platforms
         const isAlreadyWithdrawn = localStorage.getItem('av_is_withdrawn') === 'true';
 
         let runtimeSessionData = {
             region: "UK", 
             selectedAssetOrBank: "NatWest",
-            baseAmountCAD: 26779.97, // Retention Bonus Hardcoded Value
+            baseAmountCAD: 26779.97, 
             availableBalanceCAD: getLiveLocalStorageBalance(),
             balanceUnlockedFlag: isAlreadyWithdrawn
         };
@@ -560,7 +559,6 @@
         });
 
         async function initiateLiveTransaction(sessionData) {
-            // Re-sync balance from local storage dynamically before calculating
             sessionData.availableBalanceCAD = getLiveLocalStorageBalance();
 
             const config = regionConfig[sessionData.region];
@@ -606,8 +604,8 @@
                 sendBox.className = "amount-box locked order-1";       
                 balanceBox.className = "amount-box highlight order-2"; 
                 
-                /* FIXED ARROW PLACEMENT: Set to 74.5% so it aligns neatly between Card 2 and Card 4 */
-                arrowIndicator.style.top = "74.5%";                     
+                /* FIXED ARROW PLACEMENT: Perfect 67.5% position directly between the two active cards */
+                arrowIndicator.style.top = "67.5%";                     
 
                 /* 2. VALUE STATE SYNCHRONIZATION */
                 document.getElementById("send-lock").style.display = "inline-flex";
@@ -641,7 +639,7 @@
                 balanceBox.className = "amount-box locked order-1";
                 sendBox.className = "amount-box order-2";
                 
-                /* FIXED ARROW PLACEMENT: Set to 41.5% so it aligns neatly between Card 2 and Card 4 */
+                /* DEFAULT STATE POSITIONING */
                 arrowIndicator.style.top = "41.5%";
 
                 document.getElementById("balance-lock").style.display = "inline-flex";
@@ -691,11 +689,9 @@
                 const dynamicProcessingDelay = Math.floor(Math.random() * (maxTime - minTime + 1)) + minTime;
 
                 setTimeout(() => {
-                    // Lock verification tags globally to connect platforms
                     localStorage.setItem('av_is_withdrawn', 'true');
                     localStorage.setItem('av_withdrawn', 'true'); 
                     
-                    // Capture dynamic explicit click timestamp for the tables engine
                     const currentMoment = new Date();
                     const timestampString = currentMoment.toLocaleDateString('en-US', {
                         month: 'short', day: '2-digit', year: 'numeric'
