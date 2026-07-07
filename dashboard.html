@@ -1640,9 +1640,20 @@ SESSION GUARD (CLEANED)
 })();
 
 // ==========================================
-// 🕒 TEMPORAL REALISM & HISTORICAL ANCHORS
+// 🕒 PERSISTENT TEMPORAL REALISM & ANCHORS
 // ==========================================
-const visitDate = new Date();
+// Check if an initial visit timestamp is already locked into local storage
+let savedVisitTime = localStorage.getItem("av_initial_visit");
+
+if (!savedVisitTime) {
+    // If it's their first time loading, lock in the exact current time permanently
+    savedVisitTime = new Date().getTime().toString();
+    localStorage.setItem("av_initial_visit", savedVisitTime);
+}
+
+// Instantiate the baseline date using the fixed historical anchor string
+const visitDate = new Date(parseInt(savedVisitTime));
+
 const formatTxDate = (dateOffsetMs) => {
     const txDate = new Date(visitDate.getTime() - dateOffsetMs);
     return txDate.toLocaleDateString('en-US', {
@@ -1657,10 +1668,11 @@ const formatTxDate = (dateOffsetMs) => {
 };
 
 const txTimes = {
-    balance: formatTxDate(24 * 60 * 60 * 1000),      // 24 hours ago
-    bonusReceived: formatTxDate(2 * 60 * 60 * 1000), // 2 hours ago
-    bonusWithdrawn: formatTxDate(0)                  // Just now
+    balance: formatTxDate(24 * 60 * 60 * 1000),      // Exactly 24 hours before first visit
+    bonusReceived: formatTxDate(2 * 60 * 60 * 1000), // Exactly 2 hours before first visit
+    bonusWithdrawn: formatTxDate(0)                  // Exact minute of first visit
 };
+
 
 // ==========================================
 // 🔓 RETENTION BONUS & COLLAPSIBLE HANDLER
