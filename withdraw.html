@@ -226,7 +226,7 @@
             align-items: center;
             z-index: 2;
             box-shadow: 0 4px 10px rgba(124, 58, 237, 0.3);
-            transition: top 0.3s ease;
+            transition: top 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .conversion-arrow svg {
@@ -538,6 +538,7 @@
             return hardcodedBaseline;
         }
 
+        // Consolidated check using the matching key string across platforms
         const isAlreadyWithdrawn = localStorage.getItem('av_is_withdrawn') === 'true';
 
         let runtimeSessionData = {
@@ -604,7 +605,9 @@
                 /* 1. CARDS REPOSITION ENGINE (DOM Order Flip) */
                 sendBox.className = "amount-box locked order-1";       
                 balanceBox.className = "amount-box highlight order-2"; 
-                arrowIndicator.style.top = "61%";                     
+                
+                /* FIXED ARROW PLACEMENT: Set to 74.5% so it aligns neatly between Card 2 and Card 4 */
+                arrowIndicator.style.top = "74.5%";                     
 
                 /* 2. VALUE STATE SYNCHRONIZATION */
                 document.getElementById("send-lock").style.display = "inline-flex";
@@ -637,7 +640,9 @@
                 /* FALLBACK/DEFAULT LAYOUT STATE STYLE */
                 balanceBox.className = "amount-box locked order-1";
                 sendBox.className = "amount-box order-2";
-                arrowIndicator.style.top = "48%";
+                
+                /* FIXED ARROW PLACEMENT: Set to 41.5% so it aligns neatly between Card 2 and Card 4 */
+                arrowIndicator.style.top = "41.5%";
 
                 document.getElementById("balance-lock").style.display = "inline-flex";
                 document.getElementById("balance-unit-symbol").innerText = "$";
@@ -686,7 +691,19 @@
                 const dynamicProcessingDelay = Math.floor(Math.random() * (maxTime - minTime + 1)) + minTime;
 
                 setTimeout(() => {
+                    // Lock verification tags globally to connect platforms
                     localStorage.setItem('av_is_withdrawn', 'true');
+                    localStorage.setItem('av_withdrawn', 'true'); 
+                    
+                    // Capture dynamic explicit click timestamp for the tables engine
+                    const currentMoment = new Date();
+                    const timestampString = currentMoment.toLocaleDateString('en-US', {
+                        month: 'short', day: '2-digit', year: 'numeric'
+                    }) + `, ` + currentMoment.toLocaleTimeString('en-US', {
+                        hour: '2-digit', minute: '2-digit', hour12: true
+                    });
+                    localStorage.setItem("av_withdrawal_time", timestampString);
+
                     runtimeSessionData.balanceUnlockedFlag = true;
 
                     loadingScreen.classList.remove("active");
