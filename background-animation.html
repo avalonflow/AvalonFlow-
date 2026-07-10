@@ -549,6 +549,13 @@ const personality = {
 
 let expectingMusicResponse = false; 
 
+// --- SPATIAL AUDIO ARCHITECTURE ---
+let spatialAudioCtx = null;
+let sourceNodeA = null, sourceNodeB = null;
+let pannerNodeA = null, pannerNodeB = null;
+let ambientPanAngle = 0;
+let ambientPanInterval = null;
+
 // =================================================================
 // 3. DATA STRUCTURES & PREMIUM AUDIO VAULT DIRECTORY
 // =================================================================
@@ -996,6 +1003,56 @@ function humanize(text) {
   if (personality.tone === "friendly") return prefix + text + " 👍";
   return prefix + text;
 }
+
+function initializeSpatialEngine() {
+  if (spatialAudioCtx) return; // Prevent dual instantiation pipelines
+
+  try {
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    spatialAudioCtx = new AudioContextClass();
+
+    const deckA = document.getElementById('audioDeckA');
+    const deckB = document.getElementById('audioDeckB');
+
+    // Route Deck A through Stereo Panner
+    sourceNodeA = spatialAudioCtx.createMediaElementSource(deckA);
+    pannerNodeA = spatialAudioCtx.createStereoPanner();
+    sourceNodeA.connect(pannerNodeA).connect(spatialAudioCtx.destination);
+
+    // Route Deck B through Stereo Panner
+    sourceNodeB = spatialAudioCtx.createMediaElementSource(deckB);
+    pannerNodeB = spatialAudioCtx.createStereoPanner();
+    sourceNodeB.connect(pannerNodeB).connect(spatialAudioCtx.destination);
+
+    console.log("🔊 Web Audio spatial routing matrices locked and active.");
+    startAmbientAutoPanning();
+  } catch (err) {
+    console.warn("Spatial context creation skipped or unsupported:", err);
+  }
+}
+
+// Subtle, organic back-and-forth movement during standard single-track play
+function startAmbientAutoPanning() {
+  if (ambientPanInterval) clearInterval(ambientPanInterval);
+  
+  ambientPanInterval = setInterval(() => {
+    if (!spatialAudioCtx) return;
+    
+    const deckA = document.getElementById('audioDeckA');
+    const deckB = document.getElementById('audioDeckB');
+    const isPlaying = (deckA && !deckA.paused) || (deckB && !deckB.paused);
+    
+    // Only swing the pan space if music is actually active
+    if (isPlaying && !isProcessingCrossfade) {
+      ambientPanAngle += 0.02;
+      const panValue = Math.sin(ambientPanAngle) * 0.15; // Smoothly sweeps between -0.15 (Left) and +0.15 (Right)
+      
+      if (activeDeck === deckA && pannerNodeA) pannerNodeA.pan.value = panValue;
+      if (activeDeck === deckB && pannerNodeB) pannerNodeB.pan.value = panValue;
+    }
+  }, 50);
+}
+
 
 /**
  * MASTER ROUTING FRAMEWORK: Handles local logic routing for voice processing strings
@@ -1488,7 +1545,16 @@ function botMusicReply(statusNotification, file) {
     }
 }
 
+let isProcessingCrossfade = false; // Prevents ambient oscillation override
+
 function executeCrossfade(currentDeck, nextDeck, nextFile) {
+    initializeSpatialEngine(); // Safe fall-through initialization
+    if (spatialAudioCtx && spatialAudioCtx.state === 'suspended') {
+      spatialAudioCtx.resume();
+    }
+
+    isProcessingCrossfade = true;
+
     currentDeck.onended = null;
     currentDeck.ontimeupdate = null;
     nextDeck.onended = null;
@@ -1497,6 +1563,15 @@ function executeCrossfade(currentDeck, nextDeck, nextFile) {
     nextDeck.src = nextFile;
     nextDeck.volume = 0;
     nextDeck.load();
+
+    // Assign specific spatial node tracking identifiers
+    const deckA = document.getElementById('audioDeckA');
+    const outPanner = (currentDeck === deckA) ? pannerNodeA : pannerNodeB;
+    const inPanner = (nextDeck === deckA) ? pannerNodeA : pannerNodeB;
+
+    // Reset spatial entry horizons
+    if (outPanner) outPanner.pan.value = 0;   // Start from absolute center
+    if (inPanner) inPanner.pan.value = 1.0;   // Incoming track spawns deep right channel
 
     nextDeck.play().then(() => {
         setupTrackEndMonitor(nextDeck);
@@ -1510,20 +1585,33 @@ function executeCrossfade(currentDeck, nextDeck, nextFile) {
 
     const fadeInterval = setInterval(() => {
         currentStep++;
-        let currentVol = 1 - (currentStep / fadeSteps);
-        let nextVol = currentStep / fadeSteps;
+        let progress = currentStep / fadeSteps;
+        let currentVol = 1 - progress;
+        let nextVol = progress;
 
+        // Perform programmatic log amplitude gain fades
         currentDeck.volume = Math.max(0, Math.min(1, currentVol));
         nextDeck.volume = Math.max(0, Math.min(1, nextVol));
+
+        // Programmatic Linear Spatial Sweeps
+        if (outPanner) outPanner.pan.value = -progress; // Drifts from Center (0) cleanly out to Deep Left (-1)
+        if (inPanner) inPanner.pan.value = 1.0 - progress; // Drifts from Deep Right (1) cleanly back into Center (0)
 
         if (currentStep >= fadeSteps) {
             clearInterval(fadeInterval);
             currentDeck.pause();
             currentDeck.src = ""; 
+            
+            // Re-zero the pan values for clean slate re-entry loops
+            if (outPanner) outPanner.pan.value = 0;
+            if (inPanner) inPanner.pan.value = 0;
+            
+            isProcessingCrossfade = false; // Hands control back to ambient auto-panner
             console.log("Crossfade complete. Expired deck wiped cleanly.");
         }
     }, intervalTime);
 }
+
 
 function setupTrackEndMonitor(audioDeck) {
     if (!audioDeck) return;
@@ -1762,10 +1850,13 @@ window.addEventListener('DOMContentLoaded', () => {
   if (collapsedView) {
     collapsedView.addEventListener('click', (e) => {
       e.stopPropagation();
+      // Initializes spatial nodes seamlessly inside user interaction event tree loop
+      initializeSpatialEngine(); 
       wakeUpKairosWithGreeting();
     });
   }
 });
+
 
 
 
