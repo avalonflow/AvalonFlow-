@@ -806,6 +806,17 @@ if (window.speechSynthesis) {
   loadFemaleVoice();
 }
 
+function renderMarkdownToHTML(text) {
+  if (!text) return "";
+  // 1. Convert bold markdown (**text**) to HTML strong tags
+  let formatted = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+  // 2. Convert bullet points (* item) into clean bullet characters
+  formatted = formatted.replace(/^\*\s+/gm, '• ');
+  // 3. Preserve line breaks smoothly
+  formatted = formatted.replace(/\n/g, '<br>');
+  return formatted;
+}
+
 let KAIROS_KEYS = { gemini: "" };
 
 async function loadLocalKeys() {
@@ -1359,11 +1370,13 @@ function startSyncedTextAnimation(transcriptCanvas, words, msPerWord) {
   if (activeTypingInterval) clearInterval(activeTypingInterval);
   
   let wordIndex = 0;
-  transcriptCanvas.innerText = ""; 
+  transcriptCanvas.innerHTML = ""; 
 
   activeTypingInterval = setInterval(() => {
     if (wordIndex < words.length) {
-      transcriptCanvas.innerText += (wordIndex === 0 ? "" : " ") + words[wordIndex];
+      // Build up the running string and parse it dynamically
+      const currentSegment = words.slice(0, wordIndex + 1).join(" ");
+      transcriptCanvas.innerHTML = renderMarkdownToHTML(currentSegment);
       wordIndex++;
     } else {
       clearInterval(activeTypingInterval);
@@ -1371,6 +1384,7 @@ function startSyncedTextAnimation(transcriptCanvas, words, msPerWord) {
     }
   }, msPerWord);
 }
+
 
 async function speakResponse(rawResponseText) {
   stopActiveKairosVoice();
@@ -1430,10 +1444,12 @@ async function speakResponse(rawResponseText) {
       startSyncedTextAnimation(transcriptCanvas, words, 280);
     };
 
-    nativeVaultAudio.onended = () => {
+        nativeVaultAudio.onended = () => {
       setWaveAnimationSpeed(false);
       if (activeTypingInterval) clearInterval(activeTypingInterval);
-      transcriptCanvas.innerText = typedChatText;
+      
+      // CHANGE THIS LINE BELOW:
+      transcriptCanvas.innerHTML = renderMarkdownToHTML(typedChatText);
 
       if (blockNextMicActivation) {
         blockNextMicActivation = false;
@@ -1442,6 +1458,7 @@ async function speakResponse(rawResponseText) {
       }
       setTimeout(() => { listenForFollowUp(); }, 400);
     };
+
 
     nativeVaultAudio.onerror = () => {
       if (firedFallback) return;
@@ -1486,12 +1503,12 @@ function fallbackSynthesisExecution(spokenText, typedChatText, transcriptCanvas)
     startSyncedTextAnimation(transcriptCanvas, words, msPerWord);
   };
 
-  utterance.onend = () => {
+    utterance.onend = () => {
     setWaveAnimationSpeed(false);
     if (activeTypingInterval) clearInterval(activeTypingInterval);
 
-    // Hard seal structural alignment at the exact ending frame
-    transcriptCanvas.innerText = typedChatText;
+    // CHANGE THIS LINE BELOW:
+    transcriptCanvas.innerHTML = renderMarkdownToHTML(typedChatText);
 
     if (blockNextMicActivation) {
       blockNextMicActivation = false;
@@ -1501,6 +1518,7 @@ function fallbackSynthesisExecution(spokenText, typedChatText, transcriptCanvas)
 
     setTimeout(() => { listenForFollowUp(); }, 500);
   };
+
 
   utterance.onerror = () => {
     setWaveAnimationSpeed(false);
