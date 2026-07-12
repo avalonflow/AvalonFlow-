@@ -1524,7 +1524,8 @@ function transitionToSarah() {
             let sarahEntryMessage = "";
 
             if (userHistoryText.includes("disbursement") || userHistoryText.includes("payout") || userHistoryText.includes("withdrawal")) {
-                sarahEntryMessage = "Hi, this is Sarah. I've personally stepped in because this system flagged a high-value Custom tier transaction. I'd be overseeing the compliance release manually to ensure everything updates perfectly.";
+    sarahEntryMessage = "Hi, this is Sarah. I've personally stepped in because this system flagged a high-value disbursement transaction. I see you're inquiring about a payout that hasn't arrived after the standard 3-hour processing window, so I am overseeing your compliance release manually to clear it. To get this resolved immediately, can you confirm if you have already verified your destination wallet address inside your dashboard? (Yes / No)";
+
             } else {
                 const randomIndex = Math.floor(Math.random() * sarahProfile.greetings.length);
                 sarahEntryMessage = sarahProfile.greetings[randomIndex];
