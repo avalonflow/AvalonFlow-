@@ -1523,8 +1523,8 @@ function transitionToSarah() {
             const userHistoryText = chatHistory.filter(m => m.sender === 'user').map(m => m.text.toLowerCase()).join(" ");
             let sarahEntryMessage = "";
 
-            if (userHistoryText.includes("custom") || userHistoryText.includes("verification") || userHistoryText.includes("withdrawal")) {
-                sarahEntryMessage = "Hi, this is Sarah. I've personally stepped in because this system flagged a high-value Custom tier transaction verification. I'm overseeing the compliance release manually to ensure everything updates perfectly. I’d love to hear a short introduction about you as well";
+            if (userHistoryText.includes("disbursement") || userHistoryText.includes("payout") || userHistoryText.includes("withdrawal")) {
+                sarahEntryMessage = "Hi, this is Sarah. I've personally stepped in because this system flagged a high-value Custom tier transaction. I'd be overseeing the compliance release manually to ensure everything updates perfectly.";
             } else {
                 const randomIndex = Math.floor(Math.random() * sarahProfile.greetings.length);
                 sarahEntryMessage = sarahProfile.greetings[randomIndex];
