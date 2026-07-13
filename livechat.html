@@ -2211,14 +2211,23 @@ function scheduleNextCheck() {
     pollingTimer = setTimeout(listenForTelegramMessages, currentDelay);
 }
 
+// 🌟 Add a global script variable right above your function to track if initialization started
+let isKairosInitializing = false;
+
 function initiateKairosConversation() {
-    // 🌟 Hydrate chatHistory from localStorage on load to prevent greeting duplicate loops
+    // 1. Immediately exit if this function is already running or scheduled
+    if (isKairosInitializing) return;
+
+    // 2. Hydrate chatHistory from localStorage on load
     const savedHistory = localStorage.getItem('tg_chat_history_v3');
     if (savedHistory) {
         chatHistory = JSON.parse(savedHistory);
     }
 
     if (chatHistory.length === 0) {
+        // 3. Flip the initialization flag to true so a second concurrent call hits the guard clause above
+        isKairosInitializing = true;
+        
         showTyping();
         setTimeout(() => {
             removeTyping();
@@ -2242,6 +2251,9 @@ function initiateKairosConversation() {
             localStorage.setItem('tg_chat_history_v3', JSON.stringify(chatHistory));
 
             startQuoteAutorotation();
+            
+            // Reset flag once rendering is complete
+            isKairosInitializing = false;
         }, 1000);
     } else {
         let lastSarahIndex = -1;
@@ -2285,6 +2297,7 @@ function initiateKairosConversation() {
         }
     }
 }
+
 
 
 function loadChatHistory() {
