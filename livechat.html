@@ -2212,13 +2212,7 @@ function scheduleNextCheck() {
 }
 
 function initiateKairosConversation() {
-    // Check an explicit persistent flag instead of relying solely on array length evaluation
-    const hasBeenGreeted = localStorage.getItem('kairos_greeted') === 'true';
-
-    if (chatHistory.length === 0 && !hasBeenGreeted) {
-        // Set the flag immediately to lock the block against rapid reloads
-        localStorage.setItem('kairos_greeted', 'true');
-        
+    if (chatHistory.length === 0) {
         showTyping();
         setTimeout(() => {
             removeTyping();
