@@ -2212,6 +2212,12 @@ function scheduleNextCheck() {
 }
 
 function initiateKairosConversation() {
+    // 🌟 Hydrate chatHistory from localStorage on load to prevent greeting duplicate loops
+    const savedHistory = localStorage.getItem('tg_chat_history_v3');
+    if (savedHistory) {
+        chatHistory = JSON.parse(savedHistory);
+    }
+
     if (chatHistory.length === 0) {
         showTyping();
         setTimeout(() => {
@@ -2279,6 +2285,7 @@ function initiateKairosConversation() {
         }
     }
 }
+
 
 function loadChatHistory() {
     if (chatHistory.length > 0) {
