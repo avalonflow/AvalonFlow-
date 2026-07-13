@@ -1197,29 +1197,34 @@ async function processUserCommandLocally(commandText) {
   }
 
   if (lowerCommand.startsWith("play ") || lowerCommand.includes("play me") || lowerCommand === "play") {
-      const searchTarget = lowerCommand.replace("play me", "").replace("play", "").trim().replace(/[^a-z0-9]/g, "");
+    const searchTarget = lowerCommand.replace("play me", "").replace("play", "").trim().replace(/[^a-z0-9]/g, "");
 
-      const matchedFile = audioLibrary.find(file => {
-          const cleanFile = file.toLowerCase().replace(/[^a-z0-9]/g, "");
-          return cleanFile.includes(searchTarget) || searchTarget.includes(cleanFile);
-      });
+    const matchedFile = audioLibrary.find(file => {
+        const cleanFile = file.toLowerCase().replace(/[^a-z0-9]/g, "");
+        return cleanFile.includes(searchTarget) || searchTarget.includes(cleanFile);
+    });
 
-      if (matchedFile) {
-          const trackIdx = audioLibrary.indexOf(matchedFile);
-          musicQueue = audioLibrary.slice(trackIdx);
-          currentTrackIndex = 0;
-          botMusicReply(`Playing track.`, matchedFile);
-      } else if (searchTarget === "") {
-          musicQueue = [...audioLibrary];
-          currentTrackIndex = Math.floor(Math.random() * audioLibrary.length);
-          const randomFile = musicQueue[currentTrackIndex];
-          botMusicReply(`Playing random selection.`, randomFile);
-      } else {
-          expectingMusicResponse = true;
-          speakResponse("I couldn't find that track inside the vault directory. Want me to play a random one from the library instead?");
-      }
-      return;
-  }
+    if (matchedFile) {
+        const trackIdx = audioLibrary.indexOf(matchedFile);
+        musicQueue = audioLibrary.slice(trackIdx);
+        currentTrackIndex = 0;
+        botMusicReply(`Playing track.`, matchedFile);
+    } else if (searchTarget === "") {
+        musicQueue = [...audioLibrary];
+        currentTrackIndex = Math.floor(Math.random() * audioLibrary.length);
+        const randomFile = musicQueue[currentTrackIndex];
+        botMusicReply(`Playing random selection.`, randomFile);
+    } else if (lowerCommand.includes("youtube") || lowerCommand.includes("yt") || lowerCommand.includes("stream") || lowerCommand.includes("cloud")) {
+        // Intercept cloud requests and hand off seamlessly to the Section 8b API pipeline
+        handleYouTubeMusicSearch(lowerCommand, false);
+    } else {
+        // Maintained fallback safely intact for non-cloud, unrecognized items
+        expectingMusicResponse = true;
+        speakResponse("I couldn't find that track inside the vault directory. Want me to play a random one from the library instead?");
+    }
+    return;
+}
+
 
   if (/^(hi|hello|hey|yo|wassup|kairos|sup|ski)\b/.test(lowerCommand)) {
     const lines = [
@@ -1726,6 +1731,49 @@ function setupTrackEndMonitor(audioDeck) {
         }
     };
 }
+
+// ====================================================================
+// 8b. INTEGRATED CLOUD STREAMING PIPELINE (PUBLIC API STREAMING VERSION)
+// ====================================================================
+async function handleYouTubeMusicSearch(commandText, isDelayedHandoff = false) {
+  const cleanCommand = commandText.toLowerCase().trim();
+  
+  // 1. Sanitize the command string by stripping out verbal trigger filler words
+  let searchQuery = cleanCommand
+    .replace(/\b(play me|play|search for|lookup|find|put on|open)\b/gi, "")
+    .replace(/\b(on youtube music|on yt music|in youtube music|in yt music)\b/gi, "")
+    .trim();
+
+  if (!searchQuery) return;
+
+  // 2. Smart optimization: Ensure query extracts an infinite stream mix type if not stated
+  let optimizerTag = "";
+  if (!searchQuery.includes("radio") && !searchQuery.includes("mix") && !searchQuery.includes("album") && !searchQuery.includes("playlist")) {
+    optimizerTag = " mix";
+  }
+
+  const finalQuery = searchQuery + optimizerTag;
+  const displayTitle = searchQuery.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+
+  try {
+    // 3. Encode the clean query and structure the public streaming proxy URL
+    const targetQuery = encodeURIComponent(finalQuery);
+    const streamUrl = `https://api.vexd.net/api/mp3?url=https://www.youtube.com/watch?v=${targetQuery}`;
+    
+    // 4. Route playback safely depending on whether this is an automatic queue handoff or manual call
+    if (isDelayedHandoff) {
+      // Seamlessly cache the stream link right behind the active track list
+      musicQueue.push(streamUrl);
+      console.log(`[API Stream] Background queued cloud track: ${displayTitle}`);
+    } else {
+      // Direct, instant crossfade execution if local database completely missed
+      botMusicReply(`Streaming "${displayTitle}"...`, streamUrl);
+    }
+  } catch (error) {
+    console.error("[API Stream Error]:", error);
+  }
+}
+
 
 // ==========================================
 // 9. HARDWARE VOICE RECOGNITION (DICTATION) - PATCHED INTERIM ENGINE
