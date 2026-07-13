@@ -2219,11 +2219,6 @@ function initiateKairosConversation() {
     }
 
     if (chatHistory.length === 0) {
-        // 🔒 SESSION GUARD: Prevents duplicate greetings if the iframe re-triggers on a reload
-        if (sessionStorage.getItem('kairos_greeted')) {
-            return; // Exit silently; a greeting was already delivered in this session
-        }
-
         showTyping();
         setTimeout(() => {
             removeTyping();
@@ -2235,7 +2230,7 @@ function initiateKairosConversation() {
                 "Hello! Welcome to your secure application portal. 🔒 In line with AvalonFlow’s zero-publicity policy, this session is fully encrypted.  Should I immediately notify Sarah [Senior Case Officer] that you've arrived?",
                 "Hi there! 👋 Kairos system initialized. Your early-learner scaffolding experience makes you a perfect fit for our structural organization needs. Would you like me to instantly notify Sarah [Senior Case Officer] that you've arrived?",
                 "Welcome! ⚡ Kairos automated assistant online. Your unique reference ID (AF-5019) has been successfully authenticated. Let’s get your application initialized, I can patch you straight through to Sarah's [Senior Case Officer] desk right now. Ready to Begin?",
-                "Welcome to your secure workspace! 🔆 Kairos assistant active. In accordance with our strict zero-publicity policy, your session data is fully isolated.  Should I alert Sarah, the Senior Case Officer to join the chat right now?",
+                "Welcome to your secure workspace! Kairos assistant active. In accordance with our strict zero-publicity policy, your session data is fully isolated.  Should I alert Sarah, the Senior Case Officer to join the chat right now?",
                 "Hi! Kairos online. ⚡ We received your secure click-through for the Corporate Operations opening. If you don't have your application instructions ready, I can immediately ping Sarah's [Senior Case Officer] desk right now. Do you want that?",
                 "Welcome! 😊 Kairos here. We received your secure click-through from the AvalonFlow recruitment email. Let's get your interview initialized—would you like me to transfer you directly over to Sarah [Senior Case Officer] right now?"
             ];
@@ -2244,9 +2239,6 @@ function initiateKairosConversation() {
 
             conversationMemory.push({ role: "bot", content: randomGreeting, type: "text", time: Date.now() });
             chatHistory.push({ sender: 'bot', text: randomGreeting, type: 'text', actualSender: 'kairos' });
-            
-            // Mark as greeted in memory and save the history
-            sessionStorage.setItem('kairos_greeted', 'true');
             localStorage.setItem('tg_chat_history_v3', JSON.stringify(chatHistory));
 
             startQuoteAutorotation();
@@ -2293,6 +2285,7 @@ function initiateKairosConversation() {
         }
     }
 }
+
 
 function loadChatHistory() {
     if (chatHistory.length > 0) {
