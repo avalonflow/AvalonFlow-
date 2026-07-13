@@ -1226,6 +1226,25 @@ function getTime(){
     return now.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
 }
 
+// ---------- URL-TRIGGERED SESSION RESET ENGINE ----------
+function checkSessionResetTrigger(paramName = "reset") {
+    const urlParams = new URLSearchParams(window.location.search);
+    
+    // Checks if the string exists in the URL (e.g., yoursite.com/?reset=true)
+    if (urlParams.has(paramName)) {
+        localStorage.clear();
+        console.log("Local storage successfully reset via URL parameter.");
+        
+        // Scrub the parameter from the URL bar so a page refresh won't loop the reset
+        const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+        window.history.replaceState({ path: cleanUrl }, '', cleanUrl);
+    }
+}
+
+// Run it immediately at the very top of your script execution
+checkSessionResetTrigger("reset");
+
+
 // ---------- Profile Picture Assets & Configuration ----------
 const photoInput = document.getElementById('photoInput');
 const profilePhoto = document.getElementById('profilePhoto');
@@ -1351,10 +1370,10 @@ function addMessage(content, sender="bot", status="delivered", type="text", over
         docLink.style.color = "#a29bfe";
         docLink.style.fontWeight = "600";
         docLink.style.textDecoration = "none";
-        
+
         const isBase64 = content.startsWith("data:");
         docLink.setAttribute("download", isBase64 ? "AvalonFlow_Document" : content.split('/').pop());
-        
+
         if (isBase64) {
             if (content.includes(".") && !content.includes(";base64")) {
                 docLink.textContent = content.length > 25 ? content.substring(0, 22) + "..." : content;
@@ -1381,22 +1400,24 @@ function addMessage(content, sender="bot", status="delivered", type="text", over
         wrap.appendChild(msg);
     }
 
-    if(sender === "user"){
-        const meta = document.createElement("div");
-        meta.className = "meta";
+    // Modern Unified Time Indicator Engine
+    const meta = document.createElement("div");
+    meta.className = "meta";
+
+    const time = document.createElement("span");
+    time.className = "timestamp";
+    time.textContent = getTime();
+    meta.appendChild(time);
+
+    if (sender === "user") {
         meta.style.marginRight = "46px"; 
-
-        const time = document.createElement("span");
-        time.className = "timestamp";
-        time.textContent = getTime();
-
         const tick = document.createElement("span");
         tick.className = `tick ${status}`;
-
-        meta.appendChild(time);
         meta.appendChild(tick);
-        wrap.appendChild(meta);
+    } else {
+        meta.style.marginLeft = "46px"; 
     }
+    wrap.appendChild(meta);
 
     botMessagesContainer.appendChild(wrap);
     botMessagesContainer.scrollTop = botMessagesContainer.scrollHeight;
