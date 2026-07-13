@@ -2215,19 +2215,22 @@ function scheduleNextCheck() {
 let isKairosInitializing = false;
 
 function initiateKairosConversation() {
-    // 1. Immediately exit if this function is already running or scheduled
-    if (isKairosInitializing) return;
-
-    // 2. Hydrate chatHistory from localStorage on load
+    // 1. Check localStorage to see if we have history
     const savedHistory = localStorage.getItem('tg_chat_history_v3');
     if (savedHistory) {
         chatHistory = JSON.parse(savedHistory);
     }
 
+    // 2. If history is empty, check our absolute session lock
     if (chatHistory.length === 0) {
-        // 3. Flip the initialization flag to true so a second concurrent call hits the guard clause above
-        isKairosInitializing = true;
-        
+        // If a concurrent script execution already claimed the greeting, kill this one instantly
+        if (sessionStorage.getItem('kairos_greeting_sent') === 'true') {
+            return; 
+        }
+
+        // Lock it down immediately before the timeout even schedules
+        sessionStorage.setItem('kairos_greeting_sent', 'true');
+
         showTyping();
         setTimeout(() => {
             removeTyping();
@@ -2251,11 +2254,11 @@ function initiateKairosConversation() {
             localStorage.setItem('tg_chat_history_v3', JSON.stringify(chatHistory));
 
             startQuoteAutorotation();
-            
-            // Reset flag once rendering is complete
-            isKairosInitializing = false;
         }, 1000);
     } else {
+        // Fallback safety: if there's history, ensure our session lock reflects it
+        sessionStorage.setItem('kairos_greeting_sent', 'true');
+
         let lastSarahIndex = -1;
         let lastEndIndex = -1;
 
@@ -2297,6 +2300,7 @@ function initiateKairosConversation() {
         }
     }
 }
+
 
 
 
