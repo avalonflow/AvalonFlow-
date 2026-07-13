@@ -2211,31 +2211,14 @@ function scheduleNextCheck() {
     pollingTimer = setTimeout(listenForTelegramMessages, currentDelay);
 }
 
-// 1. Create an in-memory page-load lock variable at the absolute top of your file (outside the function)
-let kairosInitializedThisLoad = false;
-
 function initiateKairosConversation() {
-    // 2. If this function has already executed ONCE during this specific script boot, kill it instantly
-    if (kairosInitializedThisLoad) {
-        return;
-    }
-    // Set it to true immediately so the absolute next microsecond call gets dropped
-    kairosInitializedThisLoad = true;
-
-    // 3. Check localStorage to see if we have history
+    // 🌟 THE FIX: Hydrate chatHistory on boot so it remembers what it saved on reload
     const savedHistory = localStorage.getItem('tg_chat_history_v3');
     if (savedHistory) {
         chatHistory = JSON.parse(savedHistory);
     }
 
-    // 4. If history is empty, handle the initial greeting safely
     if (chatHistory.length === 0) {
-        // Double-insurance fallback guard
-        if (sessionStorage.getItem('kairos_greeting_sent') === 'true') {
-            return; 
-        }
-        sessionStorage.setItem('kairos_greeting_sent', 'true');
-
         showTyping();
         setTimeout(() => {
             removeTyping();
@@ -2261,9 +2244,6 @@ function initiateKairosConversation() {
             startQuoteAutorotation();
         }, 1000);
     } else {
-        // Fallback safety
-        sessionStorage.setItem('kairos_greeting_sent', 'true');
-
         let lastSarahIndex = -1;
         let lastEndIndex = -1;
 
@@ -2305,6 +2285,7 @@ function initiateKairosConversation() {
         }
     }
 }
+
 
 function loadChatHistory() {
     if (chatHistory.length > 0) {
