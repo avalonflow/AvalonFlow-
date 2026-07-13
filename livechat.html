@@ -1231,24 +1231,18 @@ function checkSessionResetTrigger(paramName = "reset") {
     const urlParams = new URLSearchParams(window.location.search);
 
     if (urlParams.has(paramName)) {
-        // 1. Clear storage immediately
-        localStorage.clear();
+        // 1. Clear storage immediately so the app knows it's a blank slate
+        localStorage.clear(); 
         console.log("Local storage successfully reset via URL parameter.");
 
         // 2. Clear in-memory variables immediately
         chatHistory = []; 
         conversationMemory = [];
 
-        // 3. Wait for the DOM to finish loading before wiping the screen
-        document.addEventListener("DOMContentLoaded", () => {
-            // Match the global variable/ID used throughout the rest of your script
-            const targetContainer = document.getElementById('botMessagesContainer');
-            if (targetContainer) {
-                targetContainer.innerHTML = ''; 
-            }
-        });
+        // 3. Mark this explicit session as a fresh reset state
+        localStorage.setItem('isResetSession', 'true');
 
-        // 4. Scrub the parameter from the URL bar immediately
+        // 4. Scrub the parameter from the URL bar immediately without a hard reload
         const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
         window.history.replaceState({ path: cleanUrl }, '', cleanUrl);
     }
@@ -1256,6 +1250,7 @@ function checkSessionResetTrigger(paramName = "reset") {
 
 // Run it immediately at the very top of your script execution
 checkSessionResetTrigger("reset");
+
 
 
 // ---------- Profile Picture Assets & Configuration ----------
