@@ -2260,11 +2260,11 @@ function initiateKairosConversation() {
     }
 }
 
-// ---------- ORIGINAL HISTORY ENGINE (With Simple Pre-Clear) ----------
+// ---------- ORIGINAL HISTORY ENGINE (Fixed to Clear Entire Wrapper) ----------
 function loadChatHistory() {
-    // Remove only the hardcoded placeholder message elements before rendering history
-    const existingMessages = botMessagesContainer.querySelectorAll('.message');
-    existingMessages.forEach(el => el.remove());
+    // Remove the entire wrapper (including the avatar image and message bubble)
+    const existingWrappers = botMessagesContainer.querySelectorAll('.msgWrap');
+    existingWrappers.forEach(el => el.remove());
 
     if (chatHistory.length > 0) {
         chatHistory.forEach(item => {
@@ -2273,6 +2273,7 @@ function loadChatHistory() {
         botMessagesContainer.scrollTop = botMessagesContainer.scrollHeight;
     }
 }
+
 
 // ---------- UPDATED DOM LOAD ORCHESTRATION ----------
 document.addEventListener('DOMContentLoaded', () => {
