@@ -2190,8 +2190,11 @@ function scheduleNextCheck() {
     pollingTimer = setTimeout(listenForTelegramMessages, currentDelay);
 }
 
-// ---------- ORIGINAL UNTOUCHED INITIALIZATION ENGINE ----------
+// ---------- INITIALIZATION ENGINE (With Safety Orchestration) ----------
 function initiateKairosConversation() {
+    // Clear DOM container to prevent physical double-rendering
+    botMessagesContainer.innerHTML = '';
+
     if (chatHistory.length === 0) {
         showTyping();
         setTimeout(() => {
@@ -2218,6 +2221,9 @@ function initiateKairosConversation() {
             startQuoteAutorotation();
         }, 1000);
     } else {
+        // Load the existing history safely first as part of restoration
+        loadChatHistory();
+
         let lastSarahIndex = -1;
         let lastEndIndex = -1;
 
@@ -2260,8 +2266,9 @@ function initiateKairosConversation() {
     }
 }
 
-// ---------- ORIGINAL UNTOUCHED HISTORY ENGINE ----------
+// ---------- HISTORY ENGINE (With Stack-Appending Prevention) ----------
 function loadChatHistory() {
+    botMessagesContainer.innerHTML = ''; // Prevent physical duplicate loops
     if (chatHistory.length > 0) {
         chatHistory.forEach(item => {
             addMessage(item.text, item.sender, "delivered", item.type || "text", item.actualSender || null);
@@ -2270,22 +2277,17 @@ function loadChatHistory() {
     }
 }
 
-// ---------- UPDATED DOM LOAD ORCHESTRATION ----------
+// ---------- DOM LOAD ORCHESTRATION ----------
 document.addEventListener('DOMContentLoaded', () => {
     const saved = localStorage.getItem('profilePhoto');
     if (profilePhoto) profilePhoto.src = saved ? saved : DEFAULT_AVATAR;
 
-    // Fix: Only render historical messages if history actually exists.
-    // If it is a new session, we skip loadChatHistory() so the loader, 
-    // quote rotation, and connection synchronization animations can show.
-    if (chatHistory.length > 0) {
-        loadChatHistory();
-    }
-    
+    // Running initiateKairosConversation handles history recovery internally safely
     initiateKairosConversation();
     scheduleNextCheck(); 
     startQuoteAutorotation();
 });
+
 
 
 // ---------- MULTI-DECK 10s CROSSFADE ENGINE WORKFLOW ----------
