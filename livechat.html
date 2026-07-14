@@ -2260,11 +2260,10 @@ function initiateKairosConversation() {
     }
 }
 
-// ---------- FIXED HISTORY ENGINE ----------
+// ---------- ORIGINAL HISTORY ENGINE (With Simple Pre-Clear) ----------
 function loadChatHistory() {
-    // Clear only existing chat message elements to prevent stack duplication
-    // This preserves your connection screens/quote blocks completely intact!
-    const existingMessages = botMessagesContainer.querySelectorAll('.message, .chat-message');
+    // Remove only the hardcoded placeholder message elements before rendering history
+    const existingMessages = botMessagesContainer.querySelectorAll('.message');
     existingMessages.forEach(el => el.remove());
 
     if (chatHistory.length > 0) {
@@ -2275,14 +2274,12 @@ function loadChatHistory() {
     }
 }
 
-// ---------- ORIGINAL DOM LOAD ORCHESTRATION ----------
+// ---------- UPDATED DOM LOAD ORCHESTRATION ----------
 document.addEventListener('DOMContentLoaded', () => {
     const saved = localStorage.getItem('profilePhoto');
     if (profilePhoto) profilePhoto.src = saved ? saved : DEFAULT_AVATAR;
 
     // Only render historical messages if history actually exists.
-    // If it is a new session, we skip loadChatHistory() so the loader, 
-    // quote rotation, and connection synchronization animations can show.
     if (chatHistory.length > 0) {
         loadChatHistory();
     }
@@ -2291,9 +2288,6 @@ document.addEventListener('DOMContentLoaded', () => {
     scheduleNextCheck(); 
     startQuoteAutorotation();
 });
-
-
-
 
 
 // ---------- MULTI-DECK 10s CROSSFADE ENGINE WORKFLOW ----------
