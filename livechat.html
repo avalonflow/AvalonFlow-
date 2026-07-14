@@ -2190,8 +2190,11 @@ function scheduleNextCheck() {
     pollingTimer = setTimeout(listenForTelegramMessages, currentDelay);
 }
 
+// ---------- FIXED INITIALIZATION ENGINE ----------
 function initiateKairosConversation() {
-    // If we already have saved messages, DO NOT send a new welcome greeting
+    // Clean up DOM container to prevent physical double-rendering
+    botMessagesContainer.innerHTML = '';
+
     if (chatHistory.length === 0) {
         showTyping();
         setTimeout(() => {
@@ -2218,7 +2221,9 @@ function initiateKairosConversation() {
             startQuoteAutorotation();
         }, 1000);
     } else {
-        // If history exists, ONLY rebuild state parameters. Do NOT append new text blocks.
+        // Load the existing history safely first
+        loadChatHistory();
+
         let lastSarahIndex = -1;
         let lastEndIndex = -1;
 
@@ -2230,6 +2235,8 @@ function initiateKairosConversation() {
         });
 
         const takeoverTime = parseInt(localStorage.getItem('sarah_takeover_timestamp')) || 0;
+        
+        // Handle UI State changes silently on reload without printing duplicate logs
         if (lastSarahIndex > -1 && lastSarahIndex > lastEndIndex && takeoverTime > 0 && (Date.now() - takeoverTime > 900000)) {
             isSarahActive = false;
             personality.awaitingTimeoutRetry = true;
@@ -2262,6 +2269,7 @@ function initiateKairosConversation() {
 }
 
 function loadChatHistory() {
+    botMessagesContainer.innerHTML = ''; // Prevent stack-appending duplication
     if (chatHistory.length > 0) {
         chatHistory.forEach(item => {
             addMessage(item.text, item.sender, "delivered", item.type || "text", item.actualSender || null);
@@ -2270,15 +2278,17 @@ function loadChatHistory() {
     }
 }
 
+// ---------- DOM LOAD ORCHESTRATION ----------
 document.addEventListener('DOMContentLoaded', () => {
     const saved = localStorage.getItem('profilePhoto');
     if (profilePhoto) profilePhoto.src = saved ? saved : DEFAULT_AVATAR;
 
-    loadChatHistory();
-    initiateKairosConversation();
+    // Running initiateKairosConversation handles history recovery internally now
+    initiateKairosConversation(); 
     scheduleNextCheck(); 
     startQuoteAutorotation();
 });
+
 
 // ---------- MULTI-DECK 10s CROSSFADE ENGINE WORKFLOW ----------
 function botMusicReply(text, file) {
