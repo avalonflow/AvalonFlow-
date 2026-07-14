@@ -2063,6 +2063,11 @@ async function listenForTelegramMessages() {
             let chainDelay = 0;
 
             for (const update of data.result) {
+                // 🌟 SAFETY GUARD: Skip processing if update_id is older than or equal to last processed ID
+                if (update.update_id <= lastUpdateId) {
+                    continue;
+                }
+
                 if (update.message) {
                     let msgContent = null;
                     let msgType = "text";
@@ -2127,7 +2132,7 @@ async function listenForTelegramMessages() {
                             }
 
                             else if (lowerContent.includes("redirect her to") || lowerContent.includes("redirect him to") || lowerContent.includes("redirect them to") || lowerContent.includes("redirect vitti to")) {
-    
+
     // 1. Instantly terminate active agent tracking
     isSarahActive = false;
     sessionStorage.removeItem('agent_takeover');
