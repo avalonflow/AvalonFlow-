@@ -1429,14 +1429,20 @@ function checkSessionResetTrigger(paramName = "reset") {
         // 3. Mark this explicit session as a fresh reset state
         localStorage.setItem('isResetSession', 'true');
 
-        // 4. Scrub the parameter from the URL bar immediately without a hard reload
-        const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+        // 4. Scrub ONLY the reset parameter from the URL bar immediately without a hard reload
+        urlParams.delete(paramName);
+        const newSearch = urlParams.toString();
+        const cleanSearch = newSearch ? "?" + newSearch : "";
+        
+        // Combines the base URL with any remaining parameters (like user ID) and hashes
+        const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname + cleanSearch + window.location.hash;
         window.history.replaceState({ path: cleanUrl }, '', cleanUrl);
     }
 }
 
 // Run it immediately at the very top of your script execution
 checkSessionResetTrigger("reset");
+
 
 // ---------- Typing Feedbacks ----------
 function showTyping(){
