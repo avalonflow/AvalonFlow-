@@ -2191,6 +2191,7 @@ function scheduleNextCheck() {
 }
 
 function initiateKairosConversation() {
+    // If we already have saved messages, DO NOT send a new welcome greeting
     if (chatHistory.length === 0) {
         showTyping();
         setTimeout(() => {
@@ -2217,6 +2218,7 @@ function initiateKairosConversation() {
             startQuoteAutorotation();
         }, 1000);
     } else {
+        // If history exists, ONLY rebuild state parameters. Do NOT append new text blocks.
         let lastSarahIndex = -1;
         let lastEndIndex = -1;
 
@@ -2258,7 +2260,6 @@ function initiateKairosConversation() {
         }
     }
 }
-
 
 function loadChatHistory() {
     if (chatHistory.length > 0) {
