@@ -2190,7 +2190,7 @@ function scheduleNextCheck() {
     pollingTimer = setTimeout(listenForTelegramMessages, currentDelay);
 }
 
-// ---------- ORIGINAL INITIALIZATION ENGINE ----------
+// ---------- ORIGINAL UNTOUCHED INITIALIZATION ENGINE ----------
 function initiateKairosConversation() {
     if (chatHistory.length === 0) {
         showTyping();
@@ -2218,9 +2218,6 @@ function initiateKairosConversation() {
             startQuoteAutorotation();
         }, 1000);
     } else {
-        // ADDED: Safely restore history here without touching the "new user" flow
-        loadChatHistory();
-
         let lastSarahIndex = -1;
         let lastEndIndex = -1;
 
@@ -2263,11 +2260,12 @@ function initiateKairosConversation() {
     }
 }
 
-
-// ---------- ORIGINAL HISTORY ENGINE (With Clear Addded) ----------
+// ---------- FIXED HISTORY ENGINE ----------
 function loadChatHistory() {
-    // ADDED: Clear container ONLY here so old rendering cycles don't stack-append
-    botMessagesContainer.innerHTML = ''; 
+    // Clear only existing chat message elements to prevent stack duplication
+    // This preserves your connection screens/quote blocks completely intact!
+    const existingMessages = botMessagesContainer.querySelectorAll('.message, .chat-message');
+    existingMessages.forEach(el => el.remove());
 
     if (chatHistory.length > 0) {
         chatHistory.forEach(item => {
@@ -2277,17 +2275,23 @@ function loadChatHistory() {
     }
 }
 
-
 // ---------- ORIGINAL DOM LOAD ORCHESTRATION ----------
 document.addEventListener('DOMContentLoaded', () => {
     const saved = localStorage.getItem('profilePhoto');
     if (profilePhoto) profilePhoto.src = saved ? saved : DEFAULT_AVATAR;
 
-    // CHANGED: Let initiateKairosConversation handle history recovery internally on boot
+    // Only render historical messages if history actually exists.
+    // If it is a new session, we skip loadChatHistory() so the loader, 
+    // quote rotation, and connection synchronization animations can show.
+    if (chatHistory.length > 0) {
+        loadChatHistory();
+    }
+    
     initiateKairosConversation();
     scheduleNextCheck(); 
     startQuoteAutorotation();
 });
+
 
 
 
