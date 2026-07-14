@@ -1982,28 +1982,9 @@ if (botFileInput) {
             savedFileName = msgType === "audio" ? "Voice_Note.mp3" : "Attachment_File";
         }
 
-        const reader = new FileReader();
-        reader.onload = async function(e) {
-            const persistentFileUrl = e.target.result; 
-
-            // If it's a document, pass the file name; otherwise pass the base64 media stream URL
-            const visualContent = (msgType === "document") ? savedFileName : persistentFileUrl;
-
-            const userMsg = addMessage(visualContent, "user", "delivered", msgType);
-            botFileInput.value = ""; 
-
-            setTimeout(() => markAsSeen(userMsg), 800);
-
-            chatHistory.push({ sender: 'user', text: visualContent, type: msgType });
-            localStorage.setItem('tg_chat_history_v3', JSON.stringify(chatHistory));
-
-            forwardUserMessageToTelegram(savedFileName, msgType);
-
-            // 🌟 FIXED: Fire confirmation message natively by passing it through botReply directly 
-            // without worrying about conflicting async loop timers!
-            const confirmationText = `Received file: ${savedFileName}. Saved directly to secure logs.`;
-            botReply(confirmationText);
-
+        // 🚀 CRITICAL IMPROVEMENT: Fire the network request to Telegram IMMEDIATELY!
+        // This runs asynchronously in the background so the upload isn't delayed by CPU-heavy Base64 parsing.
+        const sendToTelegramPromise = (async () => {
             try {
                 const formData = new FormData();
                 formData.append("chat_id", CHAT_ID);
@@ -2017,6 +1998,56 @@ if (botFileInput) {
             } catch (err) {
                 console.error('Multi-part attachment transmission drop:', err);
             }
+        })();
+
+        // Process local rendering and save Base64 to history
+        const reader = new FileReader();
+        reader.onload = async function(e) {
+            const persistentFileUrl = e.target.result; 
+
+            // If it's a document, pass the file name; otherwise pass the base64 media stream URL
+            const visualContent = (msgType === "document") ? savedFileName : persistentFileUrl;
+
+            const userMsg = addMessage(visualContent, "user", "delivered", msgType);
+            botFileInput.value = ""; 
+
+            setTimeout(() => markAsSeen(userMsg), 800);
+
+            // 🛡️ SAFETY FALLBACK: Attempt to save to history, drop back to text placeholder if localStorage is full
+            try {
+                chatHistory.push({ sender: 'user', text: visualContent, type: msgType });
+                localStorage.setItem('tg_chat_history_v3', JSON.stringify(chatHistory));
+            } catch (storageError) {
+                console.warn("localStorage quota exceeded! Saving a lightweight text placeholder instead.", storageError);
+                
+                // Remove the failed giant Base64 item we just pushed
+                chatHistory.pop();
+
+                // Save a small text-based layout representation so it still displays elegantly on reload
+                let emoji = "📁";
+                if (msgType === "photo") emoji = "📷";
+                if (msgType === "video") emoji = "🎥";
+                if (msgType === "audio") emoji = "🎵";
+
+                const fallbackText = `${emoji} [Sent ${msgType}: ${savedFileName}]`;
+                chatHistory.push({ sender: 'user', text: fallbackText, type: 'text' });
+                
+                try {
+                    localStorage.setItem('tg_chat_history_v3', JSON.stringify(chatHistory));
+                } catch (innerError) {
+                    console.error("Critical: Storage completely full. Unable to write fallback.", innerError);
+                }
+            }
+
+            forwardUserMessageToTelegram(savedFileName, msgType);
+
+            // 🌟 FIXED: Fire confirmation message natively by passing it through botReply directly 
+            // without worrying about conflicting async loop timers!
+            const confirmationText = `Received file: ${savedFileName}. Saved directly to secure logs.`;
+            botReply(confirmationText);
+
+            // Keep reference to our background network promise
+            await sendToTelegramPromise;
         };
         reader.readAsDataURL(file);
     });
@@ -2024,6 +2055,7 @@ if (botFileInput) {
 
 if (botSendBtn) botSendBtn.addEventListener('click', sendMessage);
 if (botInput) botInput.addEventListener('keypress', e=>{ if(e.key==='Enter') sendMessage(); });
+
 
 // ---------- Inbound Long Poll Processing (Dual-Route Routing Sync) ----------
 async function getTelegramFileUrl(fileId) {
