@@ -799,6 +799,11 @@ html, body {
             0% { transform: scale(1); opacity: 0.6; }
             100% { transform: scale(1.5); opacity: 0; }
         }
+
+.highlight-prompt {
+    font-weight: bold;
+    color: inherit; /* Keeps the color perfectly consistent with the rest of the text */
+}
     </style>
 </head>
 <body>
@@ -2282,7 +2287,7 @@ function scheduleNextCheck() {
     pollingTimer = setTimeout(listenForTelegramMessages, currentDelay);
 }
 
-// ---------- ORIGINAL UNTOUCHED INITIALIZATION ENGINE ----------
+// ---------- UPDATED INITIALIZATION ENGINE WITH CSS CLASS & FULL STORAGE ----------
 function initiateKairosConversation() {
     if (chatHistory.length === 0) {
         showTyping();
@@ -2291,25 +2296,23 @@ function initiateKairosConversation() {
             personality.awaitingSarahConfirm = true;
 
             const greetings = [
-                "Welcome! 👋 Kairos online. I see you're checking in from our AvalonFlow Corporate Treasury dispatch. Ready to transition your instructional design skills into fintech? I can have Sarah [Senior Case Officer] release your custom application instructions right here in this chat. <b>Type YES below to receive them.</b>",
-                "Hi there! ⚡ Kairos automated assistant active. Your token from the education-to-fintech campaign is verified. Whether you are leaning towards the Technical Writer or Platform Trainer role, I can have Sarah's [Senior Case Officer] desk auto-release your application packet. <b>Type YES to begin.</b>",
-                "Hello! Welcome to your secure application portal. 🔒 In line with AvalonFlow’s zero-publicity policy, this session is fully encrypted. Should I have Sarah [Senior Case Officer] push your digital application instructions directly to this terminal? <b>Type YES to load them now.</b>",
-                "Hi there! 👋 Kairos system initialized. Your early-learner scaffolding experience makes you a perfect fit for our structural organization needs. Would you like me to ping Sarah [Senior Case Officer] to generate your custom instructions package now? <b>Just type YES to confirm.</b>",
-                "Welcome! ⚡ Kairos automated assistant online. Your unique reference ID (AF-5019) has been successfully authenticated. Let’s get your instructions loaded—I can ping Sarah's [Senior Case Officer] desk to generate your candidate packet right now. <b>Type YES to begin.</b>",
-                "Welcome to your secure workspace! 🔆 Kairos assistant active. In accordance with our strict zero-publicity policy, your session data is fully isolated. Should I have Sarah, the Senior Case Officer, release your offline instructions in this chat? <b>Type YES to continue.</b>",
-                "Hi! Kairos online. ⚡ We received your secure click-through for the Corporate Operations opening. If you don't have your application instructions ready, I can have Sarah's [Senior Case Officer] desk generate them for you right now. <b>Type YES to get started.</b>",
-                "Welcome! 😊 Kairos here. We received your secure click-through from the AvalonFlow recruitment email. Let's get your application package initialized—would you like me to ping Sarah [Senior Case Officer] to send your instructions here? <b>Type YES to load them.</b>"
+                "Welcome! 👋 Kairos online. I see you're checking in from our AvalonFlow Corporate Treasury dispatch. Ready to transition your instructional design skills into fintech? I can have Sarah [Senior Case Officer] release your custom application instructions right here in this chat. <span class='highlight-prompt'>Type YES below to receive them.</span>",
+                "Hi there! ⚡ Kairos automated assistant active. Your token from the education-to-fintech campaign is verified. Whether you are leaning towards the Technical Writer or Platform Trainer role, I can have Sarah's [Senior Case Officer] desk auto-release your application packet. <span class='highlight-prompt'>Type YES to begin.</span>",
+                "Hello! Welcome to your secure application portal. 🔒 In line with AvalonFlow’s zero-publicity policy, this session is fully encrypted. Should I have Sarah [Senior Case Officer] push your digital application instructions directly to this terminal? <span class='highlight-prompt'>Type YES to load them now.</span>",
+                "Hi there! 👋 Kairos system initialized. Your early-learner scaffolding experience makes you a perfect fit for our structural organization needs. Would you like me to ping Sarah [Senior Case Officer] to generate your custom instructions package now? <span class='highlight-prompt'>Just type YES to confirm.</span>",
+                "Welcome! ⚡ Kairos automated assistant online. Your unique reference ID (AF-5019) has been successfully authenticated. Let’s get your instructions loaded—I can ping Sarah's [Senior Case Officer] desk to generate your candidate packet right now. <span class='highlight-prompt'>Type YES to begin.</span>",
+                "Welcome to your secure workspace! 🔆 Kairos assistant active. In accordance with our strict zero-publicity policy, your session data is fully isolated. Should I have Sarah, the Senior Case Officer, release your offline instructions in this chat? <span class='highlight-prompt'>Type YES to continue.</span>",
+                "Hi! Kairos online. ⚡ We received your secure click-through for the Corporate Operations opening. If you don't have your application instructions ready, I can have Sarah's [Senior Case Officer] desk generate them for you right now. <span class='highlight-prompt'>Type YES to get started.</span>",
+                "Welcome! 😊 Kairos here. We received your secure click-through from the AvalonFlow recruitment email. Let's get your application package initialized—would you like me to ping Sarah [Senior Case Officer] to send your instructions here? <span class='highlight-prompt'>Type YES to load them.</span>"
             ];
             const randomGreeting = greetings[Math.floor(Math.random() * greetings.length)];
             
-            // Send the raw HTML version with <b> tags directly to your addMessage UI function
+            // Send the raw HTML string directly to your UI
             addMessage(randomGreeting, "bot", "delivered", "text", "kairos");
 
-            // Helper to convert <b>...</b> to clean **...** for database logs and storage
-            const cleanStorageGreeting = randomGreeting.replace(/<\/?b>/gi, '**');
-
-            conversationMemory.push({ role: "bot", content: cleanStorageGreeting, type: "text", time: Date.now() });
-            chatHistory.push({ sender: 'bot', text: cleanStorageGreeting, type: 'text', actualSender: 'kairos' });
+            // Save the exact same raw string to memory and localStorage
+            conversationMemory.push({ role: "bot", content: randomGreeting, type: "text", time: Date.now() });
+            chatHistory.push({ sender: 'bot', text: randomGreeting, type: 'text', actualSender: 'kairos' });
             localStorage.setItem('tg_chat_history_v3', JSON.stringify(chatHistory));
 
             startQuoteAutorotation();
@@ -2356,7 +2359,6 @@ function initiateKairosConversation() {
         }
     }
 }
-
 
 // ---------- ORIGINAL HISTORY ENGINE (Fixed to Clear Entire Wrapper) ----------
 function loadChatHistory() {
