@@ -730,7 +730,7 @@ html, body {
     display: inline-block;
     color: #284B87; /* Matches your botInput text color */
     font-weight: bold;
-    margin-right: 4px; /* Changed from margin-left to margin-right to space out the input */
+    margin-right: 2px; /* Changed from margin-left to margin-right to space out the input */
     animation: blinkCursor 0.8s infinite;
 }
 
@@ -1185,7 +1185,7 @@ let activeDeck = null;
 const crossfadeDuration = 10; // Global 10-second metric variable rule
 
 const sarahProfile = {
-    name: "Sarah (Account Representative)",
+    name: "Sarah (Account Manager)",
     avatarColor: "linear-gradient(135deg, #ff416c, #ff4b2b)",
     statusText: "Connected with Sarah",
     greetings: [
@@ -1545,39 +1545,29 @@ if (botInput) {
 
 // ---------- CUSTOM IDLE CURSOR LOGIC ----------
 const idleCursor = document.getElementById('idleCursor');
-let typingTimer; // Timer identifier
-const doneTypingInterval = 1000; // Time in ms (1 second of silence = idle)
 
 if (botInput && idleCursor) {
-    // Show the cursor initially if the input is empty
+    // Show the cursor initially if the input is completely empty on load
     if (botInput.value === "") {
         idleCursor.style.display = 'inline-block';
     }
 
-    botInput.addEventListener('input', () => {
-        // User is actively typing: Hide the cursor immediately
+    // A clean, one-time function to hide the cursor permanently
+    const retireIdleCursor = () => {
         idleCursor.style.display = 'none';
+        
+        // Remove the listeners immediately so they don't keep firing in the background
+        botInput.removeEventListener('focus', retireIdleCursor);
+        botInput.removeEventListener('input', retireIdleCursor);
+        botInput.removeEventListener('keydown', retireIdleCursor);
+    };
 
-        // Clear the previous timer
-        clearTimeout(typingTimer);
-
-        // Start a new timer to detect when they stop
-        typingTimer = setTimeout(() => {
-            // Only show the blinker if there's still text in the input
-            if (botInput.value.length > 0) {
-                idleCursor.style.display = 'inline-block';
-            }
-        }, doneTypingInterval);
-    });
-
-    // Hide the cursor immediately if they press Enter or send the message
-    botInput.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') {
-            idleCursor.style.display = 'none';
-            clearTimeout(typingTimer);
-        }
-    });
+    // Trigger on focus, typing, or key presses
+    botInput.addEventListener('focus', retireIdleCursor);
+    botInput.addEventListener('input', retireIdleCursor);
+    botInput.addEventListener('keydown', retireIdleCursor);
 }
+
 
 function recordChatMessage(){
     let chats=parseInt(localStorage.getItem("messagesSent")||0);
