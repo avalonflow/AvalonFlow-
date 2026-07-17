@@ -157,11 +157,6 @@
             padding: 4px;
         }
 
-        .flag-wrapper {
-            font-size: 2rem;
-            line-height: 1;
-        }
-
         .divider {
             border: none;
             height: 1px;
@@ -174,7 +169,7 @@
             flex-direction: column;
             gap: 12px;
             position: relative;
-            margin-bottom: 24px;
+            margin-bottom: 20px;
         }
 
         .amount-box {
@@ -258,6 +253,18 @@
             width: 14px;
             height: 14px;
             stroke: white;
+        }
+
+        /* Recipient Profile Details Wrapper */
+        .recipient-summary-box {
+            background: rgba(255, 255, 255, 0.55);
+            border: 1px solid rgba(124, 58, 237, 0.12);
+            border-radius: 20px;
+            padding: 16px;
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
         }
 
         .details-list {
@@ -407,7 +414,6 @@
             <!-- STEP 1: REVIEW TRANSACTION STATE -->
             <div id="review-state">
                 <div class="card-header">
-                    <!-- Updated to support custom preloaded brand logos dynamically -->
                     <div class="method-logo-wrapper" id="brand-logo-container">
                         <img id="dynamic-brand-logo" src="https://cdn-icons-png.flaticon.com/512/2830/2830284.png" alt="Payment Method">
                     </div>
@@ -445,6 +451,18 @@
                     <div class="amount-box highlight order-4" id="receive-box">
                         <span class="label">They Receive (Post-Fee Conversion)</span>
                         <div class="value-display"><span id="receive-symbol">£</span> <span id="receive-amount">0.00</span> <span id="receive-currency" class="currency-tag">GBP</span></div>
+                    </div>
+                </div>
+
+                <!-- DYNAMIC RECIPIENT PROFILE SUMMARY -->
+                <div class="recipient-summary-box">
+                    <div class="detail-item">
+                        <span class="detail-label" id="recipient-name-label">Beneficiary Name</span>
+                        <span class="detail-value" id="recipient-name-val">Loading...</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label" id="recipient-account-label">Account details</span>
+                        <span class="detail-value" id="recipient-account-val">Loading...</span>
                     </div>
                 </div>
 
@@ -491,6 +509,10 @@
                 <p class="status-desc">Liquidity settlement instructions successfully pushed into the terminal queue.</p>
                 
                 <div class="receipt-mini">
+                    <div class="receipt-row">
+                        <span class="detail-label">Recipient Account</span>
+                        <span id="receipt-beneficiary" class="detail-value">-</span>
+                    </div>
                     <div class="receipt-row">
                         <span class="detail-label">Settlement Target</span>
                         <span id="receipt-target" class="detail-value">-</span>
@@ -552,8 +574,20 @@
         }
 
         /* ------------------------------------------------------------------
-        DYNAMIC LOCALSTORAGE BALANCE & METHOD PARSER ENGINE
+        DYNAMIC LOCALSTORAGE DETAILS PARSER (HYDRATOR)
         ------------------------------------------------------------------ */
+        function getCapturedDetails() {
+            try {
+                // Check both standard user details layouts
+                const section3 = JSON.parse(localStorage.getItem("section3Data") || "{}");
+                const avDetails = JSON.parse(localStorage.getItem("av_collected_details") || "{}");
+                return { ...section3, ...avDetails };
+            } catch (e) {
+                console.warn("Could not parse saved user details from storage:", e);
+                return {};
+            }
+        }
+
         function getLiveLocalStorageBalance() {
             const hardcodedBaseline = 147349.26;
             const savedValue = localStorage.getItem("totalACU");
@@ -567,7 +601,6 @@
 
         const isAlreadyWithdrawn = localStorage.getItem('av_is_withdrawn') === 'true';
 
-        // DYNAMIC ROUTING: Fetch selected region and method, falling back safely
         const activeRegion = localStorage.getItem("av_selected_region") || "US";
         const activeMethod = localStorage.getItem("av_selected_method_title") || "Chase Bank";
 
@@ -593,10 +626,9 @@
         };
 
         /* ------------------------------------------------------------------
-        MASTER BRAND LOGO DATABASE (Synchronized with Dashboard Configurations)
+        MASTER BRAND LOGO DATABASE
         ------------------------------------------------------------------ */
         const globalBankLogos = {
-            // Canada (CA)
             "RBC Royal Bank": "https://raw.githubusercontent.com/avalonflow/AvalonFlow/main/assets/pictures/4889b91421334f04992dbd75abd44c94.jpg",
             "TD Canada Trust": "https://raw.githubusercontent.com/avalonflow/AvalonFlow/main/assets/pictures/e90fc5400809adf33e281d9f876d5485.jpg",
             "Scotiabank": "https://raw.githubusercontent.com/avalonflow/AvalonFlow/main/assets/pictures/839782492ccfda0e5f616798c2646804.jpg",
@@ -605,8 +637,6 @@
             "National Bank": "https://raw.githubusercontent.com/avalonflow/AvalonFlow/main/assets/pictures/fb34b722f69d354bf24dd585444a6cee.jpg",
             "Tangerine": "https://raw.githubusercontent.com/avalonflow/AvalonFlow/main/assets/pictures/Tangerine_Bank-Logo.wine.png",
             "Simplii Financial": "https://raw.githubusercontent.com/avalonflow/AvalonFlow/main/assets/pictures/Simplii_Financial_branding.jpg",
-            
-            // United States (US)
             "Chase Bank": "https://raw.githubusercontent.com/avalonflow/AvalonFlow/main/assets/pictures/dcaa7faba74f565af7efbf1135c2e144.jpg",
             "Bank of America": "https://raw.githubusercontent.com/avalonflow/AvalonFlow/main/assets/pictures/7826c02a5b48ea41e801cafcb0bba674.jpg",
             "Wells Fargo": "https://raw.githubusercontent.com/avalonflow/AvalonFlow/main/assets/pictures/Wells_Fargo_Logo_(2020).png",
@@ -615,8 +645,6 @@
             "PNC Bank": "https://raw.githubusercontent.com/avalonflow/AvalonFlow/main/assets/pictures/PNClogo.svg.png",
             "Capital One": "https://raw.githubusercontent.com/avalonflow/AvalonFlow/main/assets/pictures/Capital_One_logo.svg.png",
             "Fifth Third Bank": "https://raw.githubusercontent.com/avalonflow/AvalonFlow/main/assets/pictures/logo-stacked-primary-full-thumb.png",
-            
-            // United Kingdom (UK)
             "Barclays": "assets/pictures/Barclays-Logo-768x432.png",
             "HSBC UK": "assets/pictures/HSBC-Logo-768x432.png",
             "Lloyds Bank": "assets/pictures/Lloyds-Bank-Logo-500x281.webp",
@@ -640,32 +668,73 @@
             const config = regionConfig[sessionData.region];
             if (!config) return;
 
-            // ---- Brand Logo Mapping with Fade Transition Engine ----
+            // ---- Dynamic Brand Logo Transition ----
             const logoContainer = document.getElementById("brand-logo-container");
             const brandLogoImage = document.getElementById("dynamic-brand-logo");
-            
             const matchedLogoUrl = globalBankLogos[sessionData.selectedAssetOrBank] || defaultLogo;
 
             if (logoContainer && brandLogoImage) {
-                // Fade out prior to loading
                 logoContainer.classList.add("is-hidden");
-
                 const imgPreloader = new Image();
                 imgPreloader.onload = () => {
                     brandLogoImage.src = matchedLogoUrl;
-                    // Trigger browser UI thread reflow
                     void logoContainer.offsetWidth;
                     logoContainer.classList.remove("is-hidden");
                 };
                 imgPreloader.src = matchedLogoUrl;
             }
 
-            // Step 1: Establish baseline fallback conversion rates relative to 1 CAD
+            // ---- RECIPIENT METRICS ROUTING ENGINE ----
+            const paymentType = sessionData.selectedAssetOrBank.toLowerCase();
+            const userDetails = getCapturedDetails();
+            
+            // Hydrate values from registration storage, using clean mock layouts only as fallbacks
+            const holderName = userDetails.holderName || userDetails.fullName || "Franklyn C. Harris";
+            const accountNumber = userDetails.accountNumber || userDetails.accountNo || "•••• 1988";
+            const routingOrTransit = userDetails.routingNumber || userDetails.transitNo || "";
+
+            let displayLabelName = "Beneficiary Name";
+            let displayLabelDetails = "Account Number";
+            let renderedName = holderName;
+            let renderedDetails = routingOrTransit ? `${accountNumber} (RTN: ${routingOrTransit})` : accountNumber;
+
+            if (paymentType.includes("paypal")) {
+                displayLabelName = "PayPal Receiver";
+                displayLabelDetails = "Linked Email";
+                renderedName = userDetails.paypalName || holderName;
+                renderedDetails = userDetails.paypalEmail || "f.harris***@gmail.com";
+            } 
+            // FIX: Added 'revolut' mapping fallback to align with the registration page's redirection label
+            else if (paymentType.includes("venmo") || paymentType.includes("revolut")) {
+                displayLabelName = "Payment Handle";
+                displayLabelDetails = "Linked Identifier";
+                renderedName = userDetails.venmoName || userDetails.revolutName || `@${holderName.toLowerCase().replace(/\s+/g, '-')}`;
+                renderedDetails = userDetails.venmoHandle || userDetails.revolutTag || "(+1) ***-***-1988";
+            } else if (paymentType.includes("e-transfer") || paymentType.includes("e transfer") || paymentType.includes("interac")) {
+                displayLabelName = "Interac Registered";
+                displayLabelDetails = "Transfer Target";
+                renderedName = userDetails.interacName || holderName;
+                renderedDetails = userDetails.interacEmail || "franklyn***@icloud.com";
+            } else if (paymentType.includes("usdc") || paymentType.includes("crypto") || paymentType.includes("wallet")) {
+                displayLabelName = "Network Protocol";
+                displayLabelDetails = "Destination Address";
+                renderedName = userDetails.tokenName || "ERC-20 (USD Coin)";
+                renderedDetails = userDetails.cryptoAddress || "0x71C...1988"; 
+            }
+
+            // Apply labels & values dynamically
+            document.getElementById("recipient-name-label").innerText = displayLabelName;
+            document.getElementById("recipient-name-val").innerText = renderedName;
+            document.getElementById("recipient-account-label").innerText = displayLabelDetails;
+            document.getElementById("recipient-account-val").innerText = renderedDetails;
+
+            document.getElementById("receipt-beneficiary").innerText = `${renderedName} (${renderedDetails})`;
+
+            // ---- Rate Calculations ----
             let liveRate = 1.0; 
             if (config.currency === "USD") liveRate = 0.72;
             if (config.currency === "GBP") liveRate = 0.53;
 
-            // Step 2: Dynamic API Fetch Exchange Rates (CAD base source)
             if (config.currency !== "CAD") {
                 try {
                     const primaryResponse = await fetch('https://open.er-api.com/v6/latest/CAD');
@@ -703,11 +772,8 @@
             document.getElementById("receipt-hash").innerText = activeHash;
 
             if (isSecurityOpen) {
-                /* CARDS REPOSITION ENGINE (DOM Order Flip) */
                 sendBox.className = "amount-box locked order-1";       
                 balanceBox.className = "amount-box highlight order-2"; 
-
-                /* PERFECT ARROW PLACEMENT BETWEEN ACTIVE CARDS */
                 arrowIndicator.style.top = "66.7%";                     
 
                 document.getElementById("send-lock").style.display = "inline-flex";
@@ -737,10 +803,8 @@
                     maximumFractionDigits: 2 
                 })} ${config.currency}`;
             } else {
-                /* FALLBACK/DEFAULT LAYOUT STATE STYLE */
                 balanceBox.className = "amount-box locked order-1";
                 sendBox.className = "amount-box order-2";
-
                 arrowIndicator.style.top = "66.7%";
 
                 document.getElementById("balance-lock").style.display = "inline-flex";
