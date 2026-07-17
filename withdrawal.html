@@ -838,6 +838,80 @@ opacity:0.9;
     color: #fff;
 }
 
+/* =========================
+   BRITISH BANK SELECT
+   PREMIUM GLASS UPGRADE
+========================= */
+
+#britishBankSelect {
+    width: 100%;
+    height: 52px;
+
+    padding: 0 16px;
+
+    border: 1px solid rgba(255, 255, 255, 0.10);
+    border-radius: 18px;
+
+    background-color: rgba(255, 255, 255, 0.04);
+    color: #fff;
+
+    font-size: 14px;
+    font-weight: 500;
+
+    margin-top: 10px;
+
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+
+    box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+
+    transition: all 0.25s ease;
+
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+
+    cursor: pointer;
+
+    /* custom arrow */
+    background-image:
+        linear-gradient(45deg, transparent 50%, #b892ff 50%),
+        linear-gradient(135deg, #b892ff 50%, transparent 50%);
+
+    background-position:
+        calc(100% - 20px) calc(50% - 3px),
+        calc(100% - 14px) calc(50% - 3px);
+
+    background-size: 6px 6px;
+    background-repeat: no-repeat;
+}
+
+/* hover glow */
+#britishBankSelect:hover {
+    border-color: rgba(107, 44, 216, 0.5);
+
+    box-shadow:
+        0 0 0 2px rgba(107, 44, 216, 0.15),
+        0 10px 35px rgba(0,0,0,0.25);
+}
+
+/* focus state */
+#britishBankSelect:focus {
+    outline: none;
+
+    border-color: rgba(107, 44, 216, 0.7);
+
+    box-shadow:
+        0 0 0 3px rgba(107, 44, 216, 0.18),
+        0 10px 35px rgba(0,0,0,0.30);
+}
+
+/* dropdown options */
+#britishBankSelect option {
+    background: #12121c;
+    color: #fff;
+}
+
 /* ---------- Navigation Buttons ---------- */
 .nav-btn {
   position: absolute;
@@ -1301,6 +1375,67 @@ CROP MODAL
       </div>
     </div>
 
+<div class="payment-container">
+      <p class="glass-cardsrd acu-gradient">
+        <strong>United Kingdom 🇬🇧</strong>
+        <div style="height:4px;"></div>
+      </p>
+
+      <div class="glass-card">
+        <div class="top-trust">
+          Automatic Disbursement supported via global payment networks.
+        </div>
+
+        <div class="payment-method glass-cards" data-method="Revolut" data-region="uk">
+          <div class="payment-header">
+            <img class="payment-logo" src="assets/pictures/WA_1783361545224.jpeg">
+            <span>Revolut</span>
+          </div>
+          <input id="revolutInput" placeholder="Enter your Revtag (e.g., @username)">
+        </div>
+
+        <div class="payment-method glass-cards" data-method="British Bank Transfer" data-region="uk">
+          <div class="payment-header">
+            <img class="payment-logoss" src="https://cdn-icons-png.flaticon.com/512/2830/2830284.png">
+            <span>▼ Bank Transfer</span>
+          </div>
+          <select id="britishBankSelect">
+            <option value="">Select Your Bank</option>
+            <option>Barclays</option>
+            <option>HSBC UK</option>
+            <option>Lloyds Bank</option>
+            <option>Santander UK</option>
+            <option>Halifax</option>
+            <option>TSB Bank</option>
+            <option>Nationwide</option>
+            <option>NatWest</option>
+          </select>
+          <input id="accountName-uk" placeholder="Account Holder Name">
+          <input id="transitNumber-uk" placeholder="Sort Code">
+          
+          <input id="accountNumber-uk" placeholder="Account Number">
+        </div>
+
+        <div class="payment-method glass-cards" data-method="UK PayPal" data-region="uk">
+          <div class="payment-header">
+            <img class="payment-logo" src="https://upload.wikimedia.org/wikipedia/commons/b/b5/PayPal.svg">
+            <span>▼ PayPal</span>
+          </div>
+          <input id="paypalInput-uk" placeholder="Enter your PayPal email">
+        </div>
+
+        <div class="payment-method glass-cards" data-method="UK USDT / USDC ERC20" data-region="uk">
+          <div class="token-logos">
+            <img class="payment-logo" src="https://assets.coingecko.com/coins/images/325/large/Tether.png">
+            <img class="payment-logo" src="https://assets.coingecko.com/coins/images/6319/large/USD_Coin_icon.png">
+            <span>▼ USDT / USDC [ERC-20]</span>
+          </div>
+          <input id="acuAccount-uk" placeholder="Enter your ERC-20 wallet address">
+          <div class="network-note">⚠ ERC-20 network only</div>
+        </div>
+      </div>
+    </div>
+
   </div> <div class="dots">
     <span class="active"></span>
     <span></span>
@@ -1560,6 +1695,49 @@ $(document).ready(function () {
     const $logo = $('.payment-logoss');
 
     $('#americanBankSelect').on('change', function () {
+
+        const selectedBank = $(this).val();
+        const newLogo = bankLogos[selectedBank] || defaultLogo;
+
+        // fade out (CSS handles animation)
+        $logo.addClass('is-hidden');
+
+        // preload image first
+        const tempImg = new Image();
+
+        tempImg.onload = function () {
+            $logo.attr('src', newLogo);
+
+            // force reflow so transition triggers properly
+            void $logo[0].offsetWidth;
+
+            // fade in
+            $logo.removeClass('is-hidden');
+        };
+
+        tempImg.src = newLogo;
+    });
+
+});
+
+$(document).ready(function () {
+
+    const bankLogos = {
+        "Barclays": "assets/pictures/Barclays-Logo-768x432.png",
+        "HSBC UK": "assets/pictures/HSBC-Logo-768x432.png",
+        "Lloyds Bank": "assets/pictures/Lloyds-Bank-Logo-500x281.webp",
+        "Santander UK": "assets/pictures/WA_1783360589514.jpeg",
+        "Halifax": "assets/pictures/WA_1783360607640.jpeg",
+        "TSB Bank": "assets/pictures/WA_1783360619696.jpeg",
+        "Nationwide": "assets/pictures/WA_1783378395029.jpeg",
+        "NatWest": "assets/pictures/IMG-20260706-WA0033(1).jpg"
+    };
+
+    const defaultLogo = "https://cdn-icons-png.flaticon.com/512/2830/2830284.png";
+
+    const $logo = $('.payment-logoss');
+
+    $('#britishBankSelect').on('change', function () {
 
         const selectedBank = $(this).val();
         const newLogo = bankLogos[selectedBank] || defaultLogo;
@@ -2007,8 +2185,10 @@ if (saved.acuAccount) document.getElementById("acuAccount").value = saved.acuAcc
 if (saved.paypal) document.getElementById("paypalInput").value = saved.paypal;
 if (saved.interac) document.getElementById("interacInput").value = saved.interac;
 if (saved.venmo) document.getElementById("venmoInput").value = saved.venmo;
+if (saved.revolut) document.getElementById("revolutInput").value = saved.revolut;
 if (saved.canadianBank) document.getElementById("canadianBankSelect").value = saved.canadianBank;
 if (saved.americanBank) document.getElementById("americanBankSelect").value = saved.americanBank;
+if (saved.britishBank) document.getElementById("britishBankSelect").value = saved.britishBank;
 if (saved.accountName) document.getElementById("accountName").value = saved.accountName;
 if (saved.transitNumber) document.getElementById("transitNumber").value = saved.transitNumber;
 if (saved.institutionNumber) document.getElementById("institutionNumber").value = saved.institutionNumber;
@@ -2022,6 +2202,13 @@ if (saved.accountNumberUs) document.getElementById("accountNumber-us").value = s
 if (saved.paypalUs) document.getElementById("paypalInput-us").value = saved.paypalUs;
 if (saved.acuAccountUs) document.getElementById("acuAccount-us").value = saved.acuAccountUs;
 
+// Restore British distinct fields
+if (saved.accountNameUk) document.getElementById("accountName-uk").value = saved.accountNameUk;
+if (saved.transitNumberUk) document.getElementById("transitNumber-uk").value = saved.transitNumberUk;
+
+if (saved.accountNumberUk) document.getElementById("accountNumber-uk").value = saved.accountNumberUk;
+if (saved.paypalUk) document.getElementById("paypalInput-uk").value = saved.paypalUk;
+if (saved.acuAccountUk) document.getElementById("acuAccount-uk").value = saved.acuAccountUk;
 
 
 /* --------------------------
@@ -2280,9 +2467,8 @@ NUMBER-ONLY VALIDATION
 });
 
 
-/* --------------------------
-UNIFIED PREFERENCE VALIDATION
--------------------------- */
+
+
 /* --------------------------
 UNIFIED PREFERENCE VALIDATION
 -------------------------- */
