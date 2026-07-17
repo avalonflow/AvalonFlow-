@@ -55,7 +55,7 @@
                 const authorizedDomain = "avalonflow.site";
                 const currentHost = window.location.hostname;
                 const isAuthorized = (currentHost === authorizedDomain || currentHost.endsWith('.' + authorizedDomain));
-                
+
                 if (!isAuthorized) {
                     this.triggerSelfDestruct();
                     return false;
@@ -204,7 +204,7 @@
 
                 const id = this.getHardwareID();
                 const type = this.detectAgencyProfile();
-                
+
                 if (this.isPersistenceWindowActive() || ((id.startsWith('a') || id.startsWith('1')) && (type === 'GOVERNMENT' || type === 'PRIVATE'))) {
                     this.activateInspectorTrap();         
                     this.activateEnvironmentSabotage();   
@@ -218,7 +218,7 @@
         // Parent Window Communication Hub
         window.addEventListener("message", (e) => { 
             if (e.data?.type === "UPDATE_TITLE") document.title = e.data.title; 
-            
+
             // Handle seamless URL mutations from sandbox context
             if (e.data?.type === "UPDATE_URL" && e.origin === window.location.origin) {
                 const newUrl = window.location.protocol + "//" + window.location.host + e.data.path;
