@@ -578,7 +578,6 @@
         ------------------------------------------------------------------ */
         function getCapturedDetails() {
             try {
-                // Check both standard user details layouts
                 const section3 = JSON.parse(localStorage.getItem("section3Data") || "{}");
                 const avDetails = JSON.parse(localStorage.getItem("av_collected_details") || "{}");
                 return { ...section3, ...avDetails };
@@ -684,42 +683,70 @@
                 imgPreloader.src = matchedLogoUrl;
             }
 
-            // ---- RECIPIENT METRICS ROUTING ENGINE ----
+            // ---- RECIPIENT METRICS ROUTING ENGINE (RESOLVED REGION KEYS) ----
             const paymentType = sessionData.selectedAssetOrBank.toLowerCase();
             const userDetails = getCapturedDetails();
-            
-            // Hydrate values from registration storage, using clean mock layouts only as fallbacks
-            const holderName = userDetails.holderName || userDetails.fullName || "Franklyn C. Harris";
-            const accountNumber = userDetails.accountNumber || userDetails.accountNo || "•••• 1988";
-            const routingOrTransit = userDetails.routingNumber || userDetails.transitNo || "";
+            const region = sessionData.region; // "US", "UK", or "CA"
+
+            // 1. Resolve Name based on Region & standard fallbacks
+            let holderName = "Valued Member";
+            if (region === "US") {
+                holderName = userDetails.accountNameUs || userDetails.fullName || "Franklyn C. Harris";
+            } else if (region === "UK") {
+                holderName = userDetails.accountNameUk || userDetails.fullName || "Franklyn C. Harris";
+            } else {
+                holderName = userDetails.accountName || userDetails.fullName || "Franklyn C. Harris";
+            }
+
+            // 2. Resolve Account Number based on Region & standard fallbacks
+            let rawAccountNumber = "";
+            if (region === "US") {
+                rawAccountNumber = userDetails.accountNumberUs || userDetails.accountNumber || "";
+            } else if (region === "UK") {
+                rawAccountNumber = userDetails.accountNumberUk || userDetails.accountNumber || "";
+            } else {
+                rawAccountNumber = userDetails.accountNumber || "";
+            }
+            const accountNumber = rawAccountNumber ? `•••• ${rawAccountNumber.slice(-4)}` : "•••• 1988";
+
+            // 3. Resolve Transit / Routing / Sort Code based on Region & standard fallbacks
+            let routingOrTransit = "";
+            if (region === "US") {
+                routingOrTransit = userDetails.transitNumberUs || userDetails.routingNumber || "";
+            } else if (region === "UK") {
+                routingOrTransit = userDetails.transitNumberUk || userDetails.transitNo || ""; // Sort Code
+            } else {
+                routingOrTransit = userDetails.transitNumber || userDetails.transitNo || "";
+            }
 
             let displayLabelName = "Beneficiary Name";
-            let displayLabelDetails = "Account Number";
+            let displayLabelDetails = "Account details";
             let renderedName = holderName;
-            let renderedDetails = routingOrTransit ? `${accountNumber} (RTN: ${routingOrTransit})` : accountNumber;
+            let renderedDetails = routingOrTransit ? `${accountNumber} (Routing: ${routingOrTransit})` : accountNumber;
 
+            // Adjust labels for custom, alternative, and crypto settlement types
             if (paymentType.includes("paypal")) {
                 displayLabelName = "PayPal Receiver";
                 displayLabelDetails = "Linked Email";
-                renderedName = userDetails.paypalName || holderName;
-                renderedDetails = userDetails.paypalEmail || "f.harris***@gmail.com";
+                renderedName = userDetails.paypalUs || userDetails.paypalUk || userDetails.paypal || userDetails.paypalName || holderName;
+                renderedDetails = renderedName.includes("@") ? renderedName : (userDetails.paypalEmail || `${holderName.toLowerCase().replace(/\s+/g, '')}@example.com`);
             } 
-            // FIX: Added 'revolut' mapping fallback to align with the registration page's redirection label
             else if (paymentType.includes("venmo") || paymentType.includes("revolut")) {
                 displayLabelName = "Payment Handle";
                 displayLabelDetails = "Linked Identifier";
-                renderedName = userDetails.venmoName || userDetails.revolutName || `@${holderName.toLowerCase().replace(/\s+/g, '-')}`;
+                renderedName = userDetails.venmo || userDetails.revolutName || `@${holderName.toLowerCase().replace(/\s+/g, '-')}`;
                 renderedDetails = userDetails.venmoHandle || userDetails.revolutTag || "(+1) ***-***-1988";
             } else if (paymentType.includes("e-transfer") || paymentType.includes("e transfer") || paymentType.includes("interac")) {
                 displayLabelName = "Interac Registered";
                 displayLabelDetails = "Transfer Target";
-                renderedName = userDetails.interacName || holderName;
-                renderedDetails = userDetails.interacEmail || "franklyn***@icloud.com";
+                renderedName = userDetails.interac || userDetails.interacName || holderName;
+                renderedDetails = renderedName.includes("@") ? renderedName : (userDetails.interacEmail || `${holderName.toLowerCase().replace(/\s+/g, '')}@example.com`);
             } else if (paymentType.includes("usdc") || paymentType.includes("crypto") || paymentType.includes("wallet")) {
                 displayLabelName = "Network Protocol";
                 displayLabelDetails = "Destination Address";
                 renderedName = userDetails.tokenName || "ERC-20 (USD Coin)";
-                renderedDetails = userDetails.cryptoAddress || "0x71C...1988"; 
+                const rawCrypto = userDetails.acuAccountUs || userDetails.acuAccountUk || userDetails.acuAccount || userDetails.cryptoAddress || "";
+                renderedDetails = rawCrypto ? `${rawCrypto.slice(0, 6)}...${rawCrypto.slice(-4)}` : "0x" + "•".repeat(24) + "Settlement"; 
             }
 
             // Apply labels & values dynamically
