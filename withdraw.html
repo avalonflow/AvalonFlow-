@@ -585,6 +585,47 @@ ANIMATION (MOVING LIGHT AROUND RING)
 </head>
 <body>
 
+<!-- =========================
+TOP RIGHT PROFILE AVATAR
+========================= -->
+<div class="top-right-profile">
+     <div class="avatar-ring">
+        <img id="profilePhoto" src="default-avatar.png" class="avatar" alt="Profile picture">
+    </div>
+
+    <div style="position: absolute; top: 58px; right: 70%; transform: translateX(50%); white-space: nowrap; pointer-events: none; text-align: center;">
+        <span id="avatarLabel" style="font-family: sans-serif; font-size: 10px; font-weight: 500; color: #c0a9ff; letter-spacing: 0.3px; text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);">Add Profile Picture</span>
+    </div>
+
+</div>
+
+
+
+<!-- =========================
+CROP MODAL
+========================= -->
+<div id="cropModal" class="crop-modal hidden">
+
+    <div class="crop-box">
+
+        <!-- file input (hidden trigger via JS) -->
+        <input type="file" id="photoInput" accept="image/*">
+
+        <!-- crop preview -->
+        <div class="crop-preview">
+            <img id="cropImage">
+        </div>
+
+        <!-- actions -->
+        <div class="crop-actions">
+            <button id="saveCropped">Save Photo</button>
+            <button id="cancelCrop">Cancel</button>
+        </div>
+
+    </div>
+
+</div>
+
     <div id="planNotification" class="notification-bar"></div>
     <div id="floating-bg"></div>
 
