@@ -487,7 +487,7 @@
         </div>
     </div>
 
-    <script>
+   <script>
         const notification = document.getElementById("planNotification");
 
         function showNotification(message, duration = 3000) {
@@ -498,7 +498,7 @@
             notification.hideTimer = setTimeout(() => { notification.classList.remove("show"); }, duration);
         }
 
-                
+
         const bg = document.getElementById('floating-bg');
         const colors = ['#6b2cd8','#9b59b6','#8e44ad'];
         function particle() {
@@ -525,41 +525,46 @@
         }
 
         /* ------------------------------------------------------------------
-        DYNAMIC LOCALSTORAGE BALANCE PARSER ENGINE
+        DYNAMIC LOCALSTORAGE BALANCE & METHOD PARSER ENGINE
         ------------------------------------------------------------------ */
-        /* ------------------------------------------------------------------
-DYNAMIC LOCALSTORAGE BALANCE & METHOD PARSER ENGINE
------------------------------------------------------------------- */
-function getLiveLocalStorageBalance() {
-    const hardcodedBaseline = 147349.26;
-    const savedValue = localStorage.getItem("totalACU");
-    
-    if (savedValue) {
-        const parsedValue = parseFloat(savedValue);
-        return isNaN(parsedValue) ? hardcodedBaseline : parsedValue;
-    }
-    return hardcodedBaseline;
-}
+        function getLiveLocalStorageBalance() {
+            const hardcodedBaseline = 147349.26;
+            const savedValue = localStorage.getItem("totalACU");
 
-const isAlreadyWithdrawn = localStorage.getItem('av_is_withdrawn') === 'true';
-
-// DYNAMIC ROUTING: Fallback to UK/NatWest if selection data hasn't been set yet
-const activeRegion = localStorage.getItem("av_selected_region") || "UK";
-const activeMethod = localStorage.getItem("av_selected_method_title") || "NatWest";
-
-let runtimeSessionData = {
-    region: activeRegion, 
-    selectedAssetOrBank: activeMethod,
-    baseAmountCAD: 26779.97, 
-    availableBalanceCAD: getLiveLocalStorageBalance(),
-    balanceUnlockedFlag: isAlreadyWithdrawn
-};
-
-
-        const regionConfig = {
-            UK: { flag: "🇬🇧", currency: "GBP", symbol: "£", eta: "2-4 hours via Cross border Payments" },
-            CA: { flag: "🇨🇦", currency: "CAD", symbol: "$", eta: "1-2 hours via Faster Payments" }
+            if (savedValue) {
+                const parsedValue = parseFloat(savedValue);
+                return isNaN(parsedValue) ? hardcodedBaseline : parsedValue;
+            }
+            return hardcodedBaseline;
         }
+
+        const isAlreadyWithdrawn = localStorage.getItem('av_is_withdrawn') === 'true';
+
+        // DYNAMIC ROUTING: Fetch selected region (US, UK, or CA) and method, falling back to US/Chase Bank if unassigned
+        const activeRegion = localStorage.getItem("av_selected_region") || "US";
+        const activeMethod = localStorage.getItem("av_selected_method_title") || "Chase Bank";
+
+        let runtimeSessionData = {
+            region: activeRegion.toUpperCase(), // Ensure string safety
+            selectedAssetOrBank: activeMethod,
+            baseAmountCAD: 26779.97, 
+            availableBalanceCAD: getLiveLocalStorageBalance(),
+            balanceUnlockedFlag: isAlreadyWithdrawn
+        };
+
+        // Normalize variations of country codes
+        if (runtimeSessionData.region === "USA") {
+            runtimeSessionData.region = "US";
+        }
+
+        /* ------------------------------------------------------------------
+        EXPANDED REGION CONFIGURATION (UK, US, CA)
+        ------------------------------------------------------------------ */
+        const regionConfig = {
+            US: { flag: "🇺🇸", currency: "USD", symbol: "$", eta: "2-4 hours via ACH / Real-Time Payments" },
+            UK: { flag: "🇬🇧", currency: "GBP", symbol: "£", eta: "2-4 hours via Cross border Payments" },
+            CA: { flag: "🇨🇦", currency: "CAD", symbol: "$", eta: "1-2 hours via Faster Payments (EFT)" }
+        };
 
         document.addEventListener("DOMContentLoaded", () => {
             initiateLiveTransaction(runtimeSessionData);
@@ -572,27 +577,35 @@ let runtimeSessionData = {
             const config = regionConfig[sessionData.region];
             if (!config) return;
 
-            let liveRate = 0.53; 
+            // Step 1: Establish baseline fallback conversion rates relative to 1 CAD
+            let liveRate = 1.0; 
+            if (config.currency === "USD") liveRate = 0.72; // Fallback estimate for CAD to USD
+            if (config.currency === "GBP") liveRate = 0.53; // Fallback estimate for CAD to GBP
 
-            try {
-                const primaryResponse = await fetch('https://open.er-api.com/v6/latest/CAD');
-                if (primaryResponse.ok) {
-                    const data = await primaryResponse.json();
-                    liveRate = data.rates[config.currency] || liveRate;
-                } else {
-                    throw new Error("Primary API state down.");
-                }
-            } catch (primaryError) {
-                console.warn(primaryError.message);
+            // Step 2: Dynamic API Fetch Exchange Rates (CAD base source)
+            if (config.currency !== "CAD") {
                 try {
-                    const secondaryResponse = await fetch('https://api.frankfurter.dev/v2/rates?base=CAD&quotes=GBP');
-                    if (secondaryResponse.ok) {
-                        const data = await secondaryResponse.json();
+                    const primaryResponse = await fetch('https://open.er-api.com/v6/latest/CAD');
+                    if (primaryResponse.ok) {
+                        const data = await primaryResponse.json();
                         liveRate = data.rates[config.currency] || liveRate;
+                    } else {
+                        throw new Error("Primary API state down.");
                     }
-                } catch (secondaryError) {
-                    liveRate = 0.53;
+                } catch (primaryError) {
+                    console.warn(primaryError.message);
+                    try {
+                        const secondaryResponse = await fetch(`https://api.frankfurter.dev/v2/rates?base=CAD&quotes=${config.currency}`);
+                        if (secondaryResponse.ok) {
+                            const data = await secondaryResponse.json();
+                            liveRate = data.rates[config.currency] || liveRate;
+                        }
+                    } catch (secondaryError) {
+                        console.warn("Secondary API failed, keeping local fallback rate.");
+                    }
                 }
+            } else {
+                liveRate = 1.0; // 1:1 Rate conversion for domestic Canadian payouts (CAD to CAD)
             }
 
             const isSecurityOpen = sessionData.balanceUnlockedFlag;
@@ -611,7 +624,7 @@ let runtimeSessionData = {
                 /* 1. CARDS REPOSITION ENGINE (DOM Order Flip) */
                 sendBox.className = "amount-box locked order-1";       
                 balanceBox.className = "amount-box highlight order-2"; 
-                
+
                 /* FIXED ARROW PLACEMENT: Perfect 66.7% position directly between the two active cards */
                 arrowIndicator.style.top = "66.7%";                     
 
@@ -646,7 +659,7 @@ let runtimeSessionData = {
                 /* FALLBACK/DEFAULT LAYOUT STATE STYLE */
                 balanceBox.className = "amount-box locked order-1";
                 sendBox.className = "amount-box order-2";
-                
+
                 /* DEFAULT STATE POSITIONING */
                 arrowIndicator.style.top = "66.7%";
 
@@ -699,7 +712,7 @@ let runtimeSessionData = {
                 setTimeout(() => {
                     localStorage.setItem('av_is_withdrawn', 'true');
                     localStorage.setItem('av_withdrawn', 'true'); 
-                    
+
                     const currentMoment = new Date();
                     const timestampString = currentMoment.toLocaleDateString('en-US', {
                         month: 'short', day: '2-digit', year: 'numeric'
@@ -712,15 +725,14 @@ let runtimeSessionData = {
 
                     loadingScreen.classList.remove("active");
                     successScreen.classList.add("active");
-                    showNotification("Liquidity routed to clearway terminal queue", 4000);
+                    showNotification("Withdrawal routed to clearway terminal queue", 4000);
                 }, dynamicProcessingDelay); 
             });
 
-            
-document.getElementById("close-btn").addEventListener("click", () => {
-    window.location.href = "https://membership.avalonflow.site/dashboard";
-});
+            document.getElementById("close-btn").addEventListener("click", () => {
+                window.location.href = "https://membership.avalonflow.site/dashboard";
+            });
         }
-    </script>
+</script>
 </body>
 </html>
