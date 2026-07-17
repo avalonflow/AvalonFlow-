@@ -659,6 +659,20 @@ opacity: 1;
     opacity: 0;
 }
 
+.payment-logosss{
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+  filter: drop-shadow(0 0 4px rgba(0,0,0,0.4));
+opacity: 1;
+    transition: opacity 200ms ease;
+}
+
+
+.payment-logosss.is-hidden {
+    opacity: 0;
+}
+
 .payment-container {
   position: relative;  /* required for z-index & box-shadow */
   max-width: 600px;
@@ -1337,7 +1351,7 @@ CROP MODAL
     <!-- American Bank Transfer (Corrected Layout & US Banks) -->
     <div class="payment-method glass-cards" data-method="American Bank Transfer" data-region="usa">
       <div class="payment-header">
-        <img class="payment-logoss" src="https://cdn-icons-png.flaticon.com/512/2830/2830284.png">
+        <img class="payment-logosss" src="https://cdn-icons-png.flaticon.com/512/2830/2830284.png">
         <span>▼ Bank Transfer</span>
       </div>
       <select id="americanBankSelect">
@@ -1685,20 +1699,19 @@ $(document).ready(function () {
 $(document).ready(function () {
 
         const bankLogos = {
-        "Chase Bank": "https://raw.githubusercontent.com/avalonflow/AvalonFlow/main/assets/pictures/Chase_Extended_Logo.png", // Replace with your actual Chase asset path if needed
-        "Bank of America": "https://raw.githubusercontent.com/avalonflow/AvalonFlow/main/assets/pictures/Bank_of_America_logo.png", // Replace with your actual BofA asset path if needed
-        "Wells Fargo": "https://raw.githubusercontent.com/avalonflow/AvalonFlow/main/assets/pictures/Wells_Fargo_logo.png", // Replace with your actual Wells Fargo asset path if needed
-        "Citi (Citibank)": "https://raw.githubusercontent.com/avalonflow/AvalonFlow/main/assets/pictures/Citi_logo.png", // Replace with your actual Citi asset path if needed
-        "U.S. Bank": "https://raw.githubusercontent.com/avalonflow/AvalonFlow/main/assets/pictures/US_Bank_logo.png", // Replace with your actual US Bank asset path if needed
-        "PNC Bank": "https://raw.githubusercontent.com/avalonflow/AvalonFlow/main/assets/pictures/PNClogo.svg.png",
-        "Capital One": "https://raw.githubusercontent.com/avalonflow/AvalonFlow/main/assets/pictures/Capital_One_logo.svg.png",
-        "Fifth Third Bank": "https://raw.githubusercontent.com/avalonflow/AvalonFlow/main/assets/pictures/logo-stacked-primary-full-thumb.png"
-    };
-
+    "Chase Bank": "https://raw.githubusercontent.com/avalonflow/AvalonFlow/main/assets/pictures/dcaa7faba7f565af7efbf1135c2e144.jpg",
+    "Bank of America": "https://raw.githubusercontent.com/avalonflow/AvalonFlow/main/assets/pictures/7826c02a5b48ea41e801cafcb0bba674.jpg",
+    "Wells Fargo": "https://raw.githubusercontent.com/avalonflow/AvalonFlow/main/assets/pictures/Wells_Fargo_Logo_(2020).png",
+    "Citi (Citibank)": "https://raw.githubusercontent.com/avalonflow/AvalonFlow/main/assets/pictures/df079c7d167289b284e6bc9402a81c96.jpg",
+    "U.S. Bank": "https://raw.githubusercontent.com/avalonflow/AvalonFlow/main/assets/pictures/US-Bank-Logo-700x394.png",
+    "PNC Bank": "https://raw.githubusercontent.com/avalonflow/AvalonFlow/main/assets/pictures/PNClogo.svg.png",
+    "Capital One": "https://raw.githubusercontent.com/avalonflow/AvalonFlow/main/assets/pictures/Capital_One_logo.svg.png",
+    "Fifth Third Bank": "https://raw.githubusercontent.com/avalonflow/AvalonFlow/main/assets/pictures/logo-stacked-primary-full-thumb.png"
+};
 
     const defaultLogo = "https://cdn-icons-png.flaticon.com/512/2830/2830284.png";
 
-    const $logo = $('.payment-logoss');
+    const $logo = $('.payment-logosss');
 
     $('#americanBankSelect').on('change', function () {
 
