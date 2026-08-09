@@ -124,7 +124,7 @@
     // 🕒 DYNAMIC DATA SYNCHRONIZATION WITH DASHBOARD
     // ==========================================
     
-    // 1. Get initial visit baseline (or lock it if missing)
+    // 1. Fetch fixed visit time baseline from localStorage (syncs with dashboard)
     let savedVisitTime = localStorage.getItem("av_initial_visit");
     if (!savedVisitTime) {
         savedVisitTime = Date.now().toString();
@@ -132,7 +132,7 @@
     }
     const visitDate = new Date(parseInt(savedVisitTime, 10));
 
-    // Helper: Format exact timestamps (e.g., "Aug 9, 2026 • 03:15 PM")
+    // Helper: Formats dates into "MMM D, YYYY • HH:MM AM/PM" format
     const formatTimestamp = (dateObj) => {
         const dateStr = dateObj.toLocaleDateString('en-US', {
             month: 'short',
@@ -147,17 +147,21 @@
         return `${dateStr} • ${timeStr}`;
     };
 
-    // Calculate dynamic activity timestamps relative to visit Date
+    // Calculate relative anchor timestamps matching dashboard's txTimes logic:
     const currentSignInTime = formatTimestamp(new Date());
     const previousSignInTime = formatTimestamp(visitDate);
-    
-    // Check if withdrawal was completed in dashboard
+    const bonusCreditedTime = formatTimestamp(new Date(visitDate.getTime() - (2 * 60 * 60 * 1000))); // 2 hours before visit
+    const coreDepositTime = formatTimestamp(new Date(visitDate.getTime() - (24 * 60 * 60 * 1000)));   // 24 hours before visit
+
+    // Read persistent withdrawal state and timestamp directly from dashboard keys
     const isWithdrawn = localStorage.getItem("av_withdrawn") === "true";
     let storedWithdrawalTime = localStorage.getItem("av_withdrawal_time");
-    
-    if (isWithdrawn && !storedWithdrawalTime) {
-        storedWithdrawalTime = formatTimestamp(new Date());
-        localStorage.setItem("av_withdrawal_time", storedWithdrawalTime);
+
+    // Clean up or convert raw withdrawal timestamp format to match notification UI styling
+    let formattedWithdrawalTime = currentSignInTime;
+    if (storedWithdrawalTime) {
+        // Replace dynamic dash/comma separators if coming from local string
+        formattedWithdrawalTime = storedWithdrawalTime.replace(',', ' •');
     }
 
     // 2. Build Notifications Array dynamically
@@ -170,11 +174,11 @@
         description: "Active session initiated on this device.",
         timestamp: currentSignInTime,
         isRead: false,
-        ipAddress: "102.89.23.14" // Dynamic or fallback IP
+        ipAddress: "102.89.23.14"
       }
     ];
 
-    // Append withdrawal notification dynamically if user triggered it in dashboard
+    // Append withdrawal notification if executed in dashboard
     if (isWithdrawn) {
       notifications.push({
         id: 2,
@@ -182,31 +186,41 @@
         category: "success",
         title: "Retention Bonus Withdrawal",
         description: "Your withdrawal request of <strong>$26,779.97 USD (26,779.97 ACU)</strong> has been processed to your destination wallet.",
-        timestamp: storedWithdrawalTime || currentSignInTime,
+        timestamp: formattedWithdrawalTime,
         isRead: false,
         txRef: "TXN-AVB" + Math.floor(100000 + Math.random() * 900000)
       });
     }
 
-    // Append baseline history notifications synced with dashboard anchors
+    // Baseline historical activity notifications (Synced strictly with dashboard txTimes)
     notifications.push(
       {
         id: 3,
+        type: "deposit",
+        category: "success",
+        title: "Retention Bonus Credited",
+        description: "Retention bonus allocation of <strong>$26,779.97 USD (26,779.97 ACU)</strong> has been successfully credited to your account.",
+        timestamp: bonusCreditedTime,
+        isRead: true,
+        txRef: "TXN-BONUS" + Math.floor(100000 + Math.random() * 900000)
+      },
+      {
+        id: 4,
         type: "signin",
         category: "security",
-        title: "Account Sign-in",
+        title: "Previous Account Sign-in",
         description: "Successful login session recorded.",
         timestamp: previousSignInTime,
         isRead: true,
         ipAddress: "102.89.23.14"
       },
       {
-        id: 4,
-        type: "withdrawal",
+        id: 5,
+        type: "deposit",
         category: "success",
         title: "Core Balance Allocation",
         description: "Core available deposit of <strong>$147,349.26 USD</strong> settled to wallet account.",
-        timestamp: formatTimestamp(new Date(visitDate.getTime() - (24 * 60 * 60 * 1000))),
+        timestamp: coreDepositTime,
         isRead: true,
         txRef: "TXN-8849100"
       }
@@ -215,6 +229,9 @@
     let currentFilter = 'all';
 
     function getIcon(type, category) {
+      if (type === 'deposit') {
+        return { icon: 'fa-arrow-down-left-from-square', bg: 'bg-emerald-50 text-emerald-600 border-emerald-200' };
+      }
       if (type === 'withdrawal') {
         if (category === 'success') return { icon: 'fa-arrow-up-right-from-square', bg: 'bg-emerald-50 text-emerald-600 border-emerald-200' };
         if (category === 'pending') return { icon: 'fa-clock', bg: 'bg-amber-50 text-amber-600 border-amber-200' };
@@ -233,6 +250,7 @@
       const filtered = notifications.filter(item => {
         if (currentFilter === 'unread') return !item.isRead;
         if (currentFilter === 'withdrawal') return item.type === 'withdrawal';
+        if (currentFilter === 'deposit') return item.type === 'deposit';
         if (currentFilter === 'signin') return item.type === 'signin';
         return true;
       });
