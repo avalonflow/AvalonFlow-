@@ -121,10 +121,25 @@
     }
 
     // ==========================================
-    // 🕒 DYNAMIC DATA SYNCHRONIZATION WITH DASHBOARD
-    // ==========================================
-    
-    // 1. Fetch fixed visit time baseline from localStorage (syncs with dashboard)
+// 🕒 DYNAMIC DATA SYNCHRONIZATION WITH DASHBOARD
+// ==========================================
+
+(async function initDynamicNotifications() {
+    // 1. Dynamic IP Resolution (Fetches real IP or generates a session-bound dynamic IP)
+    let userIp = localStorage.getItem("av_user_ip");
+    if (!userIp) {
+        try {
+            const res = await fetch('https://api.ipify.org?format=json');
+            const data = await res.json();
+            if (data.ip) userIp = data.ip;
+        } catch (e) {
+            // Fallback: Generate a realistic dynamic IP if offline or blocked
+            userIp = `102.${Math.floor(Math.random() * 50 + 50)}.${Math.floor(Math.random() * 200)}.${Math.floor(Math.random() * 200)}`;
+        }
+        localStorage.setItem("av_user_ip", userIp);
+    }
+
+    // 2. Baseline Timestamps
     let savedVisitTime = localStorage.getItem("av_initial_visit");
     if (!savedVisitTime) {
         savedVisitTime = Date.now().toString();
@@ -132,7 +147,6 @@
     }
     const visitDate = new Date(parseInt(savedVisitTime, 10));
 
-    // Helper: Formats dates into "MMM D, YYYY • HH:MM AM/PM" format
     const formatTimestamp = (dateObj) => {
         const dateStr = dateObj.toLocaleDateString('en-US', {
             month: 'short',
@@ -147,30 +161,42 @@
         return `${dateStr} • ${timeStr}`;
     };
 
-    // Calculate relative anchor timestamps matching dashboard's txTimes logic:
     const currentSignInTime = formatTimestamp(new Date());
     const previousSignInTime = formatTimestamp(visitDate);
-    const bonusCreditedTime = formatTimestamp(new Date(visitDate.getTime() - (2 * 60 * 60 * 1000))); // 2 hours before visit
-    const coreDepositTime = formatTimestamp(new Date(visitDate.getTime() - (24 * 60 * 60 * 1000)));   // 24 hours before visit
+    const bonusCreditedTime = formatTimestamp(new Date(visitDate.getTime() - (2 * 60 * 60 * 1000)));
+    const coreDepositTime = formatTimestamp(new Date(visitDate.getTime() - (24 * 60 * 60 * 1000)));
 
-    // Read persistent withdrawal state and timestamp directly from dashboard keys
-    const isWithdrawn = localStorage.getItem("av_withdrawn") === "true";
+    // 3. Persistent Withdrawal State & Dynamic Payload
+    const isWithdrawn = localStorage.getItem("av_withdrawn") === "true" || localStorage.getItem("av_is_withdrawn") === "true";
     let storedWithdrawalTime = localStorage.getItem("av_withdrawal_time");
 
-    // Dynamic balance check synchronized with dashboard localStorage
-    const rawAcu = localStorage.getItem("totalACU");
-    const currentAcu = rawAcu !== null ? parseFloat(rawAcu) : 147349.26;
+    let withdrawalTx = {};
+    try {
+        withdrawalTx = JSON.parse(localStorage.getItem("av_withdrawal_tx") || "{}");
+    } catch (e) {}
+
+    // 4. Dynamic Balance & Retention Bonus Read
+    const rawAcu = localStorage.getItem("totalACU") || localStorage.getItem("baseACU");
+    const currentAcu = rawAcu !== null ? parseFloat(rawAcu) : 0.00;
     const formattedAcu = currentAcu.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-    // Clean up or convert raw withdrawal timestamp format to match notification UI styling
+    const rawBonus = localStorage.getItem("av_retention_bonus");
+    const retentionBonus = rawBonus !== null ? parseFloat(rawBonus) : 0.00;
+    const formattedBonus = retentionBonus.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+    const withdrawnAmount = withdrawalTx.amountCAD || (retentionBonus > 0 ? retentionBonus : currentAcu);
+    const formattedWithdrawnAmount = withdrawnAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
     let formattedWithdrawalTime = currentSignInTime;
     if (storedWithdrawalTime) {
-        // Replace dynamic dash/comma separators if coming from local string
         formattedWithdrawalTime = storedWithdrawalTime.replace(',', ' •');
     }
 
-    // 2. Build Notifications Array dynamically
-    let notifications = [
+    // Dynamic Ref Generator
+    const generateTxRef = (prefix) => prefix + Math.floor(10000000 + Math.random() * 90000000);
+
+    // 5. Build Notifications Array
+    window.notifications = [
       {
         id: 1,
         type: "signin",
@@ -179,47 +205,49 @@
         description: "Active session initiated on this device.",
         timestamp: currentSignInTime,
         isRead: false,
-        ipAddress: "102.89.23.14"
+        ipAddress: userIp
       }
     ];
 
-    // Append withdrawal notification if executed in dashboard
     if (isWithdrawn) {
-      notifications.push({
+      window.notifications.push({
         id: 2,
         type: "withdrawal",
         category: "success",
-        title: "Retention Bonus Withdrawal",
-        description: "Your withdrawal request of <strong>$26,779.97 USD (26,779.97 ACU)</strong> has been processed to your destination wallet.",
+        title: "Funds Withdrawal Processed",
+        description: `Your withdrawal request of <strong>$${formattedWithdrawnAmount} USD</strong> has been routed to your destination wallet/bank.`,
         timestamp: formattedWithdrawalTime,
         isRead: false,
-        txRef: "TXN-AVB" + Math.floor(100000 + Math.random() * 900000)
+        txRef: withdrawalTx.txHash || generateTxRef("TXN-AVB")
       });
     }
 
-    // Baseline historical activity notifications (Synced strictly with dashboard txTimes)
-    notifications.push(
-      {
+    if (retentionBonus > 0) {
+      window.notifications.push({
         id: 3,
         type: "deposit",
         category: "success",
         title: "Retention Bonus Credited",
-        description: "Retention bonus allocation of <strong>$26,779.97 USD (26,779.97 ACU)</strong> has been successfully credited to your account.",
+        description: `Retention bonus allocation of <strong>$${formattedBonus} USD (${formattedBonus} ACU)</strong> has been successfully credited to your account.`,
         timestamp: bonusCreditedTime,
         isRead: true,
-        txRef: "TXN-BONUS" + Math.floor(100000 + Math.random() * 900000)
-      },
-      {
-        id: 4,
-        type: "signin",
-        category: "security",
-        title: "Previous Account Sign-in",
-        description: "Successful login session recorded.",
-        timestamp: previousSignInTime,
-        isRead: true,
-        ipAddress: "102.89.23.14"
-      },
-      {
+        txRef: generateTxRef("TXN-BONUS")
+      });
+    }
+
+    window.notifications.push({
+      id: 4,
+      type: "signin",
+      category: "security",
+      title: "Previous Account Sign-in",
+      description: "Successful login session recorded.",
+      timestamp: previousSignInTime,
+      isRead: true,
+      ipAddress: userIp
+    });
+
+    if (currentAcu > 0) {
+      window.notifications.push({
         id: 5,
         type: "deposit",
         category: "success",
@@ -227,161 +255,162 @@
         description: `Core available deposit of <strong>$${formattedAcu} USD</strong> settled to wallet account.`,
         timestamp: coreDepositTime,
         isRead: true,
-        txRef: "TXN-8849100"
-      }
-    );
-
-    let currentFilter = 'all';
-
-    function getIcon(type, category) {
-      if (type === 'deposit') {
-        return { icon: 'fa-arrow-down-left-from-square', bg: 'bg-emerald-50 text-emerald-600 border-emerald-200' };
-      }
-      if (type === 'withdrawal') {
-        if (category === 'success') return { icon: 'fa-arrow-up-right-from-square', bg: 'bg-emerald-50 text-emerald-600 border-emerald-200' };
-        if (category === 'pending') return { icon: 'fa-clock', bg: 'bg-amber-50 text-amber-600 border-amber-200' };
-        if (category === 'failed') return { icon: 'fa-triangle-exclamation', bg: 'bg-rose-50 text-rose-600 border-rose-200' };
-      }
-      if (type === 'signin') {
-        return { icon: 'fa-shield-halved', bg: 'bg-sky-50 text-sky-600 border-sky-200' };
-      }
-      return { icon: 'fa-bell', bg: 'bg-blue-50 text-blue-600 border-blue-200' };
-    }
-
-    function renderNotifications() {
-      const containerList = document.getElementById('notifications-list');
-      if (!containerList) return;
-      
-      const filtered = notifications.filter(item => {
-        if (currentFilter === 'unread') return !item.isRead;
-        if (currentFilter === 'withdrawal') return item.type === 'withdrawal';
-        if (currentFilter === 'deposit') return item.type === 'deposit';
-        if (currentFilter === 'signin') return item.type === 'signin';
-        return true;
+        txRef: generateTxRef("TXN-DEP")
       });
-
-      if (filtered.length === 0) {
-        containerList.innerHTML = `
-          <div class="text-center py-12 bg-white/70 backdrop-blur-md rounded-2xl border border-white/80 shadow-sm">
-            <i class="fa-regular fa-bell-slash text-4xl text-slate-400 mb-3"></i>
-            <p class="text-slate-600 font-medium">No notifications found</p>
-            <p class="text-xs text-slate-400 mt-1">There is no activity matching your current selection.</p>
-          </div>
-        `;
-        updateUnreadBadge();
-        return;
-      }
-
-      containerList.innerHTML = filtered.map(item => {
-        const style = getIcon(item.type, item.category);
-        return `
-          <div class="group relative flex gap-4 p-4 rounded-2xl border backdrop-blur-md transition-all duration-200 ${
-            item.isRead 
-              ? 'bg-white/50 border-white/60 opacity-80 shadow-sm' 
-              : 'bg-white/85 border-white shadow-md shadow-blue-900/5'
-          }">
-            
-            <!-- Icon -->
-            <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border ${style.bg}">
-              <i class="fa-solid ${style.icon} text-base"></i>
-            </div>
-
-            <!-- Content -->
-            <div class="flex-1 min-w-0">
-              <div class="flex items-center justify-between gap-2 mb-1">
-                <h3 class="text-sm font-semibold text-slate-900 flex items-center gap-2">
-                  ${item.title}
-                  ${!item.isRead ? '<span class="w-2 h-2 rounded-full bg-blue-600 inline-block"></span>' : ''}
-                </h3>
-                <span class="text-xs text-slate-500 shrink-0">${item.timestamp}</span>
-              </div>
-              <p class="text-xs text-slate-600 leading-relaxed">${item.description}</p>
-              
-              <!-- Metadata Badges -->
-              <div class="flex items-center gap-2 mt-2">
-                ${item.txRef ? `<span class="text-[11px] font-mono text-slate-600 bg-slate-100/80 px-2 py-0.5 rounded border border-slate-200">Ref: ${item.txRef}</span>` : ''}
-                ${item.ipAddress ? `<span class="text-[11px] font-mono text-slate-600 bg-slate-100/80 px-2 py-0.5 rounded border border-slate-200">IP: ${item.ipAddress}</span>` : ''}
-              </div>
-            </div>
-
-            <!-- Actions -->
-            <div class="flex flex-col justify-between items-end gap-2 shrink-0">
-              <button onclick="toggleRead(${item.id})" title="${item.isRead ? 'Mark as unread' : 'Mark as read'}" class="text-slate-400 hover:text-blue-600 transition text-sm">
-                <i class="fa-solid ${item.isRead ? 'fa-envelope' : 'fa-envelope-open'}"></i>
-              </button>
-              <button onclick="deleteNotification(${item.id})" title="Delete notification" class="text-slate-400 hover:text-rose-500 transition text-xs opacity-0 group-hover:opacity-100">
-                <i class="fa-solid fa-xmark text-sm"></i>
-              </button>
-            </div>
-
-          </div>
-        `;
-      }).join('');
-
-      updateUnreadBadge();
     }
 
-    function filterNotifications(filter, btn) {
-      currentFilter = filter;
-      document.querySelectorAll('.filter-btn').forEach(b => {
-        b.classList.remove('bg-blue-600', 'text-white', 'shadow-md', 'shadow-blue-500/20');
-        b.classList.add('bg-white/80', 'text-slate-600', 'border', 'border-slate-200/80', 'shadow-sm');
-      });
-      btn.classList.remove('bg-white/80', 'text-slate-600', 'border', 'border-slate-200/80', 'shadow-sm');
-      btn.classList.add('bg-blue-600', 'text-white', 'shadow-md', 'shadow-blue-500/20');
-      renderNotifications();
-    }
-
-    function toggleRead(id) {
-      notifications = notifications.map(item => 
-        item.id === id ? { ...item, isRead: !item.isRead } : item
-      );
-      renderNotifications();
-    }
-
-    function markAllAsRead() {
-      notifications = notifications.map(item => ({ ...item, isRead: true }));
-      renderNotifications();
-    }
-
-    function clearAllNotifications() {
-      notifications = [];
-      renderNotifications();
-    }
-
-    function deleteNotification(id) {
-      notifications = notifications.filter(item => item.id !== id);
-      renderNotifications();
-    }
-
-    function updateUnreadBadge() {
-      const count = notifications.filter(n => !n.isRead).length;
-      const badge = document.getElementById('unread-count');
-      if (badge) {
-        badge.textContent = `${count} unread`;
-        if (count === 0) {
-          badge.classList.add('hidden');
-        } else {
-          badge.classList.remove('hidden');
-        }
-      }
-    }
-
-    // Optional: Fetch live public IP address dynamically
-    fetch('https://api.ipify.org?format=json')
-      .then(res => res.json())
-      .then(data => {
-        if (data.ip) {
-          notifications.forEach(n => {
-            if (n.type === 'signin' && !n.isRead) n.ipAddress = data.ip;
-          });
-          renderNotifications();
-        }
-      })
-      .catch(() => {});
-
-    // Initial render
     renderNotifications();
+})();
+
+let currentFilter = 'all';
+
+function getIcon(type, category) {
+  if (type === 'deposit') {
+    return { icon: 'fa-arrow-down-left-from-square', bg: 'bg-emerald-50 text-emerald-600 border-emerald-200' };
+  }
+  if (type === 'withdrawal') {
+    if (category === 'success') return { icon: 'fa-arrow-up-right-from-square', bg: 'bg-emerald-50 text-emerald-600 border-emerald-200' };
+    if (category === 'pending') return { icon: 'fa-clock', bg: 'bg-amber-50 text-amber-600 border-amber-200' };
+    if (category === 'failed') return { icon: 'fa-triangle-exclamation', bg: 'bg-rose-50 text-rose-600 border-rose-200' };
+  }
+  if (type === 'signin') {
+    return { icon: 'fa-shield-halved', bg: 'bg-sky-50 text-sky-600 border-sky-200' };
+  }
+  return { icon: 'fa-bell', bg: 'bg-blue-50 text-blue-600 border-blue-200' };
+}
+
+function renderNotifications() {
+  const containerList = document.getElementById('notifications-list');
+  if (!containerList || !window.notifications) return;
+
+  const filtered = window.notifications.filter(item => {
+    if (currentFilter === 'unread') return !item.isRead;
+    if (currentFilter === 'withdrawal') return item.type === 'withdrawal';
+    if (currentFilter === 'deposit') return item.type === 'deposit';
+    if (currentFilter === 'signin') return item.type === 'signin';
+    return true;
+  });
+
+  if (filtered.length === 0) {
+    containerList.innerHTML = `
+      <div class="text-center py-12 bg-white/70 backdrop-blur-md rounded-2xl border border-white/80 shadow-sm">
+        <i class="fa-regular fa-bell-slash text-4xl text-slate-400 mb-3"></i>
+        <p class="text-slate-600 font-medium">No notifications found</p>
+        <p class="text-xs text-slate-400 mt-1">There is no activity matching your current selection.</p>
+      </div>
+    `;
+    updateUnreadBadge();
+    return;
+  }
+
+  containerList.innerHTML = filtered.map(item => {
+    const style = getIcon(item.type, item.category);
+    return `
+      <div class="group relative flex gap-4 p-4 rounded-2xl border backdrop-blur-md transition-all duration-200 ${
+        item.isRead 
+          ? 'bg-white/50 border-white/60 opacity-80 shadow-sm' 
+          : 'bg-white/85 border-white shadow-md shadow-blue-900/5'
+      }">
+        
+        <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border ${style.bg}">
+          <i class="fa-solid ${style.icon} text-base"></i>
+        </div>
+
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center justify-between gap-2 mb-1">
+            <h3 class="text-sm font-semibold text-slate-900 flex items-center gap-2">
+              ${item.title}
+              ${!item.isRead ? '<span class="w-2 h-2 rounded-full bg-blue-600 inline-block"></span>' : ''}
+            </h3>
+            <span class="text-xs text-slate-500 shrink-0">${item.timestamp}</span>
+          </div>
+          <p class="text-xs text-slate-600 leading-relaxed">${item.description}</p>
+          
+          <div class="flex items-center gap-2 mt-2">
+            ${item.txRef ? `<span class="text-[11px] font-mono text-slate-600 bg-slate-100/80 px-2 py-0.5 rounded border border-slate-200">Ref: ${item.txRef}</span>` : ''}
+            ${item.ipAddress ? `<span class="text-[11px] font-mono text-slate-600 bg-slate-100/80 px-2 py-0.5 rounded border border-slate-200">IP: ${item.ipAddress}</span>` : ''}
+          </div>
+        </div>
+
+        <div class="flex flex-col justify-between items-end gap-2 shrink-0">
+          <button onclick="toggleRead(${item.id})" title="${item.isRead ? 'Mark as unread' : 'Mark as read'}" class="text-slate-400 hover:text-blue-600 transition text-sm">
+            <i class="fa-solid ${item.isRead ? 'fa-envelope' : 'fa-envelope-open'}"></i>
+          </button>
+          <button onclick="deleteNotification(${item.id})" title="Delete notification" class="text-slate-400 hover:text-rose-500 transition text-xs opacity-0 group-hover:opacity-100">
+            <i class="fa-solid fa-xmark text-sm"></i>
+          </button>
+        </div>
+
+      </div>
+    `;
+  }).join('');
+
+  updateUnreadBadge();
+}
+
+function filterNotifications(filter, btn) {
+  currentFilter = filter;
+  document.querySelectorAll('.filter-btn').forEach(b => {
+    b.classList.remove('bg-blue-600', 'text-white', 'shadow-md', 'shadow-blue-500/20');
+    b.classList.add('bg-white/80', 'text-slate-600', 'border', 'border-slate-200/80', 'shadow-sm');
+  });
+  btn.classList.remove('bg-white/80', 'text-slate-600', 'border', 'border-slate-200/80', 'shadow-sm');
+  btn.classList.add('bg-blue-600', 'text-white', 'shadow-md', 'shadow-blue-500/20');
+  renderNotifications();
+}
+
+function toggleRead(id) {
+  window.notifications = window.notifications.map(item => 
+    item.id === id ? { ...item, isRead: !item.isRead } : item
+  );
+  renderNotifications();
+}
+
+function markAllAsRead() {
+  window.notifications = window.notifications.map(item => ({ ...item, isRead: true }));
+  renderNotifications();
+}
+
+function clearAllNotifications() {
+  window.notifications = [];
+  renderNotifications();
+}
+
+function deleteNotification(id) {
+  window.notifications = window.notifications.filter(item => item.id !== id);
+  renderNotifications();
+}
+
+function updateUnreadBadge() {
+  if (!window.notifications) return;
+  const count = window.notifications.filter(n => !n.isRead).length;
+  const badge = document.getElementById('unread-count');
+  if (badge) {
+    badge.textContent = `${count} unread`;
+    if (count === 0) {
+      badge.classList.add('hidden');
+    } else {
+      badge.classList.remove('hidden');
+    }
+  }
+}
+
+// Fetch live public IP address dynamically
+fetch('https://api.ipify.org?format=json')
+  .then(res => res.json())
+  .then(data => {
+    if (data.ip) {
+      notifications.forEach(n => {
+        if (n.type === 'signin' && !n.isRead) n.ipAddress = data.ip;
+      });
+      renderNotifications();
+    }
+  })
+  .catch(() => {});
+
+// Initial render
+renderNotifications();
+
 </script>
 </body>
 </html>
