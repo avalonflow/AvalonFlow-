@@ -1714,6 +1714,9 @@ function updateRetentionBonusUI() {
         savedTx = JSON.parse(localStorage.getItem("av_withdrawal_tx") || "{}");
     } catch(e) {}
 
+    // Determine withdrawal origin source type ('available' or 'bonus')
+    const withdrawalSource = savedTx.sourceType || "available";
+
     if (isWithdrawn && !withdrawalTime) {
         withdrawalTime = new Date().toLocaleDateString('en-US', {
             month: 'short', day: '2-digit', year: 'numeric'
@@ -1752,10 +1755,11 @@ function updateRetentionBonusUI() {
         }
     }
 
-    // 2. Build Dynamic Transaction Rows
+    // 2. Build Dynamic Transaction Rows Based on Withdrawal Source
     let rowsHTML = "";
 
-    if (isWithdrawn) {
+    // -- Available Balance Row --
+    if (isWithdrawn && withdrawalSource === "available") {
         const withdrawnVal = savedTx.amountCAD || currentBaseACU;
         rowsHTML += createRowHTML(
             `Available Balance Withdrawal (${savedTx.method || 'Payout'})`, 
@@ -1776,10 +1780,12 @@ function updateRetentionBonusUI() {
         );
     }
 
+    // -- Retention Bonus Rows --
     if (retentionBonus > 0 || isWithdrawn) {
-        const bonusAmountText = formatCurrency(retentionBonus > 0 ? retentionBonus : 1000);
+        const bonusAmountText = formatCurrency(savedTx.amountCAD || (retentionBonus > 0 ? retentionBonus : 1000));
 
-        if (isWithdrawn) {
+        if (isWithdrawn && withdrawalSource === "bonus") {
+            // Settled base allocation row
             rowsHTML += createRowHTML(
                 "Retention Bonus Allocation", 
                 txTimes.bonusReceived, 
@@ -1789,15 +1795,16 @@ function updateRetentionBonusUI() {
                 "#8b949e", 
                 true
             );
+            // Dynamic processing payout row matching the bank/method format
             rowsHTML += createRowHTML(
-                "Retention Bonus Payout Transfer", 
+                `Retention Bonus Withdrawal (${savedTx.method || 'Payout'})`, 
                 withdrawalTime, 
                 "Processing", 
                 "background: rgba(248,81,73,0.15); color: #f85149;", 
                 `-${bonusAmountText}`, 
                 "#f85149"
             );
-        } else {
+        } else if (retentionBonus > 0) {
             rowsHTML += createRowHTML(
                 "Retention Bonus Allocation", 
                 txTimes.bonusReceived, 
