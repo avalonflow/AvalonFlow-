@@ -1343,12 +1343,12 @@ function toggleSidebar() {
 function navigateTo(page){
     window.location.href = page;
 }
-        function logout(){
+                function logout(){
             localStorage.removeItem("avalon_logged_in");
             localStorage.removeItem("avalon_seen_dashboard");
             window.location.href = 'https://membership.avalonflow.site/signin';
         }
-
+
         // ================================
 // 🔐 PLAN CONFIG (SYNCED WITH RETURNS)
 // ================================
@@ -1687,7 +1687,7 @@ AVB ENGINE (DASHBOARD MATCH)
         localStorage.removeItem("avb_expiry_time");
         localStorage.removeItem("avb_redirected_to_avb");
         localStorage.removeItem("avb_session_state");
-        
+
         localStorage.setItem("avb_key_used", "true");
     }
 
@@ -1786,17 +1786,14 @@ SESSION GUARD (CLEANED)
 // ==========================================
 // 🕒 PERSISTENT TEMPORAL REALISM & ANCHORS
 // ==========================================
-// Check if an initial visit timestamp is already locked into local storage
 let savedVisitTime = localStorage.getItem("av_initial_visit");
 
 if (!savedVisitTime) {
-    // If it's their first time loading, lock in the exact current time permanently
     savedVisitTime = new Date().getTime().toString();
     localStorage.setItem("av_initial_visit", savedVisitTime);
 }
 
-// Instantiate the baseline date using the fixed historical anchor string
-const visitDate = new Date(parseInt(savedVisitTime));
+const visitDate = new Date(parseInt(savedVisitTime, 10));
 
 const formatTxDate = (dateOffsetMs) => {
     const txDate = new Date(visitDate.getTime() - dateOffsetMs);
@@ -1812,28 +1809,44 @@ const formatTxDate = (dateOffsetMs) => {
 };
 
 const txTimes = {
-    balance: formatTxDate(24 * 60 * 60 * 1000),      // Exactly 24 hours before first visit
-    bonusReceived: formatTxDate(2 * 60 * 60 * 1000), // Exactly 2 hours before first visit
-    bonusWithdrawn: formatTxDate(0)                  // Exact minute of first visit
+    balance: formatTxDate(24 * 60 * 60 * 1000),      // 24 hours prior to initial visit
+    bonusReceived: formatTxDate(2 * 60 * 60 * 1000)   // 2 hours prior to initial visit
 };
 
 
 // ==========================================
-// 🔓 RETENTION BONUS & COLLAPSIBLE HANDLER
+// 🔓 RETENTION BONUS & DYNAMIC TRANSACTIONS
 // ==========================================
+function getNumericStorageItem(key, defaultValue) {
+    const value = localStorage.getItem(key);
+    return value !== null ? parseFloat(value) : defaultValue;
+}
+
+function formatCurrency(amount) {
+    return "$" + amount.toLocaleString('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    });
+}
+
 function updateRetentionBonusUI() {
     const urlParams = new URLSearchParams(window.location.search);
     const isWithdrawn = localStorage.getItem("av_withdrawn") === "true" || urlParams.get("av_withdrawn") === "true";
-    
+
+    // Read Base ACU (Checks localStorage first, falls back to BASE_ACU variable)
+    const currentBaseACU = getNumericStorageItem("baseACU", typeof BASE_ACU !== 'undefined' ? BASE_ACU : 0.00);
+
+    // Read Retention Bonus from LocalStorage (defaults to 0.00 if omitted)
+    const retentionBonus = getNumericStorageItem("av_retention_bonus", 0.00);
+
     const bonusCardStat = document.querySelector(".stat-card:nth-child(3) .stat");
     const historyTableBody = document.getElementById("transactionHistoryRows");
-    
+
     if (!historyTableBody) return;
 
-    // --- NEW: Handle persistent timestamp for the exact moment of withdrawal ---
+    // Handle persistent withdrawal timestamp
     let withdrawalTime = localStorage.getItem("av_withdrawal_time");
     if (isWithdrawn && !withdrawalTime) {
-        // Capture the exact moment they executed the withdrawal
         withdrawalTime = new Date().toLocaleDateString('en-US', {
             month: 'short', day: '2-digit', year: 'numeric'
         }) + `, ` + new Date().toLocaleTimeString('en-US', {
@@ -1841,10 +1854,8 @@ function updateRetentionBonusUI() {
         });
         localStorage.setItem("av_withdrawal_time", withdrawalTime);
     } else if (!isWithdrawn) {
-        // Clear it if state reset
         localStorage.removeItem("av_withdrawal_time");
     }
-    // ----------------------------------------------------------------------------
 
     const createRowHTML = (desc, date, statusLabel, statusStyle, amountText, amountColor, isSettled = false) => `
         <div style="display: flex; flex-direction: column; gap: 6px; padding: 12px 4px; border-bottom: 1px solid rgba(255,255,255,0.08); font-size: 14px; opacity: ${isSettled ? '0.6' : '1'};">
@@ -1859,40 +1870,84 @@ function updateRetentionBonusUI() {
         </div>
     `;
 
-    if (isWithdrawn) {
-        if (bonusCardStat) {
+    // 1. Update Card Display
+    if (bonusCardStat) {
+        if (isWithdrawn || retentionBonus <= 0) {
             bonusCardStat.textContent = "0.00 ACU ~ $0.00";
             bonusCardStat.style.animation = "none";
             bonusCardStat.style.webkitTextFillColor = "#555";
+        } else {
+            bonusCardStat.textContent = `${retentionBonus.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ACU ~ ${formatCurrency(retentionBonus)}`;
+            bonusCardStat.style.animation = "";
+            bonusCardStat.style.webkitTextFillColor = "";
         }
-        
-        historyTableBody.innerHTML = 
-            createRowHTML("Core Available Balance Deposit", txTimes.balance, "Completed", "background: rgba(46,160,67,0.15); color: #3fb950;", "+$147,349.26", "#3fb950") +
-            createRowHTML("Retention Bonus Allocation", txTimes.bonusReceived, "Settled", "background: rgba(255,255,255,0.08); color: #8b949e;", "$0.00", "#8b949e", true) +
-            // Uses the fresh locked withdrawal moment instead of landing time anchor
-            createRowHTML("Retention Bonus Withdrawal", withdrawalTime, "Processing", "background: rgba(248,81,73,0.15); color: #f85149;", "-$26,779.97", "#f85149");
-    } else {
-        if (bonusCardStat) {
-            bonusCardStat.textContent = "26,779.97 ACU ~ $26,779.97";
-        }
-        
-        historyTableBody.innerHTML = 
-            createRowHTML("Core Available Balance Deposit", txTimes.balance, "Completed", "background: rgba(46,160,67,0.15); color: #3fb950;", "+$147,349.26", "#3fb950") +
-            createRowHTML("Retention Bonus Allocation", txTimes.bonusReceived, "Available", "background: rgba(56,139,253,0.15); color: #58a6ff;", "+$26,779.97", "#58a6ff");
     }
+
+    // 2. Build Transaction Rows Dynamically
+    let rowsHTML = "";
+
+    // Show Core Deposit row ONLY if baseACU > 0
+    if (currentBaseACU > 0) {
+        const coreDepositText = `+${formatCurrency(currentBaseACU)}`;
+        rowsHTML += createRowHTML(
+            "Core Available Balance Deposit", 
+            txTimes.balance, 
+            "Completed", 
+            "background: rgba(46,160,67,0.15); color: #3fb950;", 
+            coreDepositText, 
+            "#3fb950"
+        );
+    }
+
+    // Show Retention Bonus rows ONLY if retentionBonus > 0
+    if (retentionBonus > 0) {
+        const bonusAmountText = formatCurrency(retentionBonus);
+
+        if (isWithdrawn) {
+            rowsHTML += createRowHTML(
+                "Retention Bonus Allocation", 
+                txTimes.bonusReceived, 
+                "Settled", 
+                "background: rgba(255,255,255,0.08); color: #8b949e;", 
+                "$0.00", 
+                "#8b949e", 
+                true
+            );
+            rowsHTML += createRowHTML(
+                "Retention Bonus Withdrawal", 
+                withdrawalTime, 
+                "Processing", 
+                "background: rgba(248,81,73,0.15); color: #f85149;", 
+                `-${bonusAmountText}`, 
+                "#f85149"
+            );
+        } else {
+            rowsHTML += createRowHTML(
+                "Retention Bonus Allocation", 
+                txTimes.bonusReceived, 
+                "Available", 
+                "background: rgba(56,139,253,0.15); color: #58a6ff;", 
+                `+${bonusAmountText}`, 
+                "#58a6ff"
+            );
+        }
+    }
+
+    // Render into DOM
+    historyTableBody.innerHTML = rowsHTML;
 }
 
 // Initialize Collapsible Event Handles
 window.addEventListener("DOMContentLoaded", () => {
     updateRetentionBonusUI();
-    
+
     const toggleBtn = document.getElementById("historyToggle");
     const wrapper = document.getElementById("historyCollapseWrapper");
     const caret = document.getElementById("toggleCaret");
-    
+
     if (toggleBtn && wrapper && caret) {
         toggleBtn.addEventListener("click", () => {
-            if (wrapper.style.maxHeight === "0px") {
+            if (wrapper.style.maxHeight === "0px" || !wrapper.style.maxHeight) {
                 wrapper.style.maxHeight = "500px";
                 caret.style.transform = "rotate(0deg)";
             } else {
@@ -1902,6 +1957,7 @@ window.addEventListener("DOMContentLoaded", () => {
         });
     }
 });
+
 
 
 
