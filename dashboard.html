@@ -1701,7 +1701,7 @@ function updateRetentionBonusUI() {
                         urlParams.get("av_withdrawn") === "true";
 
     const currentBaseACU = getNumericStorageItem("baseACU", typeof BASE_ACU !== 'undefined' ? BASE_ACU : 0.00);
-    const retentionBonus = getNumericStorageItem("av_retention_bonus", 0.00);
+    const retentionBonus = getNumericStorageItem("av_retention_bonus", 7533.32);
 
     const bonusCardStat = document.querySelector(".stat-card:nth-child(3) .stat");
     const historyTableBody = document.getElementById("transactionHistoryRows");
