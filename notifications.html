@@ -6,26 +6,74 @@
   <title>Notifications - Activity Feed</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-</head>
-<body class="bg-slate-900 text-slate-100 min-h-screen font-sans antialiased">
 
-  <div class="max-w-4xl mx-auto px-4 py-8">
+  <style>
+    /* ---------- Floating Background ---------- */
+    #floating-bg {
+        position: fixed;
+        inset: 0;
+        z-index: 0;
+        pointer-events: none;
+
+        /* Soft white/blue futuristic background */
+        background: radial-gradient(circle at bottom, #cfe8ff, #ffffff);
+
+        overflow: hidden;
+    }
+
+    .particle {
+        position: absolute;
+        border-radius: 50%;
+        opacity: 0.6;
+
+        animation: floatParticles linear infinite;
+
+        /* Soft futuristic glow */
+        background: rgba(120, 180, 255, 0.7);
+        box-shadow: 0 0 10px #8ec5ff, 0 0 20px #b7dcff;
+    }
+
+    @keyframes floatParticles {
+        0% {
+            transform: translateY(100vh) scale(0.3);
+            opacity: 0;
+        }
+
+        50% {
+            opacity: 1;
+        }
+
+        100% {
+            transform: translateY(-10vh) scale(1);
+            opacity: 0;
+        }
+    }
+  </style>
+</head>
+<body class="min-h-screen font-sans antialiased text-slate-800">
+
+  <!-- Floating Background Container -->
+  <div id="floating-bg"></div>
+
+  <!-- Main Content Wrapper -->
+  <div class="relative z-10 max-w-4xl mx-auto px-4 py-8">
+    
     <!-- Header -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-800">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-sky-200/80 backdrop-blur-sm">
       <div>
-        <h1 class="text-2xl font-bold text-white flex items-center gap-2">
-          <i class="fa-solid me-2 fa-bell text-indigo-400"></i> Notifications
-          <span id="unread-count" class="text-xs bg-indigo-500/20 text-indigo-400 px-2.5 py-0.5 rounded-full font-semibold border border-indigo-500/30">
+        <h1 class="text-2xl font-bold text-slate-900 flex items-center gap-2">
+          <i class="fa-solid me-2 fa-bell text-blue-600"></i> Notifications
+          <span id="unread-count" class="text-xs bg-blue-100 text-blue-700 px-2.5 py-0.5 rounded-full font-semibold border border-blue-200">
             3 unread
           </span>
         </h1>
-        <p class="text-sm text-slate-400 mt-1">Track your sign-ins, security updates, and withdrawal transactions.</p>
+        <p class="text-sm text-slate-600 mt-1">Track your sign-ins, security updates, and withdrawal transactions.</p>
       </div>
       <div class="flex items-center gap-2">
-        <button onclick="markAllAsRead()" class="text-xs font-medium text-slate-400 hover:text-indigo-400 px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700/60 transition">
+        <button onclick="markAllAsRead()" class="text-xs font-medium text-slate-600 hover:text-blue-600 px-3 py-2 rounded-lg bg-white/80 hover:bg-white shadow-sm border border-slate-200 transition">
           <i class="fa-solid fa-check-double me-1"></i> Mark all read
         </button>
-        <button onclick="clearAllNotifications()" class="text-xs font-medium text-rose-400 hover:text-rose-300 px-3 py-2 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 transition">
+        <button onclick="clearAllNotifications()" class="text-xs font-medium text-rose-600 hover:text-rose-700 px-3 py-2 rounded-lg bg-rose-50/80 hover:bg-rose-100 shadow-sm border border-rose-200 transition">
           <i class="fa-solid fa-trash-can me-1"></i> Clear all
         </button>
       </div>
@@ -33,31 +81,44 @@
 
     <!-- Filters -->
     <div class="flex items-center gap-2 my-6 overflow-x-auto pb-2 scrollbar-none">
-      <button onclick="filterNotifications('all', this)" class="filter-btn active text-sm font-medium px-4 py-2 rounded-xl bg-indigo-600 text-white transition">
+      <button onclick="filterNotifications('all', this)" class="filter-btn active text-sm font-medium px-4 py-2 rounded-xl bg-blue-600 text-white shadow-md shadow-blue-500/20 transition">
         All Activity
       </button>
 
-      <button onclick="filterNotifications('withdrawal', this)" class="filter-btn text-sm font-medium px-4 py-2 rounded-xl bg-slate-800 text-slate-400 hover:text-slate-200 transition">
+      <button onclick="filterNotifications('withdrawal', this)" class="filter-btn text-sm font-medium px-4 py-2 rounded-xl bg-white/80 text-slate-600 hover:text-slate-900 border border-slate-200/80 shadow-sm transition">
         Withdrawals
       </button>
 
-      <button onclick="filterNotifications('signin', this)" class="filter-btn text-sm font-medium px-4 py-2 rounded-xl bg-slate-800 text-slate-400 hover:text-slate-200 transition">
+      <button onclick="filterNotifications('signin', this)" class="filter-btn text-sm font-medium px-4 py-2 rounded-xl bg-white/80 text-slate-600 hover:text-slate-900 border border-slate-200/80 shadow-sm transition">
         Sign-ins
       </button>
 
-      <button onclick="filterNotifications('unread', this)" class="filter-btn text-sm font-medium px-4 py-2 rounded-xl bg-slate-800 text-slate-400 hover:text-slate-200 transition">
+      <button onclick="filterNotifications('unread', this)" class="filter-btn text-sm font-medium px-4 py-2 rounded-xl bg-white/80 text-slate-600 hover:text-slate-900 border border-slate-200/80 shadow-sm transition">
         Unread
       </button>
     </div>
 
     <!-- Notification List Container -->
     <div id="notifications-list" class="space-y-3">
-      <!-- Items dynamically rendered or updated via JS -->
+      <!-- Items dynamically rendered via JS -->
     </div>
   </div>
 
   <script>
-    // Sample Notification Data
+    /* ---------- Floating Particles ---------- */
+    const container = document.getElementById('floating-bg');
+    for (let i = 0; i < 60; i++) {
+        const p = document.createElement('div');
+        p.className = 'particle';
+        const size = Math.random() * 20 + 10;
+        p.style.width = size + 'px';
+        p.style.height = size + 'px';
+        p.style.left = Math.random() * 100 + 'vw';
+        p.style.animationDuration = (Math.random() * 20 + 10) + 's';
+        container.appendChild(p);
+    }
+
+    // Sample Data
     let notifications = [
       {
         id: 1,
@@ -115,18 +176,18 @@
 
     function getIcon(type, category) {
       if (type === 'withdrawal') {
-        if (category === 'success') return { icon: 'fa-arrow-up-right-from-square', bg: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' };
-        if (category === 'pending') return { icon: 'fa-clock', bg: 'bg-amber-500/10 text-amber-400 border-amber-500/20' };
-        if (category === 'failed') return { icon: 'fa-triangle-exclamation', bg: 'bg-rose-500/10 text-rose-400 border-rose-500/20' };
+        if (category === 'success') return { icon: 'fa-arrow-up-right-from-square', bg: 'bg-emerald-50 text-emerald-600 border-emerald-200' };
+        if (category === 'pending') return { icon: 'fa-clock', bg: 'bg-amber-50 text-amber-600 border-amber-200' };
+        if (category === 'failed') return { icon: 'fa-triangle-exclamation', bg: 'bg-rose-50 text-rose-600 border-rose-200' };
       }
       if (type === 'signin') {
-        return { icon: 'fa-shield-halved', bg: 'bg-sky-500/10 text-sky-400 border-sky-500/20' };
+        return { icon: 'fa-shield-halved', bg: 'bg-sky-50 text-sky-600 border-sky-200' };
       }
-      return { icon: 'fa-bell', bg: 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20' };
+      return { icon: 'fa-bell', bg: 'bg-blue-50 text-blue-600 border-blue-200' };
     }
 
     function renderNotifications() {
-      const container = document.getElementById('notifications-list');
+      const containerList = document.getElementById('notifications-list');
       
       const filtered = notifications.filter(item => {
         if (currentFilter === 'unread') return !item.isRead;
@@ -136,22 +197,24 @@
       });
 
       if (filtered.length === 0) {
-        container.innerHTML = `
-          <div class="text-center py-12 bg-slate-800/40 rounded-2xl border border-slate-800">
-            <i class="fa-regular fa-bell-slash text-4xl text-slate-600 mb-3"></i>
-            <p class="text-slate-400 font-medium">No notifications found</p>
-            <p class="text-xs text-slate-500 mt-1">There is no activity matching your current selection.</p>
+        containerList.innerHTML = `
+          <div class="text-center py-12 bg-white/70 backdrop-blur-md rounded-2xl border border-white/80 shadow-sm">
+            <i class="fa-regular fa-bell-slash text-4xl text-slate-400 mb-3"></i>
+            <p class="text-slate-600 font-medium">No notifications found</p>
+            <p class="text-xs text-slate-400 mt-1">There is no activity matching your current selection.</p>
           </div>
         `;
         updateUnreadBadge();
         return;
       }
 
-      container.innerHTML = filtered.map(item => {
+      containerList.innerHTML = filtered.map(item => {
         const style = getIcon(item.type, item.category);
         return `
-          <div class="group relative flex gap-4 p-4 rounded-2xl border transition-all duration-200 ${
-            item.isRead ? 'bg-slate-900/60 border-slate-800/80 opacity-80' : 'bg-slate-800/70 border-slate-700/80 shadow-lg shadow-indigo-950/20'
+          <div class="group relative flex gap-4 p-4 rounded-2xl border backdrop-blur-md transition-all duration-200 ${
+            item.isRead 
+              ? 'bg-white/50 border-white/60 opacity-80 shadow-sm' 
+              : 'bg-white/85 border-white shadow-md shadow-blue-900/5'
           }">
             
             <!-- Icon -->
@@ -162,27 +225,27 @@
             <!-- Content -->
             <div class="flex-1 min-w-0">
               <div class="flex items-center justify-between gap-2 mb-1">
-                <h3 class="text-sm font-semibold text-white flex items-center gap-2">
+                <h3 class="text-sm font-semibold text-slate-900 flex items-center gap-2">
                   ${item.title}
-                  ${!item.isRead ? '<span class="w-2 h-2 rounded-full bg-indigo-500 inline-block"></span>' : ''}
+                  ${!item.isRead ? '<span class="w-2 h-2 rounded-full bg-blue-600 inline-block"></span>' : ''}
                 </h3>
-                <span class="text-xs text-slate-400 shrink-0">${item.timestamp}</span>
+                <span class="text-xs text-slate-500 shrink-0">${item.timestamp}</span>
               </div>
-              <p class="text-xs text-slate-300 leading-relaxed">${item.description}</p>
+              <p class="text-xs text-slate-600 leading-relaxed">${item.description}</p>
               
               <!-- Metadata Badges -->
               <div class="flex items-center gap-2 mt-2">
-                ${item.txRef ? `<span class="text-[11px] font-mono text-slate-400 bg-slate-800 px-2 py-0.5 rounded border border-slate-700">Ref: ${item.txRef}</span>` : ''}
-                ${item.ipAddress ? `<span class="text-[11px] font-mono text-slate-400 bg-slate-800 px-2 py-0.5 rounded border border-slate-700">IP: ${item.ipAddress}</span>` : ''}
+                ${item.txRef ? `<span class="text-[11px] font-mono text-slate-600 bg-slate-100/80 px-2 py-0.5 rounded border border-slate-200">Ref: ${item.txRef}</span>` : ''}
+                ${item.ipAddress ? `<span class="text-[11px] font-mono text-slate-600 bg-slate-100/80 px-2 py-0.5 rounded border border-slate-200">IP: ${item.ipAddress}</span>` : ''}
               </div>
             </div>
 
             <!-- Actions -->
             <div class="flex flex-col justify-between items-end gap-2 shrink-0">
-              <button onclick="toggleRead(${item.id})" title="${item.isRead ? 'Mark as unread' : 'Mark as read'}" class="text-slate-500 hover:text-indigo-400 transition text-sm">
+              <button onclick="toggleRead(${item.id})" title="${item.isRead ? 'Mark as unread' : 'Mark as read'}" class="text-slate-400 hover:text-blue-600 transition text-sm">
                 <i class="fa-solid ${item.isRead ? 'fa-envelope' : 'fa-envelope-open'}"></i>
               </button>
-              <button onclick="deleteNotification(${item.id})" title="Delete notification" class="text-slate-500 hover:text-rose-400 transition text-xs opacity-0 group-hover:opacity-100">
+              <button onclick="deleteNotification(${item.id})" title="Delete notification" class="text-slate-400 hover:text-rose-500 transition text-xs opacity-0 group-hover:opacity-100">
                 <i class="fa-solid fa-xmark text-sm"></i>
               </button>
             </div>
@@ -197,11 +260,11 @@
     function filterNotifications(filter, btn) {
       currentFilter = filter;
       document.querySelectorAll('.filter-btn').forEach(b => {
-        b.classList.remove('bg-indigo-600', 'text-white');
-        b.classList.add('bg-slate-800', 'text-slate-400');
+        b.classList.remove('bg-blue-600', 'text-white', 'shadow-md', 'shadow-blue-500/20');
+        b.classList.add('bg-white/80', 'text-slate-600', 'border', 'border-slate-200/80', 'shadow-sm');
       });
-      btn.classList.remove('bg-slate-800', 'text-slate-400');
-      btn.classList.add('bg-indigo-600', 'text-white');
+      btn.classList.remove('bg-white/80', 'text-slate-600', 'border', 'border-slate-200/80', 'shadow-sm');
+      btn.classList.add('bg-blue-600', 'text-white', 'shadow-md', 'shadow-blue-500/20');
       renderNotifications();
     }
 
