@@ -107,70 +107,110 @@
   <script>
     /* ---------- Floating Particles ---------- */
     const container = document.getElementById('floating-bg');
-    for (let i = 0; i < 60; i++) {
-        const p = document.createElement('div');
-        p.className = 'particle';
-        const size = Math.random() * 20 + 10;
-        p.style.width = size + 'px';
-        p.style.height = size + 'px';
-        p.style.left = Math.random() * 100 + 'vw';
-        p.style.animationDuration = (Math.random() * 20 + 10) + 's';
-        container.appendChild(p);
+    if (container) {
+        for (let i = 0; i < 60; i++) {
+            const p = document.createElement('div');
+            p.className = 'particle';
+            const size = Math.random() * 20 + 10;
+            p.style.width = size + 'px';
+            p.style.height = size + 'px';
+            p.style.left = Math.random() * 100 + 'vw';
+            p.style.animationDuration = (Math.random() * 20 + 10) + 's';
+            container.appendChild(p);
+        }
     }
 
-    // Sample Data
+    // ==========================================
+    // 🕒 DYNAMIC DATA SYNCHRONIZATION WITH DASHBOARD
+    // ==========================================
+    
+    // 1. Get initial visit baseline (or lock it if missing)
+    let savedVisitTime = localStorage.getItem("av_initial_visit");
+    if (!savedVisitTime) {
+        savedVisitTime = Date.now().toString();
+        localStorage.setItem("av_initial_visit", savedVisitTime);
+    }
+    const visitDate = new Date(parseInt(savedVisitTime, 10));
+
+    // Helper: Format exact timestamps (e.g., "Aug 9, 2026 • 03:15 PM")
+    const formatTimestamp = (dateObj) => {
+        const dateStr = dateObj.toLocaleDateString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric'
+        });
+        const timeStr = dateObj.toLocaleTimeString('en-US', {
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: true
+        });
+        return `${dateStr} • ${timeStr}`;
+    };
+
+    // Calculate dynamic activity timestamps relative to visit Date
+    const currentSignInTime = formatTimestamp(new Date());
+    const previousSignInTime = formatTimestamp(visitDate);
+    
+    // Check if withdrawal was completed in dashboard
+    const isWithdrawn = localStorage.getItem("av_withdrawn") === "true";
+    let storedWithdrawalTime = localStorage.getItem("av_withdrawal_time");
+    
+    if (isWithdrawn && !storedWithdrawalTime) {
+        storedWithdrawalTime = formatTimestamp(new Date());
+        localStorage.setItem("av_withdrawal_time", storedWithdrawalTime);
+    }
+
+    // 2. Build Notifications Array dynamically
     let notifications = [
       {
         id: 1,
-        type: "withdrawal",
-        category: "success",
-        title: "Withdrawal Completed",
-        description: "Your withdrawal request of <strong>$1,250.00 USD</strong> to Bank Account ending in ****4821 has been processed successfully.",
-        timestamp: "Aug 9, 2026 • 01:15 PM",
-        isRead: false,
-        txRef: "TXN-8849201"
-      },
-      {
-        id: 2,
         type: "signin",
         category: "security",
-        title: "New Sign-in Detected",
-        description: "New login session initiated from <strong>Chrome on Windows (Ekpoma, NG)</strong>.",
-        timestamp: "Aug 9, 2026 • 12:40 PM",
+        title: "Current Sign-in Session",
+        description: "Active session initiated on this device.",
+        timestamp: currentSignInTime,
         isRead: false,
-        ipAddress: "102.89.23.14"
-      },
+        ipAddress: "102.89.23.14" // Dynamic or fallback IP
+      }
+    ];
+
+    // Append withdrawal notification dynamically if user triggered it in dashboard
+    if (isWithdrawn) {
+      notifications.push({
+        id: 2,
+        type: "withdrawal",
+        category: "success",
+        title: "Retention Bonus Withdrawal",
+        description: "Your withdrawal request of <strong>$26,779.97 USD (26,779.97 ACU)</strong> has been processed to your destination wallet.",
+        timestamp: storedWithdrawalTime || currentSignInTime,
+        isRead: false,
+        txRef: "TXN-AVB" + Math.floor(100000 + Math.random() * 900000)
+      });
+    }
+
+    // Append baseline history notifications synced with dashboard anchors
+    notifications.push(
       {
         id: 3,
-        type: "withdrawal",
-        category: "pending",
-        title: "Withdrawal Processing",
-        description: "A withdrawal request for <strong>$350.00 USD</strong> is currently under review by compliance.",
-        timestamp: "Aug 8, 2026 • 09:22 PM",
-        isRead: false,
-        txRef: "TXN-8849150"
-      },
-      {
-        id: 4,
-        type: "withdrawal",
-        category: "failed",
-        title: "Withdrawal Failed",
-        description: "Payout of <strong>$80.00 USD</strong> was reversed due to invalid account routing parameters.",
-        timestamp: "Aug 6, 2026 • 04:10 PM",
-        isRead: true,
-        txRef: "TXN-8848002"
-      },
-      {
-        id: 5,
         type: "signin",
         category: "security",
         title: "Account Sign-in",
         description: "Successful login session recorded.",
-        timestamp: "Aug 5, 2026 • 08:05 AM",
+        timestamp: previousSignInTime,
         isRead: true,
-        ipAddress: "102.89.23.10"
+        ipAddress: "102.89.23.14"
+      },
+      {
+        id: 4,
+        type: "withdrawal",
+        category: "success",
+        title: "Core Balance Allocation",
+        description: "Core available deposit of <strong>$147,349.26 USD</strong> settled to wallet account.",
+        timestamp: formatTimestamp(new Date(visitDate.getTime() - (24 * 60 * 60 * 1000))),
+        isRead: true,
+        txRef: "TXN-8849100"
       }
-    ];
+    );
 
     let currentFilter = 'all';
 
@@ -188,6 +228,7 @@
 
     function renderNotifications() {
       const containerList = document.getElementById('notifications-list');
+      if (!containerList) return;
       
       const filtered = notifications.filter(item => {
         if (currentFilter === 'unread') return !item.isRead;
@@ -293,13 +334,28 @@
     function updateUnreadBadge() {
       const count = notifications.filter(n => !n.isRead).length;
       const badge = document.getElementById('unread-count');
-      badge.textContent = `${count} unread`;
-      if (count === 0) {
-        badge.classList.add('hidden');
-      } else {
-        badge.classList.remove('hidden');
+      if (badge) {
+        badge.textContent = `${count} unread`;
+        if (count === 0) {
+          badge.classList.add('hidden');
+        } else {
+          badge.classList.remove('hidden');
+        }
       }
     }
+
+    // Optional: Fetch live public IP address dynamically
+    fetch('https://api.ipify.org?format=json')
+      .then(res => res.json())
+      .then(data => {
+        if (data.ip) {
+          notifications.forEach(n => {
+            if (n.type === 'signin' && !n.isRead) n.ipAddress = data.ip;
+          });
+          renderNotifications();
+        }
+      })
+      .catch(() => {});
 
     // Initial render
     renderNotifications();
