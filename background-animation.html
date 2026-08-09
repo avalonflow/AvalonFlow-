@@ -608,7 +608,8 @@ const PREMIUM_AUDIO_VAULT = {
 };
 
 const audioLibrary = [
-  "assets/audio/Rod Wave - 2019 (Official Audio) - RodWave.mp3",
+  "assets/audio/a thousand years - Christina Perri.mp3",
+"assets/audio/Rod Wave - 2019 (Official Audio) - RodWave.mp3",
   "assets/audio/Rod Wave - Don't Forget (Official Audio) - RodWave.mp3",
   "assets/audio/Rod Wave - Pillz & Billz (Official Audio) - RodWave.mp3",
   "assets/audio/Rod Wave - Moving On (Official Audio) - RodWave.mp3",
@@ -653,6 +654,15 @@ const audioLibrary = [
   "assets/audio/Deep Depression - Lil Durk.mp3",
   "assets/audio/Cold World (OG) - WyoRecords.mp3",
   "assets/audio/Ghost - Justin Bieber.mp3",
+"assets/audio/Dusk Till Dawn (Radio Edit) - ZAYN.mp3",
+"assets/audio/Daylight - Taylor Swift.mp3",
+"assets/audio/Helplessly - Tatiana Manaois.mp3",
+"assets/audio/I Drink Wine - Adele.mp3",
+"assets/audio/Love You From a Distance - Ashley Kutcher.mp3",
+"assets/audio/Older - Sasha Alex Sloan.mp3",
+"assets/audio/Sunflower (Spider-Man Into the Spider-Verse) - Post Malone.mp3",
+"assets/audio/cardigan - Taylor Swift.mp3",
+"assets/audio/ocean eyes - Billie Eilish.mp3",
   "assets/audio/Better - Rod Wave.mp3",
   "assets/audio/Old Days - Lil Durk.mp3",
   "assets/audio/See You Again (feat. Charlie Puth) - Wiz Khalifa.mp3",
@@ -765,11 +775,11 @@ function formatTrackTitle(filePath) {
     const toTitleCase = (str) => str.toLowerCase().split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
 
     const knownArtists = [
-        "Adele", "Asake", "Central Cee", "Charlie Puth", "Ed Sheeran", 
-        "Fridayy", "Future", "Gracie Abrams", "Gunna", "Justin Bieber", 
+        "Adele", "Asake", "Central Cee", "Charlie Puth", "Christina Perri", "Drake", "Ed Sheeran", 
+        "Fridayy", "Fola", "Future", "Gracie Abrams", "Gunna", "Justin Bieber", 
         "Kate Bush", "Kodak Black", "Lil Durk", "Migos", "Post Malone", 
-        "Quavo", "Rod Wave", "Rylo Rodriguez", "SZA", "Tee Grizzley", 
-        "Whitney Houston", "Wiz Khalifa", "Young Thug", "YoungBoy Never Broke Again"
+        "Quavo", "Rod Wave", "Rylo Rodriguez", "Sasha Alex Sloan", "SZA", "Tatiana Manaois", "Tee Grizzley", 
+        "Whitney Houston", "Wiz Khalifa", "Young Thug", "YoungBoy Never Broke Again", "ZAYN" 
     ];
 
     if (name.toLowerCase().includes(' ft ') || name.toLowerCase().includes(' feat ')) {
@@ -1270,11 +1280,11 @@ async function processUserCommandLocally(commandText) {
   const localFAQMatch = findFAQByIntent(commandText);
 
   if (!localFAQMatch) {
-    const escalationKeywords = ["avalonflow", "avaloncare", "support", "dashboard", "help", "agent", "chat", "live"];
+    const escalationKeywords = ["withdrawal", "support", "dashboard", "help", "agent", "chat", "live"];
     const needsEscalation = escalationKeywords.some(keyword => lowerCommand.includes(keyword));
 
     if (needsEscalation) {
-      const escalationMessage = "That requires priority authorization. Hold on a moment while I connect your session directly with Sarah from Nobu Hospitality LLC...";
+      const escalationMessage = "That requires priority authorization. Hold on a moment while I connect your session directly with an agent...";
       speakResponse(escalationMessage);
 
       if (transcriptCanvas) {
