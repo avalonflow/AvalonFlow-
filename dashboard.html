@@ -1344,13 +1344,13 @@ function navigateTo(page){
     window.location.href = page;
 }
                 function logout(){
-            localStorage.removeItem("avalon_logged_in");
-            localStorage.removeItem("avalon_seen_dashboard");
-            window.location.href = 'https://membership.avalonflow.site/signin';
-        }
+    localStorage.removeItem("avalon_logged_in");
+    localStorage.removeItem("avalon_seen_dashboard");
+    window.location.href = 'https://membership.avalonflow.site/signin';
+}
 
-        // ================================
-// 🔐 PLAN CONFIG (SYNCED WITH RETURNS)
+// ================================
+// 🔐 PLAN CONFIG
 // ================================
 const plans = {
     premium: { per12h: 298.29, ac: "premiumAC" },
@@ -1361,34 +1361,13 @@ const plans = {
 
 const BASE_ACU = 0.00;
 const BASE_ACTIVE_BONDS = 1;
-
 const ALL_PLANS = ["premium", "basic", "lite", "custom"];
 
-// ================================
-// 📦 PAID PLANS
-// ================================
 const paidPlans = JSON.parse(localStorage.getItem("paidPlans")) || {};
 
-// ================================
-// 🎯 DISPLAY STATE
-// ================================
-let displayedAC = {
-    premium: 0,
-    basic: 0,
-    lite: 0,
-    custom: 0
-};
+let displayedAC = { premium: 0, basic: 0, lite: 0, custom: 0 };
+let lastCycleCount = { premium: 0, basic: 0, lite: 0, custom: 0 };
 
-let lastCycleCount = {
-    premium: 0,
-    basic: 0,
-    lite: 0,
-    custom: 0
-};
-
-// ================================
-// 🔁 HELPERS
-// ================================
 const CYCLE_MS = 12 * 60 * 60 * 1000;
 
 function getPlan(planKey) {
@@ -1399,36 +1378,22 @@ function isLocked(planData, now) {
     return !planData?.active || now >= planData.expiresAt;
 }
 
-// ================================
-// 📊 ACTIVE PLANS COUNT (RAW STATE)
-// ================================
 function updateActivePlans() {
     const now = Date.now();
     const currentDeviceId = localStorage.getItem("avalonflow_deviceId");
 
     const activeCount = BASE_ACTIVE_BONDS + ALL_PLANS.reduce((count, plan) => {
         const planData = paidPlans[plan];
-
         if (!planData) return count;
-
-        // Device binding check
         if (planData.deviceId && planData.deviceId !== currentDeviceId) return count;
-
-        // Only real paid + not expired
         const isActive = planData.active && now < planData.expiresAt;
-
         return isActive ? count + 1 : count;
     }, 0);
 
     const el = document.getElementById('activePlans');
-
-    // instant update (no animation)
     if (el) el.textContent = activeCount;
 }
 
-// ================================
-// 💰 TOTAL ACU (FIXED - NO RESET ON LOCK)
-// ================================
 function updateTotalACU() {
     const now = Date.now();
 
@@ -1445,30 +1410,22 @@ function updateTotalACU() {
         const cycleProgress = (elapsed % CYCLE_MS) / CYCLE_MS;
 
         const liveValue = (cycles * per12h) + (cycleProgress * per12h);
-
-        // 🔥 KEY FIX: freeze value instead of removing it
-        const finalValue = isLocked(data, now)
-            ? displayedAC[plan]
-            : liveValue;
+        const finalValue = isLocked(data, now) ? displayedAC[plan] : liveValue;
 
         return sum + finalValue;
     }, 0);
 
     const el = document.getElementById("totalACU");
     if (el) {
-    el.textContent =
-        "$" + total.toLocaleString(undefined, {
+        el.textContent = "$" + total.toLocaleString(undefined, {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2
         });
-}
+    }
 
     localStorage.setItem("totalACU", total.toFixed(2));
 }
 
-// ================================
-// 📈 PER PLAN ACU (FIXED)
-// ================================
 function updatePlanACU() {
     const now = Date.now();
 
@@ -1486,18 +1443,13 @@ function updatePlanACU() {
         const cycleProgress = (elapsed % CYCLE_MS) / CYCLE_MS;
 
         const targetAC = (cycles * per12h) + (cycleProgress * per12h);
-
-        // 🔥 KEY FIX: freeze when locked instead of resetting
-        const finalTarget = isLocked(data, now)
-            ? displayedAC[plan]
-            : targetAC;
+        const finalTarget = isLocked(data, now) ? displayedAC[plan] : targetAC;
 
         const diff = finalTarget - displayedAC[plan];
         displayedAC[plan] += diff * 0.08;
 
         el.textContent = displayedAC[plan].toFixed(2) + " ACU";
 
-        // cycle animation
         if (cycles > lastCycleCount[plan]) {
             const card = document.getElementById(plan + "Card");
             card?.classList.add("cycle-burst");
@@ -1511,18 +1463,12 @@ function updatePlanACU() {
     });
 }
 
-// ================================
-// 🔄 MAIN UPDATE
-// ================================
 function updateACU() {
     updatePlanACU();
     updateTotalACU();
     updateActivePlans();
 }
 
-// ================================
-// 🚀 LOOP
-// ================================
 function animate() {
     updateACU();
     requestAnimationFrame(animate);
@@ -1532,170 +1478,117 @@ window.addEventListener("load", () => {
     animate();
 });
 
-// ---------- Auto-refresh in case localStorage changes externally ----------
-setInterval(updateACU, 30000); // every 30 seconds
+setInterval(updateACU, 30000);
 
-                /* Dashboard Notification */
-
+/* Dashboard Notification */
 window.addEventListener("load", () => {
+    const notification = document.getElementById("dashboardNotification");
+    if (!notification) return;
 
-const notification = document.getElementById("dashboardNotification");
+    localStorage.setItem("avalon_logged_in", "true");
 
-// login flag only
-localStorage.setItem("avalon_logged_in", "true");
+    let firstName = "";
+    const localData = localStorage.getItem("section2Data");
 
-// --- Extract first name gently ---
-let firstName = "";
-const localData = localStorage.getItem("section2Data");
-
-if (localData) {
-    try {
-        const savedData = JSON.parse(localData);
-        if (savedData.fullName) {
-            const rawFirstName = savedData.fullName.trim().split(" ")[0];
-            firstName = rawFirstName.charAt(0).toUpperCase() + rawFirstName.slice(1).toLowerCase();
+    if (localData) {
+        try {
+            const savedData = JSON.parse(localData);
+            if (savedData.fullName) {
+                const rawFirstName = savedData.fullName.trim().split(" ")[0];
+                firstName = rawFirstName.charAt(0).toUpperCase() + rawFirstName.slice(1).toLowerCase();
+            }
+        } catch (e) {
+            console.error("Failed to parse registration name metrics.");
         }
-    } catch (e) {
-        console.error("Failed to parse registration name metrics.");
     }
-}
 
-const nameString = firstName ? `, ${firstName}` : "";
-let message;
+    const nameString = firstName ? `, ${firstName}` : "";
+    let message;
 
-if (!localStorage.getItem("avalon_seen_dashboard")) {
-    message = `Hi there${nameString}`;
-    localStorage.setItem("avalon_seen_dashboard", "true");
-} else {
-    message = `Welcome back${nameString}`;
-}
+    if (!localStorage.getItem("avalon_seen_dashboard")) {
+        message = `Hi there${nameString}`;
+        localStorage.setItem("avalon_seen_dashboard", "true");
+    } else {
+        message = `Welcome back${nameString}`;
+    }
 
-notification.textContent = message;
-notification.classList.add("show");
+    notification.textContent = message;
+    notification.classList.add("show");
 
-let timer;
+    let timer;
 
-const getState = (remaining) => {
-    if (remaining <= 0) return "expired";
+    const getState = (remaining) => {
+        if (remaining <= 0) return "expired";
+        if (remaining <= 300) return "red";
+        if (remaining <= 360) return "yellow";
+        if (remaining <= 540) return "hide_mid";
+        if (remaining <= 720) return "show_mid";
+        return "hide_start";
+    };
 
-    // 5–0
-    if (remaining <= 300) return "red";
+    const updateCountdown = () => {
+        const expiryTime = parseInt(localStorage.getItem("avb_expiry_time"), 10);
+        if (!expiryTime) return;
 
-    // 6–5
-    if (remaining <= 360) return "yellow";
+        const remaining = Math.max(0, Math.floor((expiryTime - Date.now()) / 1000));
+        const state = getState(remaining);
 
-    // 9–6 HIDE
-    if (remaining <= 540) return "hide_mid";
+        notification.classList.remove("warning-yellow", "warning-red");
 
-    // 12–9 SHOW
-    if (remaining <= 720) return "show_mid";
+        if (state === "yellow") {
+            notification.classList.add("warning-yellow");
+            if (navigator.vibrate) navigator.vibrate(200);
+        }
 
-    // 15–12 HIDE
-    return "hide_start";
-};
+        if (state === "red") {
+            notification.classList.add("warning-red");
+            if (navigator.vibrate) navigator.vibrate([300, 100, 300]);
+        }
 
+        if (state === "hide_start" || state === "hide_mid") {
+            notification.classList.remove("show");
+        } else {
+            notification.classList.add("show");
+        }
 
-const updateCountdown = () => {
+        const minutes = Math.floor(remaining / 60);
+        const seconds = remaining % 60;
 
-const expiryTime = parseInt(localStorage.getItem("avb_expiry_time"), 10);
-if (!expiryTime) return;
+        notification.textContent = `Session expires in ${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+    };
 
-const remaining = Math.max(
-    0,
-    Math.floor((expiryTime - Date.now()) / 1000)
-);
+    const expiryTime = parseInt(localStorage.getItem("avb_expiry_time"), 10);
+    if (expiryTime) {
+        const remaining = Math.floor((expiryTime - Date.now()) / 1000);
+        const initialState = getState(remaining);
 
-const state = getState(remaining);
+        if (initialState === "yellow") notification.classList.add("warning-yellow");
+        if (initialState === "red") notification.classList.add("warning-red");
 
-// 🎨 STATE HANDLING
-notification.classList.remove("warning-yellow", "warning-red");
+        notification.classList.add("show");
 
-if (state === "yellow") {
-    notification.classList.add("warning-yellow");
-    if (navigator.vibrate) navigator.vibrate(200);
-}
-
-if (state === "red") {
-    notification.classList.add("warning-red");
-    if (navigator.vibrate) navigator.vibrate([300, 100, 300]);
-}
-
-// 🔁 VISIBILITY RULES (your exact logic)
-if (state === "hide_start") {
-    notification.classList.remove("show"); // 15–12 HIDE
-}
-
-else if (state === "show_mid") {
-    notification.classList.add("show"); // 12–9 SHOW
-}
-
-else if (state === "hide_mid") {
-    notification.classList.remove("show"); // 9–6 HIDE
-}
-
-else {
-    notification.classList.add("show"); // 6–0 SHOW
-}
-
-// 🕒 TEXT DISPLAY
-const minutes = Math.floor(remaining / 60);
-const seconds = remaining % 60;
-
-notification.textContent =
-    `Session expires in ${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
-
-};
-
-// initial render
-const expiryTime = parseInt(localStorage.getItem("avb_expiry_time"), 10);
-const remaining = Math.floor((expiryTime - Date.now()) / 1000);
-
-const initialState = getState(remaining);
-
-if (initialState === "yellow") {
-    notification.classList.add("warning-yellow");
-}
-
-if (initialState === "red") {
-    notification.classList.add("warning-red");
-}
-
-notification.classList.add("show");
-
-setTimeout(() => {
-    updateCountdown();
-    timer = setInterval(updateCountdown, 1000);
-}, 4000);
-
+        setTimeout(() => {
+            updateCountdown();
+            timer = setInterval(updateCountdown, 1000);
+        }, 4000);
+    }
 });
 
-
-/* --------------------------
-AVB ENGINE (DASHBOARD MATCH)
--------------------------- */
-
+/* AVB ENGINE */
 (function avbEngine() {
-
     const urlParams = new URLSearchParams(window.location.search);
-    const hasInitParam =
-        urlParams.get("session") === "refresh" ||
-        urlParams.get("mode") === "init";
-
+    const hasInitParam = urlParams.get("session") === "refresh" || urlParams.get("mode") === "init";
     const keyAlreadyUsed = localStorage.getItem("avb_key_used");
 
     if (hasInitParam && !keyAlreadyUsed) {
         localStorage.removeItem("avb_expiry_time");
         localStorage.removeItem("avb_redirected_to_avb");
         localStorage.removeItem("avb_session_state");
-
         localStorage.setItem("avb_key_used", "true");
     }
 
     if (!localStorage.getItem("avb_expiry_time")) {
-        localStorage.setItem(
-            "avb_expiry_time",
-            Date.now() + 15 * 60 * 1000
-        );
+        localStorage.setItem("avb_expiry_time", Date.now() + 15 * 60 * 1000);
     }
 
     let triggered = false;
@@ -1708,14 +1601,9 @@ AVB ENGINE (DASHBOARD MATCH)
 
         const loop = () => {
             if (!vibRunning) return;
-
-            if (navigator.vibrate) {
-                navigator.vibrate([300, 100, 300]);
-            }
-
+            if (navigator.vibrate) navigator.vibrate([300, 100, 300]);
             vibTimeout = setTimeout(loop, 15000);
         };
-
         loop();
     };
 
@@ -1726,65 +1614,43 @@ AVB ENGINE (DASHBOARD MATCH)
     };
 
     const check = () => {
-        const expiryTime = parseInt(
-            localStorage.getItem("avb_expiry_time"),
-            10
-        );
-
-        const remainingSec = Math.floor(
-            (expiryTime - Date.now()) / 1000
-        );
+        const expiryTime = parseInt(localStorage.getItem("avb_expiry_time"), 10);
+        const remainingSec = Math.floor((expiryTime - Date.now()) / 1000);
 
         if (!triggered && remainingSec <= 360 && remainingSec > 0) {
-
             triggered = true;
-
             startVibrationCycle();
-
-            console.log("AVB warning triggered with vibration cycle");
         }
 
-        // optional safety stop if time passes out of range
         if (remainingSec <= 0 || remainingSec > 360) {
             stopVibrationCycle();
         }
     };
 
     check();
-    const avbInterval = setInterval(check, 1000);
-
+    setInterval(check, 1000);
 })();
 
-/* --------------------------
-SESSION GUARD (CLEANED)
--------------------------- */
-
+/* SESSION GUARD */
 (function sessionGuard() {
-
     const check = () => {
         const expiryTime = parseInt(localStorage.getItem("avb_expiry_time"), 10);
-
         if (!expiryTime) return;
 
         if (Date.now() >= expiryTime) {
-
             localStorage.removeItem("avb_expiry_time");
             localStorage.removeItem("avb_redirected_to_avb");
             localStorage.removeItem("avb_session_state");
-            // Note: We leave avb_key_used so they can't reuse the same link if they time out again
-
-            window.location.href =
-                "https://membership.avalonflow.site/signin";
+            window.location.href = "https://membership.avalonflow.site/signin";
         }
     };
 
     check();
-    guardInterval = setInterval(check, 5000);
-
+    setInterval(check, 5000);
 })();
 
 // ==========================================
-// 🕒 PERSISTENT TEMPORAL REALISM & ANCHORS
+// PERSISTENT TEMPORAL REALISM & ANCHORS
 // ==========================================
 let savedVisitTime = localStorage.getItem("av_initial_visit");
 
@@ -1809,61 +1675,58 @@ const formatTxDate = (dateOffsetMs) => {
 };
 
 const txTimes = {
-    balance: formatTxDate(24 * 60 * 60 * 1000),      // 24 hours prior to initial visit
-    bonusReceived: formatTxDate(2 * 60 * 60 * 1000)   // 2 hours prior to initial visit
+    balance: formatTxDate(24 * 60 * 60 * 1000),
+    bonusReceived: formatTxDate(2 * 60 * 60 * 1000)
 };
 
-
 // ==========================================
-// 🔓 RETENTION BONUS & DYNAMIC TRANSACTIONS
+// RETENTION BONUS & DYNAMIC TRANSACTIONS
 // ==========================================
 function getNumericStorageItem(key, defaultValue) {
-    Const value = localStorage.getItem(key);
-    Return value !== null ? ParseFloat(value) : defaultValue;
+    const value = localStorage.getItem(key);
+    return value !== null ? parseFloat(value) : defaultValue;
 }
 
-Function formatCurrency(amount) {
-    Return "$" + amount.toLocaleString('en-US', {
-        MinimumFractionDigits: 2,
-        MaximumFractionDigits: 2
+function formatCurrency(amount) {
+    return "$" + amount.toLocaleString('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
     });
 }
 
-Function updateRetentionBonusUI() {
-    Const urlParams = new URLSearchParams(window.location.search);
-    Const isWithdrawn = localStorage.getItem("av_withdrawn") === "true" || 
-                        LocalStorage.getItem("av_is_withdrawn") === "true" || 
-                        UrlParams.get("av_withdrawn") === "true";
+function updateRetentionBonusUI() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const isWithdrawn = localStorage.getItem("av_withdrawn") === "true" || 
+                        localStorage.getItem("av_is_withdrawn") === "true" || 
+                        urlParams.get("av_withdrawn") === "true";
 
-    // Base ACU & Retention bonus amounts
-    Const currentBaseACU = getNumericStorageItem("baseACU", typeof BASE_ACU !== 'undefined' ? BASE_ACU : 0.00);
-    Const retentionBonus = getNumericStorageItem("av_retention_bonus", 0.00);
+    const currentBaseACU = getNumericStorageItem("baseACU", typeof BASE_ACU !== 'undefined' ? BASE_ACU : 0.00);
+    const retentionBonus = getNumericStorageItem("av_retention_bonus", 0.00);
 
-    Const bonusCardStat = document.querySelector(".stat-card:nth-child(3) .stat");
-    Const historyTableBody = document.getElementById("transactionHistoryRows");
+    const bonusCardStat = document.querySelector(".stat-card:nth-child(3) .stat");
+    const historyTableBody = document.getElementById("transactionHistoryRows");
 
-    If (!historyTableBody) return;
+    if (!historyTableBody) return;
 
-    // Retrieve persistent withdrawal timing & record
-    Let withdrawalTime = localStorage.getItem("av_withdrawal_time");
-    Let savedTx = {};
-    Try {
-        SavedTx = JSON.parse(localStorage.getItem("av_withdrawal_tx") || "{}");
+    let withdrawalTime = localStorage.getItem("av_withdrawal_time");
+    let savedTx = {};
+    try {
+        savedTx = JSON.parse(localStorage.getItem("av_withdrawal_tx") || "{}");
     } catch(e) {}
 
-    If (isWithdrawn && !withdrawalTime) {
-        WithdrawalTime = new Date().toLocaleDateString('en-US', {
-            Month: 'short', day: '2-digit', year: 'numeric'
+    if (isWithdrawn && !withdrawalTime) {
+        withdrawalTime = new Date().toLocaleDateString('en-US', {
+            month: 'short', day: '2-digit', year: 'numeric'
         }) + `, ` + new Date().toLocaleTimeString('en-US', {
-            Hour: '2-digit', minute: '2-digit', hour12: true
+            hour: '2-digit', minute: '2-digit', hour12: true
         });
-        LocalStorage.setItem("av_withdrawal_time", withdrawalTime);
+        localStorage.setItem("av_withdrawal_time", withdrawalTime);
     } else if (!isWithdrawn) {
-        LocalStorage.removeItem("av_withdrawal_time");
-        LocalStorage.removeItem("av_withdrawal_tx");
+        localStorage.removeItem("av_withdrawal_time");
+        localStorage.removeItem("av_withdrawal_tx");
     }
 
-    Const createRowHTML = (desc, date, statusLabel, statusStyle, amountText, amountColor, isSettled = false) => `
+    const createRowHTML = (desc, date, statusLabel, statusStyle, amountText, amountColor, isSettled = false) => `
         <div style="display: flex; flex-direction: column; gap: 6px; padding: 12px 4px; border-bottom: 1px solid rgba(255,255,255,0.08); font-size: 14px; opacity: ${isSettled ? '0.6' : '1'};">
             <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;">
                 <div style="font-weight: 600; color: #b4c6ef; line-height: 1.3; max-width: 70%;">${desc}</div>
@@ -1877,36 +1740,35 @@ Function updateRetentionBonusUI() {
     `;
 
     // 1. Update Retention Bonus Card
-    If (bonusCardStat) {
-        If (isWithdrawn || retentionBonus <= 0) {
-            BonusCardStat.textContent = "0.00 ACU ~ $0.00";
-            BonusCardStat.style.animation = "none";
-            BonusCardStat.style.webkitTextFillColor = "#555";
+    if (bonusCardStat) {
+        if (isWithdrawn || retentionBonus <= 0) {
+            bonusCardStat.textContent = "0.00 ACU ~ $0.00";
+            bonusCardStat.style.animation = "none";
+            bonusCardStat.style.webkitTextFillColor = "#555";
         } else {
-            BonusCardStat.textContent = `${retentionBonus.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ACU ~ ${formatCurrency(retentionBonus)}`;
-            BonusCardStat.style.animation = "";
-            BonusCardStat.style.webkitTextFillColor = "";
+            bonusCardStat.textContent = `${retentionBonus.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ACU ~ ${formatCurrency(retentionBonus)}`;
+            bonusCardStat.style.animation = "";
+            bonusCardStat.style.webkitTextFillColor = "";
         }
     }
 
     // 2. Build Dynamic Transaction Rows
-    Let rowsHTML = "";
+    let rowsHTML = "";
 
-    // Core Balance Row
-    If (isWithdrawn) {
-        Const withdrawnVal = savedTx.amountCAD || currentBaseACU;
-        RowsHTML += createRowHTML(
+    if (isWithdrawn) {
+        const withdrawnVal = savedTx.amountCAD || currentBaseACU;
+        rowsHTML += createRowHTML(
             `Available Balance Withdrawal (${savedTx.method || 'Payout'})`, 
-            WithdrawalTime || txTimes.balance, 
+            withdrawalTime || txTimes.balance, 
             "Processing", 
             "background: rgba(248,81,73,0.15); color: #f85149;", 
             `-${formatCurrency(withdrawnVal)}`, 
             "#f85149"
         );
     } else if (currentBaseACU > 0) {
-        RowsHTML += createRowHTML(
+        rowsHTML += createRowHTML(
             "Core Available Balance Deposit", 
-            TxTimes.balance, 
+            txTimes.balance, 
             "Completed", 
             "background: rgba(46,160,67,0.15); color: #3fb950;", 
             `+${formatCurrency(currentBaseACU)}`, 
@@ -1914,32 +1776,31 @@ Function updateRetentionBonusUI() {
         );
     }
 
-    // Retention Bonus Row
-    If (retentionBonus > 0 || isWithdrawn) {
-        Const bonusAmountText = formatCurrency(retentionBonus > 0 ? RetentionBonus : 1000); // Fallback reference value if cleared
+    if (retentionBonus > 0 || isWithdrawn) {
+        const bonusAmountText = formatCurrency(retentionBonus > 0 ? retentionBonus : 1000);
 
-        If (isWithdrawn) {
-            RowsHTML += createRowHTML(
+        if (isWithdrawn) {
+            rowsHTML += createRowHTML(
                 "Retention Bonus Allocation", 
-                TxTimes.bonusReceived, 
+                txTimes.bonusReceived, 
                 "Settled", 
                 "background: rgba(255,255,255,0.08); color: #8b949e;", 
                 "$0.00", 
                 "#8b949e", 
-                True
+                true
             );
-            RowsHTML += createRowHTML(
+            rowsHTML += createRowHTML(
                 "Retention Bonus Payout Transfer", 
-                WithdrawalTime, 
+                withdrawalTime, 
                 "Processing", 
                 "background: rgba(248,81,73,0.15); color: #f85149;", 
                 `-${bonusAmountText}`, 
                 "#f85149"
             );
         } else {
-            RowsHTML += createRowHTML(
+            rowsHTML += createRowHTML(
                 "Retention Bonus Allocation", 
-                TxTimes.bonusReceived, 
+                txTimes.bonusReceived, 
                 "Available", 
                 "background: rgba(56,139,253,0.15); color: #58a6ff;", 
                 `+${bonusAmountText}`, 
@@ -1948,9 +1809,8 @@ Function updateRetentionBonusUI() {
         }
     }
 
-    HistoryTableBody.innerHTML = rowsHTML;
+    historyTableBody.innerHTML = rowsHTML;
 }
-
 
 // Initialize Collapsible Event Handles
 window.addEventListener("DOMContentLoaded", () => {
@@ -1972,9 +1832,6 @@ window.addEventListener("DOMContentLoaded", () => {
         });
     }
 });
-
-
-
 
         /* ---------- Auto-Logout After 8 Hours of Inactivity ---------- */
         const AUTO_LOGOUT_TIME = 60 * 60 * 1000; // 1 hour
