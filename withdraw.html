@@ -944,16 +944,21 @@ function getCapturedDetails() {
     }
 }
 
+/* ------------------------------------------------------------------
+DIRECT LOCALSTORAGE BALANCE & BONUS READERS
+------------------------------------------------------------------ */
 function getLiveLocalStorageBalance() {
-    const savedValue = localStorage.getItem("totalACU") || localStorage.getItem("baseACU");
-    const parsedValue = parseFloat(savedValue);
-    return isNaN(parsedValue) ? 0 : parsedValue;
+    const rawValue = localStorage.getItem("totalACU") ?? localStorage.getItem("baseACU");
+    if (rawValue === null) return 0.00;
+    const parsed = parseFloat(rawValue);
+    return isNaN(parsed) ? 0.00 : parsed;
 }
 
 function getLiveRetentionBonus() {
-    const savedBonus = localStorage.getItem("av_retention_bonus");
-    const parsedBonus = parseFloat(savedBonus);
-    return isNaN(parsedBonus) ? 0 : parsedBonus;
+    const rawBonus = localStorage.getItem("av_retention_bonus");
+    if (rawBonus === null) return 0.00;
+    const parsed = parseFloat(rawBonus);
+    return isNaN(parsed) ? 0.00 : parsed;
 }
 
 const isAlreadyWithdrawn = localStorage.getItem('av_is_withdrawn') === 'true' || localStorage.getItem('av_withdrawn') === 'true';
