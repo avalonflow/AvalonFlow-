@@ -1818,46 +1818,52 @@ const txTimes = {
 // 🔓 RETENTION BONUS & DYNAMIC TRANSACTIONS
 // ==========================================
 function getNumericStorageItem(key, defaultValue) {
-    const value = localStorage.getItem(key);
-    return value !== null ? parseFloat(value) : defaultValue;
+    Const value = localStorage.getItem(key);
+    Return value !== null ? ParseFloat(value) : defaultValue;
 }
 
-function formatCurrency(amount) {
-    return "$" + amount.toLocaleString('en-US', {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
+Function formatCurrency(amount) {
+    Return "$" + amount.toLocaleString('en-US', {
+        MinimumFractionDigits: 2,
+        MaximumFractionDigits: 2
     });
 }
 
-function updateRetentionBonusUI() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const isWithdrawn = localStorage.getItem("av_withdrawn") === "true" || urlParams.get("av_withdrawn") === "true";
+Function updateRetentionBonusUI() {
+    Const urlParams = new URLSearchParams(window.location.search);
+    Const isWithdrawn = localStorage.getItem("av_withdrawn") === "true" || 
+                        LocalStorage.getItem("av_is_withdrawn") === "true" || 
+                        UrlParams.get("av_withdrawn") === "true";
 
-    // Read Base ACU (Checks localStorage first, falls back to BASE_ACU variable)
-    const currentBaseACU = getNumericStorageItem("baseACU", typeof BASE_ACU !== 'undefined' ? BASE_ACU : 0.00);
+    // Base ACU & Retention bonus amounts
+    Const currentBaseACU = getNumericStorageItem("baseACU", typeof BASE_ACU !== 'undefined' ? BASE_ACU : 0.00);
+    Const retentionBonus = getNumericStorageItem("av_retention_bonus", 0.00);
 
-    // Read Retention Bonus from LocalStorage (defaults to 0.00 if omitted)
-    const retentionBonus = getNumericStorageItem("av_retention_bonus", 0.00);
+    Const bonusCardStat = document.querySelector(".stat-card:nth-child(3) .stat");
+    Const historyTableBody = document.getElementById("transactionHistoryRows");
 
-    const bonusCardStat = document.querySelector(".stat-card:nth-child(3) .stat");
-    const historyTableBody = document.getElementById("transactionHistoryRows");
+    If (!historyTableBody) return;
 
-    if (!historyTableBody) return;
+    // Retrieve persistent withdrawal timing & record
+    Let withdrawalTime = localStorage.getItem("av_withdrawal_time");
+    Let savedTx = {};
+    Try {
+        SavedTx = JSON.parse(localStorage.getItem("av_withdrawal_tx") || "{}");
+    } catch(e) {}
 
-    // Handle persistent withdrawal timestamp
-    let withdrawalTime = localStorage.getItem("av_withdrawal_time");
-    if (isWithdrawn && !withdrawalTime) {
-        withdrawalTime = new Date().toLocaleDateString('en-US', {
-            month: 'short', day: '2-digit', year: 'numeric'
+    If (isWithdrawn && !withdrawalTime) {
+        WithdrawalTime = new Date().toLocaleDateString('en-US', {
+            Month: 'short', day: '2-digit', year: 'numeric'
         }) + `, ` + new Date().toLocaleTimeString('en-US', {
-            hour: '2-digit', minute: '2-digit', hour12: true
+            Hour: '2-digit', minute: '2-digit', hour12: true
         });
-        localStorage.setItem("av_withdrawal_time", withdrawalTime);
+        LocalStorage.setItem("av_withdrawal_time", withdrawalTime);
     } else if (!isWithdrawn) {
-        localStorage.removeItem("av_withdrawal_time");
+        LocalStorage.removeItem("av_withdrawal_time");
+        LocalStorage.removeItem("av_withdrawal_tx");
     }
 
-    const createRowHTML = (desc, date, statusLabel, statusStyle, amountText, amountColor, isSettled = false) => `
+    Const createRowHTML = (desc, date, statusLabel, statusStyle, amountText, amountColor, isSettled = false) => `
         <div style="display: flex; flex-direction: column; gap: 6px; padding: 12px 4px; border-bottom: 1px solid rgba(255,255,255,0.08); font-size: 14px; opacity: ${isSettled ? '0.6' : '1'};">
             <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;">
                 <div style="font-weight: 600; color: #b4c6ef; line-height: 1.3; max-width: 70%;">${desc}</div>
@@ -1870,61 +1876,70 @@ function updateRetentionBonusUI() {
         </div>
     `;
 
-    // 1. Update Card Display
-    if (bonusCardStat) {
-        if (isWithdrawn || retentionBonus <= 0) {
-            bonusCardStat.textContent = "0.00 ACU ~ $0.00";
-            bonusCardStat.style.animation = "none";
-            bonusCardStat.style.webkitTextFillColor = "#555";
+    // 1. Update Retention Bonus Card
+    If (bonusCardStat) {
+        If (isWithdrawn || retentionBonus <= 0) {
+            BonusCardStat.textContent = "0.00 ACU ~ $0.00";
+            BonusCardStat.style.animation = "none";
+            BonusCardStat.style.webkitTextFillColor = "#555";
         } else {
-            bonusCardStat.textContent = `${retentionBonus.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ACU ~ ${formatCurrency(retentionBonus)}`;
-            bonusCardStat.style.animation = "";
-            bonusCardStat.style.webkitTextFillColor = "";
+            BonusCardStat.textContent = `${retentionBonus.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ACU ~ ${formatCurrency(retentionBonus)}`;
+            BonusCardStat.style.animation = "";
+            BonusCardStat.style.webkitTextFillColor = "";
         }
     }
 
-    // 2. Build Transaction Rows Dynamically
-    let rowsHTML = "";
+    // 2. Build Dynamic Transaction Rows
+    Let rowsHTML = "";
 
-    // Show Core Deposit row ONLY if baseACU > 0
-    if (currentBaseACU > 0) {
-        const coreDepositText = `+${formatCurrency(currentBaseACU)}`;
-        rowsHTML += createRowHTML(
+    // Core Balance Row
+    If (isWithdrawn) {
+        Const withdrawnVal = savedTx.amountCAD || currentBaseACU;
+        RowsHTML += createRowHTML(
+            `Available Balance Withdrawal (${savedTx.method || 'Payout'})`, 
+            WithdrawalTime || txTimes.balance, 
+            "Processing", 
+            "background: rgba(248,81,73,0.15); color: #f85149;", 
+            `-${formatCurrency(withdrawnVal)}`, 
+            "#f85149"
+        );
+    } else if (currentBaseACU > 0) {
+        RowsHTML += createRowHTML(
             "Core Available Balance Deposit", 
-            txTimes.balance, 
+            TxTimes.balance, 
             "Completed", 
             "background: rgba(46,160,67,0.15); color: #3fb950;", 
-            coreDepositText, 
+            `+${formatCurrency(currentBaseACU)}`, 
             "#3fb950"
         );
     }
 
-    // Show Retention Bonus rows ONLY if retentionBonus > 0
-    if (retentionBonus > 0) {
-        const bonusAmountText = formatCurrency(retentionBonus);
+    // Retention Bonus Row
+    If (retentionBonus > 0 || isWithdrawn) {
+        Const bonusAmountText = formatCurrency(retentionBonus > 0 ? RetentionBonus : 1000); // Fallback reference value if cleared
 
-        if (isWithdrawn) {
-            rowsHTML += createRowHTML(
+        If (isWithdrawn) {
+            RowsHTML += createRowHTML(
                 "Retention Bonus Allocation", 
-                txTimes.bonusReceived, 
+                TxTimes.bonusReceived, 
                 "Settled", 
                 "background: rgba(255,255,255,0.08); color: #8b949e;", 
                 "$0.00", 
                 "#8b949e", 
-                true
+                True
             );
-            rowsHTML += createRowHTML(
-                "Retention Bonus Withdrawal", 
-                withdrawalTime, 
+            RowsHTML += createRowHTML(
+                "Retention Bonus Payout Transfer", 
+                WithdrawalTime, 
                 "Processing", 
                 "background: rgba(248,81,73,0.15); color: #f85149;", 
                 `-${bonusAmountText}`, 
                 "#f85149"
             );
         } else {
-            rowsHTML += createRowHTML(
+            RowsHTML += createRowHTML(
                 "Retention Bonus Allocation", 
-                txTimes.bonusReceived, 
+                TxTimes.bonusReceived, 
                 "Available", 
                 "background: rgba(56,139,253,0.15); color: #58a6ff;", 
                 `+${bonusAmountText}`, 
@@ -1933,9 +1948,9 @@ function updateRetentionBonusUI() {
         }
     }
 
-    // Render into DOM
-    historyTableBody.innerHTML = rowsHTML;
+    HistoryTableBody.innerHTML = rowsHTML;
 }
+
 
 // Initialize Collapsible Event Handles
 window.addEventListener("DOMContentLoaded", () => {
