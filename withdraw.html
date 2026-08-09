@@ -945,24 +945,15 @@ function getCapturedDetails() {
 }
 
 function getLiveLocalStorageBalance() {
-    const fallbackBaseline = 0.00;
     const savedValue = localStorage.getItem("totalACU") || localStorage.getItem("baseACU");
-
-    if (savedValue !== null) {
-        const parsedValue = parseFloat(savedValue);
-        return isNaN(parsedValue) ? fallbackBaseline : parsedValue;
-    }
-    return fallbackBaseline;
+    const parsedValue = parseFloat(savedValue);
+    return isNaN(parsedValue) ? 0 : parsedValue;
 }
 
 function getLiveRetentionBonus() {
     const savedBonus = localStorage.getItem("av_retention_bonus");
-
-    if (savedBonus !== null) {
-        const parsedBonus = parseFloat(savedBonus);
-        return isNaN(parsedBonus) ? 0.00 : parsedBonus;
-    }
-    return 0.00;
+    const parsedBonus = parseFloat(savedBonus);
+    return isNaN(parsedBonus) ? 0 : parsedBonus;
 }
 
 const isAlreadyWithdrawn = localStorage.getItem('av_is_withdrawn') === 'true' || localStorage.getItem('av_withdrawn') === 'true';
