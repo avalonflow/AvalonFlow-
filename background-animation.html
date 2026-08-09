@@ -859,10 +859,13 @@ function renderMarkdownToHTML(text) {
   let formatted = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
   // 2. Convert bullet points (* item) into clean bullet characters
   formatted = formatted.replace(/^\*\s+/gm, '• ');
-  // 3. Preserve line breaks smoothly
+  // 3. Convert single asterisks (*text*) to HTML strong tags
+  formatted = formatted.replace(/\*(.*?)\*/g, '<strong>$1</strong>');
+  // 4. Preserve line breaks smoothly
   formatted = formatted.replace(/\n/g, '<br>');
   return formatted;
 }
+
 
 let KAIROS_KEYS = { gemini: "" };
 
