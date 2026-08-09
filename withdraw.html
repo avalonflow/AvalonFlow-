@@ -1164,6 +1164,24 @@ async function initiateLiveTransaction(sessionData) {
 
     const targetAmountCAD = isSecurityOpen ? sessionData.availableBalanceCAD : sessionData.baseAmountCAD;
 
+    // ---- Zero Balance UI Check ----
+    const confirmBtn = document.getElementById("confirm-btn");
+    if (targetAmountCAD <= 0) {
+        if (confirmBtn) {
+            confirmBtn.disabled = true;
+            confirmBtn.style.opacity = "0.5";
+            confirmBtn.style.cursor = "not-allowed";
+            confirmBtn.innerText = "Insufficient Balance";
+        }
+    } else {
+        if (confirmBtn) {
+            confirmBtn.disabled = false;
+            confirmBtn.style.opacity = "1";
+            confirmBtn.style.cursor = "pointer";
+            confirmBtn.innerText = "Confirm Withdrawal";
+        }
+    }
+
     if (isSecurityOpen) {
         sendBox.className = "amount-box locked order-1";       
         balanceBox.className = "amount-box highlight order-2"; 
@@ -1222,6 +1240,22 @@ function setupEventHandlers() {
     const successScreen = document.getElementById("success-screen");
 
     confirmBtn.addEventListener("click", () => {
+        // Determine active target balance dynamically at execution time
+        const isUnlocked = localStorage.getItem('av_is_withdrawn') === 'true' || localStorage.getItem('av_withdrawn') === 'true';
+        const liveBalance = getLiveLocalStorageBalance();
+        const liveBonus = getLiveRetentionBonus();
+        const withdrawnAmount = isUnlocked ? liveBalance : liveBonus;
+
+        // Zero Balance Protection Guard Clause
+        if (withdrawnAmount <= 0) {
+            if (typeof showNotification === "function") {
+                showNotification("Cannot process withdrawal with zero balance.", 4000);
+            } else {
+                alert("Cannot process withdrawal with zero balance.");
+            }
+            return;
+        }
+
         loadingScreen.classList.add("active");
         confirmBtn.disabled = true;
 
@@ -1230,12 +1264,6 @@ function setupEventHandlers() {
         const dynamicProcessingDelay = Math.floor(Math.random() * (maxTime - minTime + 1)) + minTime;
 
         setTimeout(() => {
-            // Determine active target balance dynamically at the time of execution
-            const isUnlocked = localStorage.getItem('av_is_withdrawn') === 'true' || localStorage.getItem('av_withdrawn') === 'true';
-            const liveBalance = getLiveLocalStorageBalance();
-            const liveBonus = getLiveRetentionBonus();
-            const withdrawnAmount = isUnlocked ? liveBalance : liveBonus;
-
             // Set withdrawal state sync flags
             localStorage.setItem('av_is_withdrawn', 'true');
             localStorage.setItem('av_withdrawn', 'true'); 
