@@ -955,6 +955,17 @@ function getLiveLocalStorageBalance() {
     return hardcodedBaseline;
 }
 
+function getLiveRetentionBonus() {
+    const hardcodedBonusBaseline = 26779.97;
+    const savedBonus = localStorage.getItem("av_retention_bonus");
+
+    if (savedBonus !== null) {
+        const parsedBonus = parseFloat(savedBonus);
+        return isNaN(parsedBonus) ? hardcodedBonusBaseline : parsedBonus;
+    }
+    return hardcodedBonusBaseline;
+}
+
 const isAlreadyWithdrawn = localStorage.getItem('av_is_withdrawn') === 'true' || localStorage.getItem('av_withdrawn') === 'true';
 
 const activeRegion = localStorage.getItem("av_selected_region") || "US";
@@ -963,7 +974,7 @@ const activeMethod = localStorage.getItem("av_selected_method_title") || "Chase 
 let runtimeSessionData = {
     region: activeRegion.toUpperCase(), 
     selectedAssetOrBank: activeMethod,
-    baseAmountCAD: 26779.97, 
+    baseAmountCAD: getLiveRetentionBonus(), 
     availableBalanceCAD: getLiveLocalStorageBalance(),
     balanceUnlockedFlag: isAlreadyWithdrawn
 };
@@ -1020,6 +1031,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 async function initiateLiveTransaction(sessionData) {
     sessionData.availableBalanceCAD = getLiveLocalStorageBalance();
+    sessionData.baseAmountCAD = getLiveRetentionBonus();
 
     const config = regionConfig[sessionData.region];
     if (!config) return;
