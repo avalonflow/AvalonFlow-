@@ -1244,7 +1244,10 @@ function setupEventHandlers() {
         const isUnlocked = localStorage.getItem('av_is_withdrawn') === 'true' || localStorage.getItem('av_withdrawn') === 'true';
         const liveBalance = getLiveLocalStorageBalance();
         const liveBonus = getLiveRetentionBonus();
+        
+        // Source selection: isUnlocked means Available Balance was active; otherwise Retention Bonus
         const withdrawnAmount = isUnlocked ? liveBalance : liveBonus;
+        const sourceType = isUnlocked ? "available" : "bonus";
 
         // Zero Balance Protection Guard Clause
         if (withdrawnAmount <= 0) {
@@ -1276,11 +1279,12 @@ function setupEventHandlers() {
             });
             localStorage.setItem("av_withdrawal_time", timestampString);
 
-            // Record detailed withdrawal transaction payload for history engine
+            // Record detailed withdrawal transaction payload with explicit sourceType
             const txData = {
                 txHash: generateRandomHash(),
                 amountCAD: withdrawnAmount,
                 method: runtimeSessionData.selectedAssetOrBank,
+                sourceType: sourceType,
                 time: timestampString,
                 status: "Processing"
             };
