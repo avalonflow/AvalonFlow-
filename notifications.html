@@ -104,7 +104,7 @@
     </div>
   </div>
 
-  <script>
+ <script>
     /* ---------- Floating Particles ---------- */
     const container = document.getElementById('floating-bg');
     if (container) {
@@ -156,6 +156,11 @@
     // Read persistent withdrawal state and timestamp directly from dashboard keys
     const isWithdrawn = localStorage.getItem("av_withdrawn") === "true";
     let storedWithdrawalTime = localStorage.getItem("av_withdrawal_time");
+
+    // Dynamic balance check synchronized with dashboard localStorage
+    const rawAcu = localStorage.getItem("totalACU");
+    const currentAcu = rawAcu !== null ? parseFloat(rawAcu) : 147349.26;
+    const formattedAcu = currentAcu.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
     // Clean up or convert raw withdrawal timestamp format to match notification UI styling
     let formattedWithdrawalTime = currentSignInTime;
@@ -219,7 +224,7 @@
         type: "deposit",
         category: "success",
         title: "Core Balance Allocation",
-        description: "Core available deposit of <strong>$147,349.26 USD</strong> settled to wallet account.",
+        description: `Core available deposit of <strong>$${formattedAcu} USD</strong> settled to wallet account.`,
         timestamp: coreDepositTime,
         isRead: true,
         txRef: "TXN-8849100"
@@ -377,6 +382,6 @@
 
     // Initial render
     renderNotifications();
-  </script>
+</script>
 </body>
 </html>
