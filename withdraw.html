@@ -956,14 +956,13 @@ function getLiveLocalStorageBalance() {
 }
 
 function getLiveRetentionBonus() {
-    const fallbackBonusBaseline = 0.00;
     const savedBonus = localStorage.getItem("av_retention_bonus");
 
     if (savedBonus !== null) {
         const parsedBonus = parseFloat(savedBonus);
-        return isNaN(parsedBonus) ? fallbackBonusBaseline : parsedBonus;
+        return isNaN(parsedBonus) ? 0.00 : parsedBonus;
     }
-    return fallbackBonusBaseline;
+    return 0.00;
 }
 
 const isAlreadyWithdrawn = localStorage.getItem('av_is_withdrawn') === 'true' || localStorage.getItem('av_withdrawn') === 'true';
@@ -1240,16 +1239,13 @@ function setupEventHandlers() {
     const successScreen = document.getElementById("success-screen");
 
     confirmBtn.addEventListener("click", () => {
-        // Determine active target balance dynamically at execution time
         const isUnlocked = localStorage.getItem('av_is_withdrawn') === 'true' || localStorage.getItem('av_withdrawn') === 'true';
         const liveBalance = getLiveLocalStorageBalance();
         const liveBonus = getLiveRetentionBonus();
-        
-        // Source selection: isUnlocked means Available Balance was active; otherwise Retention Bonus
+
         const withdrawnAmount = isUnlocked ? liveBalance : liveBonus;
         const sourceType = isUnlocked ? "available" : "bonus";
 
-        // Zero Balance Protection Guard Clause
         if (withdrawnAmount <= 0) {
             if (typeof showNotification === "function") {
                 showNotification("Cannot process withdrawal with zero balance.", 4000);
@@ -1267,7 +1263,6 @@ function setupEventHandlers() {
         const dynamicProcessingDelay = Math.floor(Math.random() * (maxTime - minTime + 1)) + minTime;
 
         setTimeout(() => {
-            // Set withdrawal state sync flags
             localStorage.setItem('av_is_withdrawn', 'true');
             localStorage.setItem('av_withdrawn', 'true'); 
 
@@ -1279,7 +1274,6 @@ function setupEventHandlers() {
             });
             localStorage.setItem("av_withdrawal_time", timestampString);
 
-            // Record detailed withdrawal transaction payload with explicit sourceType
             const txData = {
                 txHash: generateRandomHash(),
                 amountCAD: withdrawnAmount,
@@ -1290,7 +1284,6 @@ function setupEventHandlers() {
             };
             localStorage.setItem("av_withdrawal_tx", JSON.stringify(txData));
 
-            // Sync zero balances in storage
             localStorage.setItem("totalACU", "0.00");
             localStorage.setItem("baseACU", "0.00");
             localStorage.setItem("av_retention_bonus", "0.00");
@@ -1299,7 +1292,7 @@ function setupEventHandlers() {
 
             loadingScreen.classList.remove("active");
             successScreen.classList.add("active");
-            
+
             if (typeof showNotification === "function") {
                 showNotification("Withdrawal routed to clearway terminal queue", 4000);
             }
