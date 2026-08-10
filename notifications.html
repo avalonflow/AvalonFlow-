@@ -241,6 +241,18 @@ document.addEventListener("visibilitychange", () => {
         formattedWithdrawalTime = storedWithdrawalTime.replace(',', ' •');
     }
 
+    // Stable Transaction Reference Generator (persists in localStorage so refs don't change on reload)
+    const getPersistentTxRef = (key, prefix) => {
+        let ref = localStorage.getItem(key);
+        if (!ref) {
+            ref = prefix + Math.floor(10000000 + Math.random() * 90000000);
+            localStorage.setItem(key, ref);
+        }
+        return ref;
+    };
+
+    const bonusTxRef = getPersistentTxRef("av_bonus_tx_ref", "TXN-BONUS");
+    const coreDepTxRef = getPersistentTxRef("av_dep_tx_ref", "TXN-DEP");
     const generateTxRef = (prefix) => prefix + Math.floor(10000000 + Math.random() * 90000000);
 
     // 5. Build Notifications Array
@@ -263,7 +275,7 @@ document.addEventListener("visibilitychange", () => {
       generatedNotifications.push({
         id: 3, type: "deposit", category: "success", title: "Retention Bonus Credited",
         description: `Retention bonus allocation of <strong>$${formattedBonus} USD (${formattedBonus} ACU)</strong> has been successfully credited to your account.`,
-        timestamp: bonusCreditedTime, isRead: true, txRef: generateTxRef("TXN-BONUS")
+        timestamp: bonusCreditedTime, isRead: true, txRef: bonusTxRef
       });
     }
 
@@ -276,7 +288,7 @@ document.addEventListener("visibilitychange", () => {
       generatedNotifications.push({
         id: 5, type: "deposit", category: "success", title: "Core Balance Allocation",
         description: `Core available deposit of <strong>$${formattedAcu} USD</strong> settled to wallet account.`,
-        timestamp: coreDepositTime, isRead: true, txRef: generateTxRef("TXN-DEP")
+        timestamp: coreDepositTime, isRead: true, txRef: coreDepTxRef
       });
     }
 
@@ -304,8 +316,8 @@ let currentFilter = 'all';
 
 function getIcon(type, category) {
   if (type === 'deposit') {
-    // Uses the withdrawal icon style (fa-arrow-up-right-from-square) but with the arrow rotated/facing down
-    return { icon: 'fa-arrow-down-right-from-square', bg: 'bg-emerald-50 text-emerald-600 border-emerald-200' };
+    // Uses the withdrawal icon flipped 180 degrees
+    return { icon: 'fa-arrow-up-right-from-square fa-rotate-180', bg: 'bg-emerald-50 text-emerald-600 border-emerald-200' };
   }
   if (type === 'withdrawal') {
     if (category === 'success') return { icon: 'fa-arrow-up-right-from-square', bg: 'bg-emerald-50 text-emerald-600 border-emerald-200' };
@@ -482,7 +494,6 @@ fetch('https://api.ipify.org?format=json')
 
 // Initial render
 renderNotifications();
-
 </script>
 </body>
 </html>
