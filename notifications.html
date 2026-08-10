@@ -304,7 +304,8 @@ let currentFilter = 'all';
 
 function getIcon(type, category) {
   if (type === 'deposit') {
-    return { icon: 'fa-arrow-down-left-to-bracket', bg: 'bg-emerald-50 text-emerald-600 border-emerald-200' };
+    // Uses the withdrawal icon style (fa-arrow-up-right-from-square) but with the arrow rotated/facing down
+    return { icon: 'fa-arrow-down-right-from-square', bg: 'bg-emerald-50 text-emerald-600 border-emerald-200' };
   }
   if (type === 'withdrawal') {
     if (category === 'success') return { icon: 'fa-arrow-up-right-from-square', bg: 'bg-emerald-50 text-emerald-600 border-emerald-200' };
@@ -401,7 +402,7 @@ function toggleRead(id) {
   window.notifications = window.notifications.map(item => {
       if (item.id === id) {
           const newState = !item.isRead;
-          updateReadStorage(id, newState);
+          updateReadStorage(item.id, newState);
           return { ...item, isRead: newState };
       }
       return item;
