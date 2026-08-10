@@ -1343,7 +1343,7 @@ function toggleSidebar() {
 function navigateTo(page){
     window.location.href = page;
 }
-                                function logout(){
+                                                function logout(){
     localStorage.removeItem("avalon_logged_in");
     localStorage.removeItem("avalon_seen_dashboard");
     window.location.href = 'https://membership.avalonflow.site/signin';
@@ -1359,7 +1359,7 @@ const plans = {
     custom:  { per12h: 0, ac: "customAC" }
 };
 
-const BASE_ACU = 0.00;
+const BASE_ACU = 500.00;
 const DEFAULT_RETENTION_BONUS = 7533.32;
 const BASE_ACTIVE_BONDS = 1;
 const ALL_PLANS = ["premium", "basic", "lite", "custom"];
@@ -1752,7 +1752,7 @@ function updateRetentionBonusUI() {
     `;
 
     if (bonusCardStat) {
-        if (isWithdrawn || retentionBonus <= 0) {
+        if (isWithdrawn && withdrawalSource === "bonus" || retentionBonus <= 0) {
             bonusCardStat.textContent = "0.00 ACU ~ $0.00";
             bonusCardStat.style.animation = "none";
             bonusCardStat.style.webkitTextFillColor = "#555";
@@ -1765,6 +1765,7 @@ function updateRetentionBonusUI() {
 
     let rowsHTML = "";
 
+    // 1. Core Available Balance Row & Withdrawal handling
     if (isWithdrawn && withdrawalSource === "available") {
         const withdrawnVal = savedTx.amountCAD || (currentBaseACU > 0 ? currentBaseACU : BASE_ACU);
 
@@ -1796,7 +1797,8 @@ function updateRetentionBonusUI() {
         );
     }
 
-    if (retentionBonus > 0 || isWithdrawn) {
+    // 2. Retention Bonus Row & Withdrawal handling
+    if (retentionBonus > 0 || (isWithdrawn && withdrawalSource === "bonus")) {
         const bonusAmountText = formatCurrency(savedTx.amountCAD || (retentionBonus > 0 ? retentionBonus : DEFAULT_RETENTION_BONUS));
 
         if (isWithdrawn && withdrawalSource === "bonus") {
@@ -1811,7 +1813,7 @@ function updateRetentionBonusUI() {
             );
             rowsHTML += createRowHTML(
                 `Retention Bonus Withdrawal (${savedTx.method || 'Payout'})`, 
-                withdrawalTime, 
+                withdrawalTime || txTimes.bonusReceived, 
                 "Processing", 
                 "background: rgba(248,81,73,0.15); color: #f85149;", 
                 `-${bonusAmountText}`, 
