@@ -570,7 +570,23 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 
+        /* Sidebar toggle */
+        const sidebar = document.getElementById('sidebar');
+const content = document.getElementById('content');
 
+const menuBtn = document.getElementById('menuBtn');
+
+function toggleSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const menuBtn = document.getElementById('menuBtn');
+
+    sidebar.classList.toggle('open');
+    menuBtn.classList.toggle('shift');
+}
+
+function navigateTo(page){
+    window.location.href = page;
+}
 
   // Prevent user from going back to previous pages
   history.pushState(null, null, location.href);
