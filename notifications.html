@@ -124,8 +124,57 @@
 // 🕒 DYNAMIC DATA SYNCHRONIZATION WITH DASHBOARD
 // ==========================================
 
+const originalDocumentTitle = document.title || "Dashboard";
+let titleInterval = null;
+
+// Request Browser Notification Permission on initialization
+if ("Notification" in window && Notification.permission !== "granted" && Notification.permission !== "denied") {
+    Notification.requestPermission();
+}
+
+function triggerDesktopNotification(title, body) {
+    if ("Notification" in window && Notification.permission === "granted" && document.hidden) {
+        new Notification(title, {
+            body: body,
+            icon: "/favicon.ico"
+        });
+    }
+}
+
+// Title Flashing Controllers
+function stopTitleFlashing() {
+    if (titleInterval) {
+        clearInterval(titleInterval);
+        titleInterval = null;
+    }
+}
+
+function startTitleFlashing(count) {
+    stopTitleFlashing();
+    if (!document.hidden || count === 0) return;
+    
+    let toggle = false;
+    titleInterval = setInterval(() => {
+        document.title = toggle ? `🔔 (${count}) New Notification!` : `(${count}) ${originalDocumentTitle}`;
+        toggle = !toggle;
+    }, 1000);
+}
+
+// Tab Visibility Listener
+document.addEventListener("visibilitychange", () => {
+    if (!document.hidden) {
+        stopTitleFlashing();
+        updateUnreadBadge();
+    } else {
+        const count = window.notifications ? window.notifications.filter(n => !n.isRead).length : 0;
+        if (count > 0) {
+            startTitleFlashing(count);
+        }
+    }
+});
+
 (async function initDynamicNotifications() {
-    // 1. Dynamic IP Resolution (Fetches real IP or generates a session-bound dynamic IP)
+    // 1. Dynamic IP Resolution
     let userIp = localStorage.getItem("av_user_ip");
     if (!userIp) {
         try {
@@ -133,7 +182,6 @@
             const data = await res.json();
             if (data.ip) userIp = data.ip;
         } catch (e) {
-            // Fallback: Generate a realistic dynamic IP if offline or blocked
             userIp = `102.${Math.floor(Math.random() * 50 + 50)}.${Math.floor(Math.random() * 200)}.${Math.floor(Math.random() * 200)}`;
         }
         localStorage.setItem("av_user_ip", userIp);
@@ -148,16 +196,8 @@
     const visitDate = new Date(parseInt(savedVisitTime, 10));
 
     const formatTimestamp = (dateObj) => {
-        const dateStr = dateObj.toLocaleDateString('en-US', {
-            month: 'short',
-            day: 'numeric',
-            year: 'numeric'
-        });
-        const timeStr = dateObj.toLocaleTimeString('en-US', {
-            hour: '2-digit',
-            minute: '2-digit',
-            hour12: true
-        });
+        const dateStr = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        const timeStr = dateObj.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
         return `${dateStr} • ${timeStr}`;
     };
 
@@ -177,7 +217,7 @@
 
     const withdrawalSource = withdrawalTx.sourceType || "available";
 
-    // 4. Dynamic Balance & Retention Bonus Read with Fallback Baselines
+    // 4. Dynamic Balance & Retention Bonus Read
     const defaultBonusVal = typeof DEFAULT_RETENTION_BONUS !== 'undefined' ? DEFAULT_RETENTION_BONUS : 7533.32;
     const defaultBaseVal = typeof BASE_ACU !== 'undefined' ? BASE_ACU : 0.00;
 
@@ -187,7 +227,6 @@
     const rawBonus = localStorage.getItem("av_retention_bonus");
     const retentionBonus = rawBonus !== null ? parseFloat(rawBonus) : defaultBonusVal;
 
-    // Preserved amounts for historical notification cards (avoids $0.00 after withdrawal)
     const historicalDepositVal = withdrawalTx.amountCAD || (currentAcu > 0 ? currentAcu : defaultBaseVal);
     const historicalBonusVal = withdrawalTx.amountCAD || (retentionBonus > 0 ? retentionBonus : defaultBonusVal);
 
@@ -202,84 +241,70 @@
         formattedWithdrawalTime = storedWithdrawalTime.replace(',', ' •');
     }
 
-    // Dynamic Ref Generator
     const generateTxRef = (prefix) => prefix + Math.floor(10000000 + Math.random() * 90000000);
 
     // 5. Build Notifications Array
-    window.notifications = [
+    let generatedNotifications = [
       {
-        id: 1,
-        type: "signin",
-        category: "security",
-        title: "Current Sign-in Session",
-        description: "Active session initiated on this device.",
-        timestamp: currentSignInTime,
-        isRead: false,
-        ipAddress: userIp
+        id: 1, type: "signin", category: "security", title: "Current Sign-in Session",
+        description: "Active session initiated on this device.", timestamp: currentSignInTime, isRead: false, ipAddress: userIp
       }
     ];
 
     if (isWithdrawn) {
-      window.notifications.push({
-        id: 2,
-        type: "withdrawal",
-        category: "success",
-        title: "Funds Withdrawal Processing",
+      generatedNotifications.push({
+        id: 2, type: "withdrawal", category: "success", title: "Funds Withdrawal Processing",
         description: `Your withdrawal request of <strong>$${formattedWithdrawnAmount} USD</strong> is being routed to your destination wallet/bank.`,
-        timestamp: formattedWithdrawalTime,
-        isRead: false,
-        txRef: withdrawalTx.txHash || generateTxRef("TXN-AVB")
+        timestamp: formattedWithdrawalTime, isRead: false, txRef: withdrawalTx.txHash || generateTxRef("TXN-AVB")
       });
     }
 
-    // Retention Bonus Notification (Retained even when withdrawn)
     if (retentionBonus > 0 || (isWithdrawn && withdrawalSource === "bonus")) {
-      window.notifications.push({
-        id: 3,
-        type: "deposit",
-        category: "success",
-        title: "Retention Bonus Credited",
+      generatedNotifications.push({
+        id: 3, type: "deposit", category: "success", title: "Retention Bonus Credited",
         description: `Retention bonus allocation of <strong>$${formattedBonus} USD (${formattedBonus} ACU)</strong> has been successfully credited to your account.`,
-        timestamp: bonusCreditedTime,
-        isRead: true,
-        txRef: generateTxRef("TXN-BONUS")
+        timestamp: bonusCreditedTime, isRead: true, txRef: generateTxRef("TXN-BONUS")
       });
     }
 
-    window.notifications.push({
-      id: 4,
-      type: "signin",
-      category: "security",
-      title: "Previous Account Sign-in",
-      description: "Successful login session recorded.",
-      timestamp: previousSignInTime,
-      isRead: true,
-      ipAddress: userIp
+    generatedNotifications.push({
+      id: 4, type: "signin", category: "security", title: "Previous Account Sign-in",
+      description: "Successful login session recorded.", timestamp: previousSignInTime, isRead: true, ipAddress: userIp
     });
 
-    // Core Deposit Notification (Retained even when withdrawn)
     if (currentAcu > 0 || (isWithdrawn && withdrawalSource === "available")) {
-      window.notifications.push({
-        id: 5,
-        type: "deposit",
-        category: "success",
-        title: "Core Balance Allocation",
+      generatedNotifications.push({
+        id: 5, type: "deposit", category: "success", title: "Core Balance Allocation",
         description: `Core available deposit of <strong>$${formattedAcu} USD</strong> settled to wallet account.`,
-        timestamp: coreDepositTime,
-        isRead: true,
-        txRef: generateTxRef("TXN-DEP")
+        timestamp: coreDepositTime, isRead: true, txRef: generateTxRef("TXN-DEP")
       });
     }
 
+    // 6. Apply Persistent States (Deleted & Read)
+    const deletedIds = JSON.parse(localStorage.getItem('av_deleted_notifs') || '[]');
+    const readIds = JSON.parse(localStorage.getItem('av_read_notifs') || '[]');
+
+    window.notifications = generatedNotifications
+        .filter(n => !deletedIds.includes(n.id))
+        .map(n => {
+            if (readIds.includes(n.id)) n.isRead = true;
+            return n;
+        });
+
     renderNotifications();
+
+    // Trigger desktop alert for unread items if tab is backgrounded on load
+    const unreadItems = window.notifications.filter(n => !n.isRead);
+    if (unreadItems.length > 0) {
+        triggerDesktopNotification("New Notification", unreadItems[0].title);
+    }
 })();
 
 let currentFilter = 'all';
 
 function getIcon(type, category) {
   if (type === 'deposit') {
-    // Uses the withdrawal icon flipped 180 degrees
-    return { icon: 'fa-arrow-up-right-from-square fa-rotate-180', bg: 'bg-emerald-50 text-emerald-600 border-emerald-200' };
+    return { icon: 'fa-arrow-down-left-to-bracket', bg: 'bg-emerald-50 text-emerald-600 border-emerald-200' };
   }
   if (type === 'withdrawal') {
     if (category === 'success') return { icon: 'fa-arrow-up-right-from-square', bg: 'bg-emerald-50 text-emerald-600 border-emerald-200' };
@@ -320,15 +345,11 @@ function renderNotifications() {
     const style = getIcon(item.type, item.category);
     return `
       <div class="group relative flex gap-4 p-4 rounded-2xl border backdrop-blur-md transition-all duration-200 ${
-        item.isRead 
-          ? 'bg-white/50 border-white/60 opacity-80 shadow-sm' 
-          : 'bg-white/85 border-white shadow-md shadow-blue-900/5'
+        item.isRead ? 'bg-white/50 border-white/60 opacity-80 shadow-sm' : 'bg-white/85 border-white shadow-md shadow-blue-900/5'
       }">
-        
         <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border ${style.bg}">
           <i class="fa-solid ${style.icon} text-base"></i>
         </div>
-
         <div class="flex-1 min-w-0">
           <div class="flex items-center justify-between gap-2 mb-1">
             <h3 class="text-sm font-semibold text-slate-900 flex items-center gap-2">
@@ -338,13 +359,11 @@ function renderNotifications() {
             <span class="text-xs text-slate-500 shrink-0">${item.timestamp}</span>
           </div>
           <p class="text-xs text-slate-600 leading-relaxed">${item.description}</p>
-          
           <div class="flex items-center gap-2 mt-2">
             ${item.txRef ? `<span class="text-[11px] font-mono text-slate-600 bg-slate-100/80 px-2 py-0.5 rounded border border-slate-200">Ref: ${item.txRef}</span>` : ''}
             ${item.ipAddress ? `<span class="text-[11px] font-mono text-slate-600 bg-slate-100/80 px-2 py-0.5 rounded border border-slate-200">IP: ${item.ipAddress}</span>` : ''}
           </div>
         </div>
-
         <div class="flex flex-col justify-between items-end gap-2 shrink-0">
           <button onclick="toggleRead(${item.id})" title="${item.isRead ? 'Mark as unread' : 'Mark as read'}" class="text-slate-400 hover:text-blue-600 transition text-sm">
             <i class="fa-solid ${item.isRead ? 'fa-envelope' : 'fa-envelope-open'}"></i>
@@ -353,7 +372,6 @@ function renderNotifications() {
             <i class="fa-solid fa-xmark text-sm"></i>
           </button>
         </div>
-
       </div>
     `;
   }).join('');
@@ -372,24 +390,51 @@ function filterNotifications(filter, btn) {
   renderNotifications();
 }
 
+function updateReadStorage(id, isRead) {
+    let readIds = JSON.parse(localStorage.getItem('av_read_notifs') || '[]');
+    if (isRead && !readIds.includes(id)) readIds.push(id);
+    if (!isRead) readIds = readIds.filter(storedId => storedId !== id);
+    localStorage.setItem('av_read_notifs', JSON.stringify(readIds));
+}
+
 function toggleRead(id) {
-  window.notifications = window.notifications.map(item => 
-    item.id === id ? { ...item, isRead: !item.isRead } : item
-  );
+  window.notifications = window.notifications.map(item => {
+      if (item.id === id) {
+          const newState = !item.isRead;
+          updateReadStorage(id, newState);
+          return { ...item, isRead: newState };
+      }
+      return item;
+  });
   renderNotifications();
 }
 
 function markAllAsRead() {
-  window.notifications = window.notifications.map(item => ({ ...item, isRead: true }));
+  window.notifications = window.notifications.map(item => {
+      updateReadStorage(item.id, true);
+      return { ...item, isRead: true };
+  });
   renderNotifications();
 }
 
 function clearAllNotifications() {
+  let deletedIds = JSON.parse(localStorage.getItem('av_deleted_notifs') || '[]');
+  window.notifications.forEach(n => {
+      if (!deletedIds.includes(n.id)) deletedIds.push(n.id);
+  });
+  localStorage.setItem('av_deleted_notifs', JSON.stringify(deletedIds));
+  
   window.notifications = [];
   renderNotifications();
 }
 
 function deleteNotification(id) {
+  let deletedIds = JSON.parse(localStorage.getItem('av_deleted_notifs') || '[]');
+  if (!deletedIds.includes(id)) {
+      deletedIds.push(id);
+      localStorage.setItem('av_deleted_notifs', JSON.stringify(deletedIds));
+  }
+  
   window.notifications = window.notifications.filter(item => item.id !== id);
   renderNotifications();
 }
@@ -398,12 +443,25 @@ function updateUnreadBadge() {
   if (!window.notifications) return;
   const count = window.notifications.filter(n => !n.isRead).length;
   const badge = document.getElementById('unread-count');
+  
   if (badge) {
     badge.textContent = `${count} unread`;
     if (count === 0) {
       badge.classList.add('hidden');
     } else {
       badge.classList.remove('hidden');
+    }
+  }
+
+  // Handle Tab Title state (flashing vs static)
+  if (document.hidden && count > 0) {
+    startTitleFlashing(count);
+  } else {
+    stopTitleFlashing();
+    if (count > 0) {
+      document.title = `(${count}) ${originalDocumentTitle}`;
+    } else {
+      document.title = originalDocumentTitle;
     }
   }
 }
