@@ -944,16 +944,15 @@ function getCapturedDetails() {
     }
 }
 
-/* ------------------------------------------------------------------
-DIRECT LOCALSTORAGE BALANCE & BONUS READERS
------------------------------------------------------------------- */
+// Directly source base/total ACU without hardcoded fallback values
 function getLiveLocalStorageBalance() {
-    const rawValue = localStorage.getItem("totalACU") ?? localStorage.getItem("baseACU");
-    if (rawValue === null) return 0.00;
-    const parsed = parseFloat(rawValue);
+    const rawVal = localStorage.getItem("totalACU") ?? localStorage.getItem("baseACU");
+    if (rawVal === null) return 0.00;
+    const parsed = parseFloat(rawVal);
     return isNaN(parsed) ? 0.00 : parsed;
 }
 
+// Directly source Retention Bonus from localStorage without hardcoded fallback values
 function getLiveRetentionBonus() {
     const rawBonus = localStorage.getItem("av_retention_bonus");
     if (rawBonus === null) return 0.00;
