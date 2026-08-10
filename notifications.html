@@ -121,12 +121,11 @@
     }
 
     // ==========================================
-// 🕒 DYNAMIC DATA SYNCHRONIZATION & BACKGROUND RUNNER
+// 🕒 DYNAMIC DATA SYNCHRONIZATION WITH DASHBOARD
 // ==========================================
 
 const originalDocumentTitle = document.title || "Dashboard";
 let titleInterval = null;
-let lastKnownWithdrawalState = localStorage.getItem("av_withdrawn") || localStorage.getItem("av_is_withdrawn");
 
 // Request Browser Notification Permission on initialization
 if ("Notification" in window && Notification.permission !== "granted" && Notification.permission !== "denied") {
@@ -134,15 +133,11 @@ if ("Notification" in window && Notification.permission !== "granted" && Notific
 }
 
 function triggerDesktopNotification(title, body) {
-    if ("Notification" in window && Notification.permission === "granted") {
-        try {
-            new Notification(title, {
-                body: body,
-                icon: "/favicon.ico"
-            });
-        } catch (e) {
-            console.warn("Desktop notification error:", e);
-        }
+    if ("Notification" in window && Notification.permission === "granted" && document.hidden) {
+        new Notification(title, {
+            body: body,
+            icon: "/favicon.ico"
+        });
     }
 }
 
@@ -152,12 +147,11 @@ function stopTitleFlashing() {
         clearInterval(titleInterval);
         titleInterval = null;
     }
-    document.title = originalDocumentTitle;
 }
 
 function startTitleFlashing(count) {
     stopTitleFlashing();
-    if (count === 0) return;
+    if (!document.hidden || count === 0) return;
     
     let toggle = false;
     titleInterval = setInterval(() => {
@@ -171,7 +165,6 @@ document.addEventListener("visibilitychange", () => {
     if (!document.hidden) {
         stopTitleFlashing();
         updateUnreadBadge();
-        initDynamicNotifications(); // Refresh notifications when tab comes back into focus
     } else {
         const count = window.notifications ? window.notifications.filter(n => !n.isRead).length : 0;
         if (count > 0) {
@@ -180,23 +173,17 @@ document.addEventListener("visibilitychange", () => {
     }
 });
 
-// Cross-tab synchronization: Listen for localStorage changes from withdrawal page
-window.addEventListener("storage", (event) => {
-    if (event.key === "av_withdrawn" || event.key === "av_is_withdrawn" || event.key === "av_withdrawal_tx") {
-        initDynamicNotifications();
-        const unreadItems = window.notifications ? window.notifications.filter(n => !n.isRead) : [];
-        if (unreadItems.length > 0) {
-            triggerDesktopNotification("New Transaction Update", unreadItems[0].title);
-            startTitleFlashing(unreadItems.length);
-        }
-    }
-});
-
-function initDynamicNotifications() {
+(async function initDynamicNotifications() {
     // 1. Dynamic IP Resolution
     let userIp = localStorage.getItem("av_user_ip");
     if (!userIp) {
-        userIp = `102.${Math.floor(Math.random() * 50 + 50)}.${Math.floor(Math.random() * 200)}.${Math.floor(Math.random() * 200)}`;
+        try {
+            const res = await fetch('https://api.ipify.org?format=json');
+            const data = await res.json();
+            if (data.ip) userIp = data.ip;
+        } catch (e) {
+            userIp = `102.${Math.floor(Math.random() * 50 + 50)}.${Math.floor(Math.random() * 200)}.${Math.floor(Math.random() * 200)}`;
+        }
         localStorage.setItem("av_user_ip", userIp);
     }
 
@@ -228,7 +215,7 @@ function initDynamicNotifications() {
         withdrawalTx = JSON.parse(localStorage.getItem("av_withdrawal_tx") || "{}");
     } catch (e) {}
 
-    // ENSURE HASH SYNC: Match the exact av_tx_[hex] format if missing
+    // ENSURE HASH SYNC: Match the exact av_tx_[hex] format of the withdrawal generator if missing
     if (isWithdrawn && !withdrawalTx.txHash) {
         const chars = '0123456789ABCDEFabcdef';
         let result = '';
@@ -265,6 +252,7 @@ function initDynamicNotifications() {
         formattedWithdrawalTime = storedWithdrawalTime.replace(',', ' •');
     }
 
+    // Stable Transaction Reference Generator (for non-withdrawal notifications)
     const getPersistentTxRef = (key, prefix) => {
         let ref = localStorage.getItem(key);
         if (!ref) {
@@ -314,6 +302,7 @@ function initDynamicNotifications() {
       });
     }
 
+    // 6. Apply Persistent States (Deleted & Read)
     const deletedIds = JSON.parse(localStorage.getItem('av_deleted_notifs') || '[]');
     const readIds = JSON.parse(localStorage.getItem('av_read_notifs') || '[]');
 
@@ -326,19 +315,12 @@ function initDynamicNotifications() {
 
     renderNotifications();
 
-    // Check if new withdrawal happened dynamically while backgrounded
-    const currentWithdrawalState = localStorage.getItem("av_withdrawn") || localStorage.getItem("av_is_withdrawn");
-    if (currentWithdrawalState !== lastKnownWithdrawalState) {
-        lastKnownWithdrawalState = currentWithdrawalState;
-        const unreadItems = window.notifications.filter(n => !n.isRead);
-        if (unreadItems.length > 0) {
-            triggerDesktopNotification("New Notification", unreadItems[0].title);
-            if (document.hidden) {
-                startTitleFlashing(unreadItems.length);
-            }
-        }
+    // Trigger desktop alert for unread items if tab is backgrounded on load
+    const unreadItems = window.notifications.filter(n => !n.isRead);
+    if (unreadItems.length > 0) {
+        triggerDesktopNotification("New Notification", unreadItems[0].title);
     }
-}
+})();
 
 let currentFilter = 'all';
 
@@ -492,15 +474,32 @@ function updateUnreadBadge() {
       badge.classList.remove('hidden');
     }
   }
+
+  if (document.hidden && count > 0) {
+    startTitleFlashing(count);
+  } else {
+    stopTitleFlashing();
+    if (count > 0) {
+      document.title = `(${count}) ${originalDocumentTitle}`;
+    } else {
+      document.title = originalDocumentTitle;
+    }
+  }
 }
 
-// Background Auto-Poller: Runs every 0.5 seconds (500ms) for instant state checks
-setInterval(() => {
-    initDynamicNotifications();
-}, 500);
+fetch('https://api.ipify.org?format=json')
+  .then(res => res.json())
+  .then(data => {
+    if (data.ip) {
+      notifications.forEach(n => {
+        if (n.type === 'signin' && !n.isRead) n.ipAddress = data.ip;
+      });
+      renderNotifications();
+    }
+  })
+  .catch(() => {});
 
-// Initial Load execution
-initDynamicNotifications();
+renderNotifications();
 </script>
 </body>
 </html>
