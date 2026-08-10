@@ -175,16 +175,26 @@
         withdrawalTx = JSON.parse(localStorage.getItem("av_withdrawal_tx") || "{}");
     } catch (e) {}
 
-    // 4. Dynamic Balance & Retention Bonus Read
+    const withdrawalSource = withdrawalTx.sourceType || "available";
+
+    // 4. Dynamic Balance & Retention Bonus Read with Fallback Baselines
+    const defaultBonusVal = typeof DEFAULT_RETENTION_BONUS !== 'undefined' ? DEFAULT_RETENTION_BONUS : 7533.32;
+    const defaultBaseVal = typeof BASE_ACU !== 'undefined' ? BASE_ACU : 0.00;
+
     const rawAcu = localStorage.getItem("totalACU") || localStorage.getItem("baseACU");
-    const currentAcu = rawAcu !== null ? parseFloat(rawAcu) : 0.00;
-    const formattedAcu = currentAcu.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const currentAcu = rawAcu !== null ? parseFloat(rawAcu) : defaultBaseVal;
 
     const rawBonus = localStorage.getItem("av_retention_bonus");
-    const retentionBonus = rawBonus !== null ? parseFloat(rawBonus) : 0.00;
-    const formattedBonus = retentionBonus.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const retentionBonus = rawBonus !== null ? parseFloat(rawBonus) : defaultBonusVal;
 
-    const withdrawnAmount = withdrawalTx.amountCAD || (retentionBonus > 0 ? retentionBonus : currentAcu);
+    // Preserved amounts for historical notification cards (avoids $0.00 after withdrawal)
+    const historicalDepositVal = withdrawalTx.amountCAD || (currentAcu > 0 ? currentAcu : defaultBaseVal);
+    const historicalBonusVal = withdrawalTx.amountCAD || (retentionBonus > 0 ? retentionBonus : defaultBonusVal);
+
+    const formattedAcu = historicalDepositVal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const formattedBonus = historicalBonusVal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+    const withdrawnAmount = withdrawalTx.amountCAD || (withdrawalSource === "bonus" ? historicalBonusVal : historicalDepositVal);
     const formattedWithdrawnAmount = withdrawnAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
     let formattedWithdrawalTime = currentSignInTime;
@@ -222,7 +232,8 @@
       });
     }
 
-    if (retentionBonus > 0) {
+    // Retention Bonus Notification (Retained even when withdrawn)
+    if (retentionBonus > 0 || (isWithdrawn && withdrawalSource === "bonus")) {
       window.notifications.push({
         id: 3,
         type: "deposit",
@@ -246,7 +257,8 @@
       ipAddress: userIp
     });
 
-    if (currentAcu > 0) {
+    // Core Deposit Notification (Retained even when withdrawn)
+    if (currentAcu > 0 || (isWithdrawn && withdrawalSource === "available")) {
       window.notifications.push({
         id: 5,
         type: "deposit",
@@ -266,7 +278,8 @@ let currentFilter = 'all';
 
 function getIcon(type, category) {
   if (type === 'deposit') {
-    return { icon: 'fa-arrow-down-left-from-square', bg: 'bg-emerald-50 text-emerald-600 border-emerald-200' };
+    // Uses the withdrawal icon flipped 180 degrees
+    return { icon: 'fa-arrow-up-right-from-square fa-rotate-180', bg: 'bg-emerald-50 text-emerald-600 border-emerald-200' };
   }
   if (type === 'withdrawal') {
     if (category === 'success') return { icon: 'fa-arrow-up-right-from-square', bg: 'bg-emerald-50 text-emerald-600 border-emerald-200' };
