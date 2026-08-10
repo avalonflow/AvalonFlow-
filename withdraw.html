@@ -942,7 +942,8 @@ function getCapturedDetails() {
 }
 
 function getLiveLocalStorageBalance() {
-    const rawVal = localStorage.getItem("totalACU") ?? localStorage.getItem("baseACU");
+    // Standardized to clear/check baseACU
+    const rawVal = localStorage.getItem("baseACU") ?? localStorage.getItem("totalACU");
     if (rawVal === null) return 0.00;
     const parsed = parseFloat(rawVal);
     return isNaN(parsed) ? 0.00 : parsed;
@@ -1273,11 +1274,15 @@ function setupEventHandlers() {
 
             localStorage.removeItem("av_temp_session_hash");
 
-            localStorage.setItem("totalACU", "0.00");
-            localStorage.setItem("baseACU", "0.00");
-            localStorage.setItem("av_retention_bonus", "0.00");
-            localStorage.setItem("retentionBonus", "0.00");
-            localStorage.setItem("av_bonus", "0.00");
+            // Fixed key selection: Clearing baseACU cleanly instead of relying on ambiguous keys
+            if (sourceType === "available") {
+                localStorage.setItem("baseACU", "0.00");
+                localStorage.setItem("totalACU", "0.00");
+            } else {
+                localStorage.setItem("av_retention_bonus", "0.00");
+                localStorage.setItem("retentionBonus", "0.00");
+                localStorage.setItem("av_bonus", "0.00");
+            }
 
             runtimeSessionData.balanceUnlockedFlag = true;
 
