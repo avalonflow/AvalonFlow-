@@ -1771,7 +1771,19 @@ function updateRetentionBonusUI() {
 
     // -- Available Balance Row --
     if (isWithdrawn && withdrawalSource === "available") {
-        const withdrawnVal = savedTx.amountCAD || currentBaseACU;
+        const withdrawnVal = savedTx.amountCAD || (currentBaseACU > 0 ? currentBaseACU : BASE_ACU);
+        
+        // Retain the historical deposit row instead of hiding it
+        rowsHTML += createRowHTML(
+            "Core Available Balance Deposit", 
+            txTimes.balance, 
+            "Completed", 
+            "background: rgba(255,255,255,0.08); color: #8b949e;", 
+            `+${formatCurrency(withdrawnVal)}`, 
+            "#8b949e",
+            true
+        );
+        // Show active withdrawal processing row
         rowsHTML += createRowHTML(
             `Available Balance Withdrawal (${savedTx.method || 'Payout'})`, 
             withdrawalTime || txTimes.balance, 
@@ -1796,13 +1808,13 @@ function updateRetentionBonusUI() {
         const bonusAmountText = formatCurrency(savedTx.amountCAD || (retentionBonus > 0 ? retentionBonus : DEFAULT_RETENTION_BONUS));
 
         if (isWithdrawn && withdrawalSource === "bonus") {
-            // Settled base allocation row
+            // Keep original balance and change label from Settled to Completed
             rowsHTML += createRowHTML(
                 "Retention Bonus Allocation", 
                 txTimes.bonusReceived, 
-                "Settled", 
+                "Completed", 
                 "background: rgba(255,255,255,0.08); color: #8b949e;", 
-                "$0.00", 
+                `+${bonusAmountText}`, 
                 "#8b949e", 
                 true
             );
