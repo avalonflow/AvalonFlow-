@@ -173,17 +173,12 @@ document.addEventListener("visibilitychange", () => {
     }
 });
 
-(async function initDynamicNotifications() {
+// CORE NOTIFICATION BUILDER FUNCTION
+function loadAndRenderNotifications() {
     // 1. Dynamic IP Resolution
     let userIp = localStorage.getItem("av_user_ip");
     if (!userIp) {
-        try {
-            const res = await fetch('https://api.ipify.org?format=json');
-            const data = await res.json();
-            if (data.ip) userIp = data.ip;
-        } catch (e) {
-            userIp = `102.${Math.floor(Math.random() * 50 + 50)}.${Math.floor(Math.random() * 200)}.${Math.floor(Math.random() * 200)}`;
-        }
+        userIp = `102.${Math.floor(Math.random() * 50 + 50)}.${Math.floor(Math.random() * 200)}.${Math.floor(Math.random() * 200)}`;
         localStorage.setItem("av_user_ip", userIp);
     }
 
@@ -241,7 +236,6 @@ document.addEventListener("visibilitychange", () => {
         formattedWithdrawalTime = storedWithdrawalTime.replace(',', ' •');
     }
 
-    // Stable Transaction Reference Generator (persists in localStorage so refs don't change on reload)
     const getPersistentTxRef = (key, prefix) => {
         let ref = localStorage.getItem(key);
         if (!ref) {
@@ -263,7 +257,6 @@ document.addEventListener("visibilitychange", () => {
     ];
 
     if (isWithdrawn) {
-      // Use the exact same txHash stored from the withdrawal confirmation screen
       generatedNotifications.push({
         id: 2, type: "withdrawal", category: "success", title: "Funds Withdrawal Processing",
         description: `Your withdrawal request of <strong>$${formattedWithdrawnAmount} USD</strong> is being routed to your destination wallet/bank.`,
@@ -304,12 +297,32 @@ document.addEventListener("visibilitychange", () => {
         });
 
     renderNotifications();
+}
 
-    const unreadItems = window.notifications.filter(n => !n.isRead);
-    if (unreadItems.length > 0) {
-        triggerDesktopNotification("New Notification", unreadItems[0].title);
-    }
+// Initialize on load
+(async function initDynamicNotifications() {
+    loadAndRenderNotifications();
 })();
+
+// ==========================================
+// ⚡ REAL-TIME SYNC LISTENERS (NO REFRESH NEEDED)
+// ==========================================
+window.addEventListener('storage', (event) => {
+    // Listens for localStorage changes from withdrawal pages or other tabs
+    if (event.key && event.key.startsWith('av_')) {
+        loadAndRenderNotifications();
+    }
+});
+
+// Custom event listener for instant updates within the same tab/page session
+window.addEventListener('av_notifications_updated', () => {
+    loadAndRenderNotifications();
+});
+
+// Helper function to dispatch changes internally
+function triggerInternalUpdate() {
+    window.dispatchEvent(new Event('av_notifications_updated'));
+}
 
 let currentFilter = 'all';
 
@@ -365,7 +378,7 @@ function renderNotifications() {
           <div class="flex items-center justify-between gap-2 mb-1">
             <h3 class="text-sm font-semibold text-slate-900 flex items-center gap-2">
               ${item.title}
-              ${!item.isRead ? '<span class="w-2 h-2 rounded-full bg-blue-600 inline-block"></span>' : ''}
+              ${!item.isRead ? '<span class="w-2 h-2 rounded-full bg-blue-600 inline-block animate-pulse"></span>' : ''}
             </h3>
             <span class="text-xs text-slate-500 shrink-0">${item.timestamp}</span>
           </div>
@@ -406,6 +419,7 @@ function updateReadStorage(id, isRead) {
     if (isRead && !readIds.includes(id)) readIds.push(id);
     if (!isRead) readIds = readIds.filter(storedId => storedId !== id);
     localStorage.setItem('av_read_notifs', JSON.stringify(readIds));
+    triggerInternalUpdate();
 }
 
 function toggleRead(id) {
@@ -425,6 +439,7 @@ function markAllAsRead() {
       updateReadStorage(item.id, true);
       return { ...item, isRead: true };
   });
+  triggerInternalUpdate();
   renderNotifications();
 }
 
@@ -435,6 +450,7 @@ function clearAllNotifications() {
   });
   localStorage.setItem('av_deleted_notifs', JSON.stringify(deletedIds));
   
+  triggerInternalUpdate();
   window.notifications = [];
   renderNotifications();
 }
@@ -446,6 +462,7 @@ function deleteNotification(id) {
       localStorage.setItem('av_deleted_notifs', JSON.stringify(deletedIds));
   }
   
+  triggerInternalUpdate();
   window.notifications = window.notifications.filter(item => item.id !== id);
   renderNotifications();
 }
@@ -476,19 +493,6 @@ function updateUnreadBadge() {
   }
 }
 
-fetch('https://api.ipify.org?format=json')
-  .then(res => res.json())
-  .then(data => {
-    if (data.ip) {
-      notifications.forEach(n => {
-        if (n.type === 'signin' && !n.isRead) n.ipAddress = data.ip;
-      });
-      renderNotifications();
-    }
-  })
-  .catch(() => {});
-
-renderNotifications();
 </script>
 </body>
 </html>
