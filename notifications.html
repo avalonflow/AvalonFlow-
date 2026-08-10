@@ -215,17 +215,6 @@ document.addEventListener("visibilitychange", () => {
         withdrawalTx = JSON.parse(localStorage.getItem("av_withdrawal_tx") || "{}");
     } catch (e) {}
 
-    // ENSURE HASH SYNC: Match the exact av_tx_[hex] format of the withdrawal generator if missing
-    if (isWithdrawn && !withdrawalTx.txHash) {
-        const chars = '0123456789ABCDEFabcdef';
-        let result = '';
-        for (let i = 0; i < 8; i++) {
-            result += chars[Math.floor(Math.random() * chars.length)];
-        }
-        withdrawalTx.txHash = `av_tx_${result}`;
-        localStorage.setItem("av_withdrawal_tx", JSON.stringify(withdrawalTx));
-    }
-
     const withdrawalSource = withdrawalTx.sourceType || "available";
 
     // 4. Dynamic Balance & Retention Bonus Read
@@ -252,7 +241,7 @@ document.addEventListener("visibilitychange", () => {
         formattedWithdrawalTime = storedWithdrawalTime.replace(',', ' •');
     }
 
-    // Stable Transaction Reference Generator (for non-withdrawal notifications)
+    // Stable Transaction Reference Generator (persists in localStorage so refs don't change on reload)
     const getPersistentTxRef = (key, prefix) => {
         let ref = localStorage.getItem(key);
         if (!ref) {
@@ -274,10 +263,11 @@ document.addEventListener("visibilitychange", () => {
     ];
 
     if (isWithdrawn) {
+      // Use the exact same txHash stored from the withdrawal confirmation screen
       generatedNotifications.push({
         id: 2, type: "withdrawal", category: "success", title: "Funds Withdrawal Processing",
         description: `Your withdrawal request of <strong>$${formattedWithdrawnAmount} USD</strong> is being routed to your destination wallet/bank.`,
-        timestamp: formattedWithdrawalTime, isRead: false, txRef: withdrawalTx.txHash
+        timestamp: formattedWithdrawalTime, isRead: false, txRef: withdrawalTx.txHash || "av_tx_unknown"
       });
     }
 
@@ -315,7 +305,6 @@ document.addEventListener("visibilitychange", () => {
 
     renderNotifications();
 
-    // Trigger desktop alert for unread items if tab is backgrounded on load
     const unreadItems = window.notifications.filter(n => !n.isRead);
     if (unreadItems.length > 0) {
         triggerDesktopNotification("New Notification", unreadItems[0].title);
