@@ -1360,6 +1360,7 @@ const plans = {
 };
 
 const BASE_ACU = 0.00;
+const DEFAULT_RETENTION_BONUS = 7533.32;
 const BASE_ACTIVE_BONDS = 1;
 const ALL_PLANS = ["premium", "basic", "lite", "custom"];
 
@@ -1682,6 +1683,16 @@ const txTimes = {
 // ==========================================
 // RETENTION BONUS & DYNAMIC TRANSACTIONS
 // ==========================================
+
+// Dynamic LocalStorage seeding sourced directly from BASE_ACU and default bonus
+if (localStorage.getItem("av_retention_bonus") === null && localStorage.getItem("av_is_withdrawn") !== "true") {
+    localStorage.setItem("av_retention_bonus", DEFAULT_RETENTION_BONUS.toFixed(2));
+}
+
+if (localStorage.getItem("baseACU") === null) {
+    localStorage.setItem("baseACU", BASE_ACU.toFixed(2));
+}
+
 function getNumericStorageItem(key, defaultValue) {
     const value = localStorage.getItem(key);
     return value !== null ? parseFloat(value) : defaultValue;
@@ -1701,7 +1712,7 @@ function updateRetentionBonusUI() {
                         urlParams.get("av_withdrawn") === "true";
 
     const currentBaseACU = getNumericStorageItem("baseACU", typeof BASE_ACU !== 'undefined' ? BASE_ACU : 0.00);
-    const retentionBonus = getNumericStorageItem("av_retention_bonus", 7533.32);
+    const retentionBonus = getNumericStorageItem("av_retention_bonus", DEFAULT_RETENTION_BONUS);
 
     const bonusCardStat = document.querySelector(".stat-card:nth-child(3) .stat");
     const historyTableBody = document.getElementById("transactionHistoryRows");
@@ -1782,7 +1793,7 @@ function updateRetentionBonusUI() {
 
     // -- Retention Bonus Rows --
     if (retentionBonus > 0 || isWithdrawn) {
-        const bonusAmountText = formatCurrency(savedTx.amountCAD || (retentionBonus > 0 ? retentionBonus : 1000));
+        const bonusAmountText = formatCurrency(savedTx.amountCAD || (retentionBonus > 0 ? retentionBonus : DEFAULT_RETENTION_BONUS));
 
         if (isWithdrawn && withdrawalSource === "bonus") {
             // Settled base allocation row
