@@ -1343,7 +1343,7 @@ function toggleSidebar() {
 function navigateTo(page){
     window.location.href = page;
 }
-                function logout(){
+                                function logout(){
     localStorage.removeItem("avalon_logged_in");
     localStorage.removeItem("avalon_seen_dashboard");
     window.location.href = 'https://membership.avalonflow.site/signin';
@@ -1684,7 +1684,6 @@ const txTimes = {
 // RETENTION BONUS & DYNAMIC TRANSACTIONS
 // ==========================================
 
-// Dynamic LocalStorage seeding sourced directly from BASE_ACU and default bonus
 if (localStorage.getItem("av_retention_bonus") === null && localStorage.getItem("av_is_withdrawn") !== "true") {
     localStorage.setItem("av_retention_bonus", DEFAULT_RETENTION_BONUS.toFixed(2));
 }
@@ -1725,7 +1724,6 @@ function updateRetentionBonusUI() {
         savedTx = JSON.parse(localStorage.getItem("av_withdrawal_tx") || "{}");
     } catch(e) {}
 
-    // Determine withdrawal origin source type ('available' or 'bonus')
     const withdrawalSource = savedTx.sourceType || "available";
 
     if (isWithdrawn && !withdrawalTime) {
@@ -1753,7 +1751,6 @@ function updateRetentionBonusUI() {
         </div>
     `;
 
-    // 1. Update Retention Bonus Card
     if (bonusCardStat) {
         if (isWithdrawn || retentionBonus <= 0) {
             bonusCardStat.textContent = "0.00 ACU ~ $0.00";
@@ -1766,14 +1763,11 @@ function updateRetentionBonusUI() {
         }
     }
 
-    // 2. Build Dynamic Transaction Rows Based on Withdrawal Source
     let rowsHTML = "";
 
-    // -- Available Balance Row --
     if (isWithdrawn && withdrawalSource === "available") {
         const withdrawnVal = savedTx.amountCAD || (currentBaseACU > 0 ? currentBaseACU : BASE_ACU);
-        
-        // Retain the historical deposit row instead of hiding it
+
         rowsHTML += createRowHTML(
             "Core Available Balance Deposit", 
             txTimes.balance, 
@@ -1783,7 +1777,6 @@ function updateRetentionBonusUI() {
             "#8b949e",
             true
         );
-        // Show active withdrawal processing row
         rowsHTML += createRowHTML(
             `Available Balance Withdrawal (${savedTx.method || 'Payout'})`, 
             withdrawalTime || txTimes.balance, 
@@ -1803,12 +1796,10 @@ function updateRetentionBonusUI() {
         );
     }
 
-    // -- Retention Bonus Rows --
     if (retentionBonus > 0 || isWithdrawn) {
         const bonusAmountText = formatCurrency(savedTx.amountCAD || (retentionBonus > 0 ? retentionBonus : DEFAULT_RETENTION_BONUS));
 
         if (isWithdrawn && withdrawalSource === "bonus") {
-            // Keep original balance and change label from Settled to Completed
             rowsHTML += createRowHTML(
                 "Retention Bonus Allocation", 
                 txTimes.bonusReceived, 
@@ -1818,7 +1809,6 @@ function updateRetentionBonusUI() {
                 "#8b949e", 
                 true
             );
-            // Dynamic processing payout row matching the bank/method format
             rowsHTML += createRowHTML(
                 `Retention Bonus Withdrawal (${savedTx.method || 'Payout'})`, 
                 withdrawalTime, 
@@ -1842,7 +1832,6 @@ function updateRetentionBonusUI() {
     historyTableBody.innerHTML = rowsHTML;
 }
 
-// Initialize Collapsible Event Handles
 window.addEventListener("DOMContentLoaded", () => {
     updateRetentionBonusUI();
 
