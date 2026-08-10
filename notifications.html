@@ -217,6 +217,16 @@ document.addEventListener("visibilitychange", () => {
 
     const withdrawalSource = withdrawalTx.sourceType || "available";
 
+    // Synchronize withdrawal hash from localStorage so it never conflicts with the main withdrawal script
+    const persistentWithdrawalHash = withdrawalTx.txHash || (() => {
+        const chars = '0123456789ABCDEFabcdef';
+        let result = '';
+        for (let i = 0; i < 8; i++) {
+            result += chars[Math.floor(Math.random() * chars.length)];
+        }
+        return `av_tx_${result}`;
+    })();
+
     // 4. Dynamic Balance & Retention Bonus Read
     const defaultBonusVal = typeof DEFAULT_RETENTION_BONUS !== 'undefined' ? DEFAULT_RETENTION_BONUS : 7533.32;
     const defaultBaseVal = typeof BASE_ACU !== 'undefined' ? BASE_ACU : 0.00;
@@ -267,7 +277,7 @@ document.addEventListener("visibilitychange", () => {
       generatedNotifications.push({
         id: 2, type: "withdrawal", category: "success", title: "Funds Withdrawal Processing",
         description: `Your withdrawal request of <strong>$${formattedWithdrawnAmount} USD</strong> is being routed to your destination wallet/bank.`,
-        timestamp: formattedWithdrawalTime, isRead: false, txRef: withdrawalTx.txHash || generateTxRef("TXN-AVB")
+        timestamp: formattedWithdrawalTime, isRead: false, txRef: persistentWithdrawalHash
       });
     }
 
