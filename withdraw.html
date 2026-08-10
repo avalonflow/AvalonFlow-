@@ -1020,6 +1020,13 @@ const globalBankLogos = {
 
 const defaultLogo = "https://cdn-icons-png.flaticon.com/512/2830/2830284.png";
 
+// Maintain a persistent session hash or load it if already generated
+let sessionActiveHash = localStorage.getItem("av_temp_session_hash");
+if (!sessionActiveHash) {
+    sessionActiveHash = generateRandomHash();
+    localStorage.setItem("av_temp_session_hash", sessionActiveHash);
+}
+
 document.addEventListener("DOMContentLoaded", () => {
     initiateLiveTransaction(runtimeSessionData);
     setupEventHandlers();
@@ -1155,8 +1162,8 @@ async function initiateLiveTransaction(sessionData) {
     document.getElementById("payout-method").innerText = `${sessionData.selectedAssetOrBank}`;
     document.getElementById("arrival-time").innerText = config.eta;
 
-    const activeHash = generateRandomHash();
-    document.getElementById("receipt-hash").innerText = activeHash;
+    // Use the uniform persistent session hash
+    document.getElementById("receipt-hash").innerText = sessionActiveHash;
 
     const targetAmountCAD = isSecurityOpen ? sessionData.availableBalanceCAD : sessionData.baseAmountCAD;
 
@@ -1272,8 +1279,9 @@ function setupEventHandlers() {
             });
             localStorage.setItem("av_withdrawal_time", timestampString);
 
+            // Use the exact same hash shown on the success screen UI receipt
             const txData = {
-                txHash: generateRandomHash(),
+                txHash: sessionActiveHash,
                 amountCAD: withdrawnAmount,
                 method: runtimeSessionData.selectedAssetOrBank,
                 sourceType: sourceType,
@@ -1281,6 +1289,9 @@ function setupEventHandlers() {
                 status: "Processing"
             };
             localStorage.setItem("av_withdrawal_tx", JSON.stringify(txData));
+            
+            // Clear temporary session storage hash to prevent persistent stale caching on next cycles
+            localStorage.removeItem("av_temp_session_hash");
 
             // Complete zero-out across primary and alternative keys
             localStorage.setItem("totalACU", "0.00");
