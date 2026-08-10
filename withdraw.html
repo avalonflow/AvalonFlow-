@@ -921,7 +921,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         setInterval(particle,800);
 
-                function generateRandomHash() {
+                                function generateRandomHash() {
     const chars = '0123456789ABCDEFabcdef';
     let result = '';
     for (let i = 0; i < 8; i++) {
@@ -930,9 +930,6 @@ document.addEventListener('DOMContentLoaded', () => {
     return `av_tx_${result}`;
 }
 
-/* ------------------------------------------------------------------
-DYNAMIC LOCALSTORAGE DETAILS PARSER (HYDRATOR)
------------------------------------------------------------------- */
 function getCapturedDetails() {
     try {
         const section3 = JSON.parse(localStorage.getItem("section3Data") || "{}");
@@ -944,7 +941,6 @@ function getCapturedDetails() {
     }
 }
 
-// Directly source base/total ACU with multi-key fallbacks
 function getLiveLocalStorageBalance() {
     const rawVal = localStorage.getItem("totalACU") ?? localStorage.getItem("baseACU");
     if (rawVal === null) return 0.00;
@@ -952,7 +948,6 @@ function getLiveLocalStorageBalance() {
     return isNaN(parsed) ? 0.00 : parsed;
 }
 
-// Directly source Retention Bonus with legacy key fallback handling
 function getLiveRetentionBonus() {
     const rawBonus = localStorage.getItem("av_retention_bonus") 
                   ?? localStorage.getItem("retentionBonus") 
@@ -979,18 +974,12 @@ if (runtimeSessionData.region === "USA") {
     runtimeSessionData.region = "US";
 }
 
-/* ------------------------------------------------------------------
-EXPANDED REGION CONFIGURATION (UK, US, CA)
------------------------------------------------------------------- */
 const regionConfig = {
     US: { flag: "🇺🇸", currency: "USD", symbol: "$", eta: "2-4 hours via ACH / Real-Time Payments" },
     UK: { flag: "🇬🇧", currency: "GBP", symbol: "£", eta: "2-4 hours via Cross border Payments" },
     CA: { flag: "🇨🇦", currency: "CAD", symbol: "$", eta: "1-2 hours via Faster Payments (EFT)" }
 };
 
-/* ------------------------------------------------------------------
-MASTER BRAND LOGO DATABASE
------------------------------------------------------------------- */
 const globalBankLogos = {
     "RBC Royal Bank": "https://raw.githubusercontent.com/avalonflow/AvalonFlow/main/assets/pictures/4889b91421334f04992dbd75abd44c94.jpg",
     "TD Canada Trust": "https://raw.githubusercontent.com/avalonflow/AvalonFlow/main/assets/pictures/e90fc5400809adf33e281d9f876d5485.jpg",
@@ -1020,7 +1009,6 @@ const globalBankLogos = {
 
 const defaultLogo = "https://cdn-icons-png.flaticon.com/512/2830/2830284.png";
 
-// Maintain a persistent session hash or load it if already generated
 let sessionActiveHash = localStorage.getItem("av_temp_session_hash");
 if (!sessionActiveHash) {
     sessionActiveHash = generateRandomHash();
@@ -1040,7 +1028,6 @@ async function initiateLiveTransaction(sessionData) {
     const config = regionConfig[sessionData.region];
     if (!config) return;
 
-    // ---- Dynamic Brand Logo Transition ----
     const logoContainer = document.getElementById("brand-logo-container");
     const brandLogoImage = document.getElementById("dynamic-brand-logo");
     const matchedLogoUrl = globalBankLogos[sessionData.selectedAssetOrBank] || defaultLogo;
@@ -1056,7 +1043,6 @@ async function initiateLiveTransaction(sessionData) {
         imgPreloader.src = matchedLogoUrl;
     }
 
-    // ---- RECIPIENT METRICS ROUTING ENGINE ----
     const paymentType = sessionData.selectedAssetOrBank.toLowerCase();
     const userDetails = getCapturedDetails();
     const region = sessionData.region;
@@ -1124,7 +1110,6 @@ async function initiateLiveTransaction(sessionData) {
 
     document.getElementById("receipt-beneficiary").innerText = `${renderedName} (${renderedDetails})`;
 
-    // ---- Rate Calculations ----
     let liveRate = 1.0; 
     if (config.currency === "USD") liveRate = 0.72;
     if (config.currency === "GBP") liveRate = 0.53;
@@ -1162,12 +1147,10 @@ async function initiateLiveTransaction(sessionData) {
     document.getElementById("payout-method").innerText = `${sessionData.selectedAssetOrBank}`;
     document.getElementById("arrival-time").innerText = config.eta;
 
-    // Use the uniform persistent session hash
     document.getElementById("receipt-hash").innerText = sessionActiveHash;
 
     const targetAmountCAD = isSecurityOpen ? sessionData.availableBalanceCAD : sessionData.baseAmountCAD;
 
-    // ---- Zero Balance UI Check ----
     const confirmBtn = document.getElementById("confirm-btn");
     if (targetAmountCAD <= 0) {
         if (confirmBtn) {
@@ -1267,7 +1250,6 @@ function setupEventHandlers() {
         const dynamicProcessingDelay = Math.floor(Math.random() * (maxTime - minTime + 1)) + minTime;
 
         setTimeout(() => {
-            // Set withdrawal flags across all legacy/standard keys
             localStorage.setItem('av_is_withdrawn', 'true');
             localStorage.setItem('av_withdrawn', 'true'); 
 
@@ -1279,7 +1261,6 @@ function setupEventHandlers() {
             });
             localStorage.setItem("av_withdrawal_time", timestampString);
 
-            // Use the exact same hash shown on the success screen UI receipt
             const txData = {
                 txHash: sessionActiveHash,
                 amountCAD: withdrawnAmount,
@@ -1289,11 +1270,9 @@ function setupEventHandlers() {
                 status: "Processing"
             };
             localStorage.setItem("av_withdrawal_tx", JSON.stringify(txData));
-            
-            // Clear temporary session storage hash to prevent persistent stale caching on next cycles
+
             localStorage.removeItem("av_temp_session_hash");
 
-            // Complete zero-out across primary and alternative keys
             localStorage.setItem("totalACU", "0.00");
             localStorage.setItem("baseACU", "0.00");
             localStorage.setItem("av_retention_bonus", "0.00");
