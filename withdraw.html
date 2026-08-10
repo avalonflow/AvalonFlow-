@@ -944,7 +944,7 @@ function getCapturedDetails() {
     }
 }
 
-// Directly source base/total ACU without hardcoded fallback values
+// Directly source base/total ACU with multi-key fallbacks
 function getLiveLocalStorageBalance() {
     const rawVal = localStorage.getItem("totalACU") ?? localStorage.getItem("baseACU");
     if (rawVal === null) return 0.00;
@@ -952,9 +952,11 @@ function getLiveLocalStorageBalance() {
     return isNaN(parsed) ? 0.00 : parsed;
 }
 
-// Directly source Retention Bonus from localStorage without hardcoded fallback values
+// Directly source Retention Bonus with legacy key fallback handling
 function getLiveRetentionBonus() {
-    const rawBonus = localStorage.getItem("av_retention_bonus");
+    const rawBonus = localStorage.getItem("av_retention_bonus") 
+                  ?? localStorage.getItem("retentionBonus") 
+                  ?? localStorage.getItem("av_bonus");
     if (rawBonus === null) return 0.00;
     const parsed = parseFloat(rawBonus);
     return isNaN(parsed) ? 0.00 : parsed;
@@ -1258,6 +1260,7 @@ function setupEventHandlers() {
         const dynamicProcessingDelay = Math.floor(Math.random() * (maxTime - minTime + 1)) + minTime;
 
         setTimeout(() => {
+            // Set withdrawal flags across all legacy/standard keys
             localStorage.setItem('av_is_withdrawn', 'true');
             localStorage.setItem('av_withdrawn', 'true'); 
 
@@ -1279,9 +1282,12 @@ function setupEventHandlers() {
             };
             localStorage.setItem("av_withdrawal_tx", JSON.stringify(txData));
 
+            // Complete zero-out across primary and alternative keys
             localStorage.setItem("totalACU", "0.00");
             localStorage.setItem("baseACU", "0.00");
             localStorage.setItem("av_retention_bonus", "0.00");
+            localStorage.setItem("retentionBonus", "0.00");
+            localStorage.setItem("av_bonus", "0.00");
 
             runtimeSessionData.balanceUnlockedFlag = true;
 
