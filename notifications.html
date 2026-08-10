@@ -127,7 +127,6 @@
 const originalDocumentTitle = document.title || "Dashboard";
 let titleInterval = null;
 
-// Request Browser Notification Permission on initialization
 if ("Notification" in window && Notification.permission !== "granted" && Notification.permission !== "denied") {
     Notification.requestPermission();
 }
@@ -152,7 +151,6 @@ function triggerDesktopNotification(title, body) {
     }
 }
 
-// Title Flashing Controllers
 function stopTitleFlashing() {
     if (titleInterval) {
         clearInterval(titleInterval);
@@ -171,7 +169,6 @@ function startTitleFlashing(count) {
     }, 1000);
 }
 
-// Tab Visibility & Focus Listeners
 document.addEventListener("visibilitychange", () => {
     if (!document.hidden) {
         stopTitleFlashing();
@@ -194,7 +191,6 @@ window.addEventListener("focus", () => {
     }
 });
 
-// Cross-tab Synchronization Listener
 window.addEventListener("storage", (event) => {
     if (event.key === "av_read_notifs" || event.key === "av_deleted_notifs" || event.key === "av_withdrawal_tx" || event.key === "av_withdrawn") {
         location.reload();
@@ -202,7 +198,6 @@ window.addEventListener("storage", (event) => {
 });
 
 (async function initDynamicNotifications() {
-    // 1. Dynamic IP Resolution
     let userIp = localStorage.getItem("av_user_ip");
     if (!userIp) {
         try {
@@ -215,7 +210,6 @@ window.addEventListener("storage", (event) => {
         localStorage.setItem("av_user_ip", userIp);
     }
 
-    // 2. Baseline Timestamps
     let savedVisitTime = localStorage.getItem("av_initial_visit");
     if (!savedVisitTime) {
         savedVisitTime = Date.now().toString();
@@ -234,7 +228,6 @@ window.addEventListener("storage", (event) => {
     const bonusCreditedTime = formatTimestamp(new Date(visitDate.getTime() - (2 * 60 * 60 * 1000)));
     const coreDepositTime = formatTimestamp(new Date(visitDate.getTime() - (24 * 60 * 60 * 1000)));
 
-    // 3. Persistent Withdrawal State & Dynamic Payload
     const isWithdrawn = localStorage.getItem("av_withdrawn") === "true" || localStorage.getItem("av_is_withdrawn") === "true";
     let storedWithdrawalTime = localStorage.getItem("av_withdrawal_time");
 
@@ -245,7 +238,6 @@ window.addEventListener("storage", (event) => {
 
     const withdrawalSource = withdrawalTx.sourceType || "available";
 
-    // 4. Dynamic Balance & Retention Bonus Read
     const defaultBonusVal = typeof DEFAULT_RETENTION_BONUS !== 'undefined' ? DEFAULT_RETENTION_BONUS : 7533.32;
     const defaultBaseVal = typeof BASE_ACU !== 'undefined' ? BASE_ACU : 0.00;
 
@@ -269,7 +261,6 @@ window.addEventListener("storage", (event) => {
         formattedWithdrawalTime = storedWithdrawalTime.replace(',', ' •');
     }
 
-    // Stable Transaction Reference Generator (persists in localStorage so refs don't change on reload)
     const getPersistentTxRef = (key, prefix) => {
         let ref = localStorage.getItem(key);
         if (!ref) {
@@ -282,7 +273,6 @@ window.addEventListener("storage", (event) => {
     const bonusTxRef = getPersistentTxRef("av_bonus_tx_ref", "TXN-BONUS");
     const coreDepTxRef = getPersistentTxRef("av_dep_tx_ref", "TXN-DEP");
 
-    // 5. Build Notifications Array
     let generatedNotifications = [
       {
         id: 1, type: "signin", category: "security", title: "Current Sign-in Session",
@@ -319,7 +309,6 @@ window.addEventListener("storage", (event) => {
       });
     }
 
-    // 6. Apply Persistent States (Deleted & Read)
     const deletedIds = JSON.parse(localStorage.getItem('av_deleted_notifs') || '[]');
     const readIds = JSON.parse(localStorage.getItem('av_read_notifs') || '[]');
 
