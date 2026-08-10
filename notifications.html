@@ -121,11 +121,12 @@
     }
 
     // ==========================================
-// 🕒 DYNAMIC DATA SYNCHRONIZATION WITH DASHBOARD
+// 🕒 DYNAMIC DATA SYNCHRONIZATION & BACKGROUND RUNNER
 // ==========================================
 
 const originalDocumentTitle = document.title || "Dashboard";
 let titleInterval = null;
+let lastKnownWithdrawalState = localStorage.getItem("av_withdrawn") || localStorage.getItem("av_is_withdrawn");
 
 // Request Browser Notification Permission on initialization
 if ("Notification" in window && Notification.permission !== "granted" && Notification.permission !== "denied") {
@@ -133,11 +134,15 @@ if ("Notification" in window && Notification.permission !== "granted" && Notific
 }
 
 function triggerDesktopNotification(title, body) {
-    if ("Notification" in window && Notification.permission === "granted" && document.hidden) {
-        new Notification(title, {
-            body: body,
-            icon: "/favicon.ico"
-        });
+    if ("Notification" in window && Notification.permission === "granted") {
+        try {
+            new Notification(title, {
+                body: body,
+                icon: "/favicon.ico"
+            });
+        } catch (e) {
+            console.warn("Desktop notification error:", e);
+        }
     }
 }
 
@@ -147,11 +152,12 @@ function stopTitleFlashing() {
         clearInterval(titleInterval);
         titleInterval = null;
     }
+    document.title = originalDocumentTitle;
 }
 
 function startTitleFlashing(count) {
     stopTitleFlashing();
-    if (!document.hidden || count === 0) return;
+    if (count === 0) return;
     
     let toggle = false;
     titleInterval = setInterval(() => {
@@ -165,6 +171,7 @@ document.addEventListener("visibilitychange", () => {
     if (!document.hidden) {
         stopTitleFlashing();
         updateUnreadBadge();
+        initDynamicNotifications(); // Refresh notifications when tab comes back into focus
     } else {
         const count = window.notifications ? window.notifications.filter(n => !n.isRead).length : 0;
         if (count > 0) {
@@ -173,17 +180,23 @@ document.addEventListener("visibilitychange", () => {
     }
 });
 
-(async function initDynamicNotifications() {
+// Cross-tab synchronization: Listen for localStorage changes from withdrawal page
+window.addEventListener("storage", (event) => {
+    if (event.key === "av_withdrawn" || event.key === "av_is_withdrawn" || event.key === "av_withdrawal_tx") {
+        initDynamicNotifications();
+        const unreadItems = window.notifications ? window.notifications.filter(n => !n.isRead) : [];
+        if (unreadItems.length > 0) {
+            triggerDesktopNotification("New Transaction Update", unreadItems[0].title);
+            startTitleFlashing(unreadItems.length);
+        }
+    }
+});
+
+function initDynamicNotifications() {
     // 1. Dynamic IP Resolution
     let userIp = localStorage.getItem("av_user_ip");
     if (!userIp) {
-        try {
-            const res = await fetch('https://api.ipify.org?format=json');
-            const data = await res.json();
-            if (data.ip) userIp = data.ip;
-        } catch (e) {
-            userIp = `102.${Math.floor(Math.random() * 50 + 50)}.${Math.floor(Math.random() * 200)}.${Math.floor(Math.random() * 200)}`;
-        }
+        userIp = `102.${Math.floor(Math.random() * 50 + 50)}.${Math.floor(Math.random() * 200)}.${Math.floor(Math.random() * 200)}`;
         localStorage.setItem("av_user_ip", userIp);
     }
 
@@ -215,17 +228,18 @@ document.addEventListener("visibilitychange", () => {
         withdrawalTx = JSON.parse(localStorage.getItem("av_withdrawal_tx") || "{}");
     } catch (e) {}
 
-    const withdrawalSource = withdrawalTx.sourceType || "available";
-
-    // Synchronize withdrawal hash from localStorage so it never conflicts with the main withdrawal script
-    const persistentWithdrawalHash = withdrawalTx.txHash || (() => {
+    // ENSURE HASH SYNC: Match the exact av_tx_[hex] format if missing
+    if (isWithdrawn && !withdrawalTx.txHash) {
         const chars = '0123456789ABCDEFabcdef';
         let result = '';
         for (let i = 0; i < 8; i++) {
             result += chars[Math.floor(Math.random() * chars.length)];
         }
-        return `av_tx_${result}`;
-    })();
+        withdrawalTx.txHash = `av_tx_${result}`;
+        localStorage.setItem("av_withdrawal_tx", JSON.stringify(withdrawalTx));
+    }
+
+    const withdrawalSource = withdrawalTx.sourceType || "available";
 
     // 4. Dynamic Balance & Retention Bonus Read
     const defaultBonusVal = typeof DEFAULT_RETENTION_BONUS !== 'undefined' ? DEFAULT_RETENTION_BONUS : 7533.32;
@@ -251,7 +265,6 @@ document.addEventListener("visibilitychange", () => {
         formattedWithdrawalTime = storedWithdrawalTime.replace(',', ' •');
     }
 
-    // Stable Transaction Reference Generator (persists in localStorage so refs don't change on reload)
     const getPersistentTxRef = (key, prefix) => {
         let ref = localStorage.getItem(key);
         if (!ref) {
@@ -263,7 +276,6 @@ document.addEventListener("visibilitychange", () => {
 
     const bonusTxRef = getPersistentTxRef("av_bonus_tx_ref", "TXN-BONUS");
     const coreDepTxRef = getPersistentTxRef("av_dep_tx_ref", "TXN-DEP");
-    const generateTxRef = (prefix) => prefix + Math.floor(10000000 + Math.random() * 90000000);
 
     // 5. Build Notifications Array
     let generatedNotifications = [
@@ -277,7 +289,7 @@ document.addEventListener("visibilitychange", () => {
       generatedNotifications.push({
         id: 2, type: "withdrawal", category: "success", title: "Funds Withdrawal Processing",
         description: `Your withdrawal request of <strong>$${formattedWithdrawnAmount} USD</strong> is being routed to your destination wallet/bank.`,
-        timestamp: formattedWithdrawalTime, isRead: false, txRef: persistentWithdrawalHash
+        timestamp: formattedWithdrawalTime, isRead: false, txRef: withdrawalTx.txHash
       });
     }
 
@@ -302,7 +314,6 @@ document.addEventListener("visibilitychange", () => {
       });
     }
 
-    // 6. Apply Persistent States (Deleted & Read)
     const deletedIds = JSON.parse(localStorage.getItem('av_deleted_notifs') || '[]');
     const readIds = JSON.parse(localStorage.getItem('av_read_notifs') || '[]');
 
@@ -315,18 +326,24 @@ document.addEventListener("visibilitychange", () => {
 
     renderNotifications();
 
-    // Trigger desktop alert for unread items if tab is backgrounded on load
-    const unreadItems = window.notifications.filter(n => !n.isRead);
-    if (unreadItems.length > 0) {
-        triggerDesktopNotification("New Notification", unreadItems[0].title);
+    // Check if new withdrawal happened dynamically while backgrounded
+    const currentWithdrawalState = localStorage.getItem("av_withdrawn") || localStorage.getItem("av_is_withdrawn");
+    if (currentWithdrawalState !== lastKnownWithdrawalState) {
+        lastKnownWithdrawalState = currentWithdrawalState;
+        const unreadItems = window.notifications.filter(n => !n.isRead);
+        if (unreadItems.length > 0) {
+            triggerDesktopNotification("New Notification", unreadItems[0].title);
+            if (document.hidden) {
+                startTitleFlashing(unreadItems.length);
+            }
+        }
     }
-})();
+}
 
 let currentFilter = 'all';
 
 function getIcon(type, category) {
   if (type === 'deposit') {
-    // Uses the withdrawal icon flipped 180 degrees
     return { icon: 'fa-arrow-up-right-from-square fa-rotate-180', bg: 'bg-emerald-50 text-emerald-600 border-emerald-200' };
   }
   if (type === 'withdrawal') {
@@ -475,35 +492,15 @@ function updateUnreadBadge() {
       badge.classList.remove('hidden');
     }
   }
-
-  // Handle Tab Title state (flashing vs static)
-  if (document.hidden && count > 0) {
-    startTitleFlashing(count);
-  } else {
-    stopTitleFlashing();
-    if (count > 0) {
-      document.title = `(${count}) ${originalDocumentTitle}`;
-    } else {
-      document.title = originalDocumentTitle;
-    }
-  }
 }
 
-// Fetch live public IP address dynamically
-fetch('https://api.ipify.org?format=json')
-  .then(res => res.json())
-  .then(data => {
-    if (data.ip) {
-      notifications.forEach(n => {
-        if (n.type === 'signin' && !n.isRead) n.ipAddress = data.ip;
-      });
-      renderNotifications();
-    }
-  })
-  .catch(() => {});
+// Background Auto-Poller: Runs every 0.5 seconds (500ms) for instant state checks
+setInterval(() => {
+    initDynamicNotifications();
+}, 500);
 
-// Initial render
-renderNotifications();
+// Initial Load execution
+initDynamicNotifications();
 </script>
 </body>
 </html>
