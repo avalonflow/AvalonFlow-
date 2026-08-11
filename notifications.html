@@ -49,27 +49,22 @@
         }
     }
 
-                            /* ---------- Sidebar ---------- */
+                            /* ---------- Sidebar Fix ---------- */
 #sidebar {
     position: fixed;
     top: 0;
     left: 0;
     width: 280px;
-
-    /* FIX 1: Make height end exactly before the footer starts */
-    height: calc(100% - 102px); 
-
+    bottom: 56px; /* Dynamically spans from the top edge down to the footer header */
+    height: auto; 
     background: rgba(40, 75, 135, 0.75);
-
     backdrop-filter: blur(14px);
-
-    /* FIX 2: Set z-index lower than footer (5) so footer naturally caps it */
-    z-index: 3; 
-
+    z-index: 5; /* Lower than footer (6), higher than page content (1) */
     padding: 25px;
     transform: translateX(-100%);
     transition: transform 0.3s ease;
 }
+
         #sidebar.open { transform: translateX(0); }
         #sidebar h2{
 font-size:22px;
@@ -235,7 +230,7 @@ ANIMATIONS
 
   /* Optional: Ensures it stays firmly at the absolute top of the page layout */
   width: 100%;
-  margin-top: -87px; 
+  margin-top: -67px; 
 
   background: transparent !important;
 }
@@ -361,8 +356,8 @@ CROP MODAL
 </div>
 
   <!-- Main Content Wrapper -->
- 
-<div class="relative z-1 max-w-4xl mx-auto px-4 py-8 pb-28">
+<div class="relative z-1 max-w-4xl mx-auto px-4 pt-2 pb-28">
+
 
     
     <!-- Header -->
