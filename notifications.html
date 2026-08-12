@@ -301,7 +301,7 @@ TOP RIGHT PROFILE AVATAR
     </div>
 
     <div style="position: absolute; top: 58px; right: 70%; transform: translateX(50%); white-space: nowrap; pointer-events: none; text-align: center;">
-        <span id="avatarLabel" style="font-family: sans-serif; font-size: 10px; font-weight: 500; color: #c0a9ff; letter-spacing: 0.3px; text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);">Add Profile Picture</span>
+      
     </div>
 
 </div>
@@ -610,8 +610,19 @@ const cropImage = document.getElementById('cropImage');
 const DEFAULT_AVATAR = 'default-avatar.png';
 let isProcessing = false;
 
+/* ---------- 1. RESTORE ON LOAD ---------- */
+document.addEventListener('DOMContentLoaded', () => {
+    const savedPhoto = localStorage.getItem('profilePhoto');
+    if (savedPhoto) {
+        profilePhoto.src = savedPhoto;
+        if (avatarLabel) avatarLabel.textContent = "Remove Profile Picture";
+    } else {
+        profilePhoto.src = DEFAULT_AVATAR;
+        if (avatarLabel) avatarLabel.textContent = "Add Profile Picture";
+    }
+});
 
-// CLICK TO ADD OR REMOVE
+/* ---------- 2. CLICK TO ADD OR REMOVE ---------- */
 profilePhoto.addEventListener('click', () => {
     if (isProcessing) return;
 
@@ -629,10 +640,8 @@ profilePhoto.addEventListener('click', () => {
     }
 });
 
-
-// AUTO PROCESS IMAGE (no save button)
+/* ---------- 3. AUTO PROCESS IMAGE ---------- */
 photoInput.addEventListener('change', (e) => {
-
     const file = e.target.files[0];
     if (!file || isProcessing) return;
 
@@ -641,14 +650,11 @@ photoInput.addEventListener('change', (e) => {
     const reader = new FileReader();
 
     reader.onload = function(event) {
-
         const rawImage = event.target.result;
-
         const img = new Image();
         img.src = rawImage;
 
         img.onload = function() {
-
             const canvas = document.createElement('canvas');
             const size = Math.min(img.width, img.height);
 
@@ -681,7 +687,7 @@ photoInput.addEventListener('change', (e) => {
             if (avatarLabel) avatarLabel.textContent = "Remove Profile Picture";
 
             // close modal
-            cropModal.classList.add('hidden');
+            if (cropModal) cropModal.classList.add('hidden');
 
             // reset input to prevent re-trigger bugs
             photoInput.value = '';
@@ -696,26 +702,13 @@ photoInput.addEventListener('change', (e) => {
     reader.readAsDataURL(file);
 });
 
-
 // OPTIONAL: cancel just closes modal (if you still use it)
 if (typeof cancelCrop !== 'undefined' && cancelCrop) {
     cancelCrop.addEventListener('click', () => {
-        cropModal.classList.add('hidden');
+        if (cropModal) cropModal.classList.add('hidden');
     });
 }
 
-
-// load saved photo and set correct initial text
-window.addEventListener('DOMContentLoaded', () => {
-    const saved = localStorage.getItem('profilePhoto');
-    if (saved) {
-        profilePhoto.src = saved;
-        if (avatarLabel) avatarLabel.textContent = "Remove Profile Picture";
-    } else {
-        profilePhoto.src = DEFAULT_AVATAR;
-        if (avatarLabel) avatarLabel.textContent = "Add Profile Picture";
-    }
-});
 
     /* Floating particles */
 const bg = document.getElementById('floating-bg');
