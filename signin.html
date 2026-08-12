@@ -932,18 +932,26 @@ button[onclick*="biometricLogin"]:hover {
   });
 
 window.addEventListener("DOMContentLoaded", () => {
-    /* ---------- Floating Particles ---------- */
-        const container = document.getElementById('floating-bg');
-        for (let i = 0; i < 60; i++) {
-            const p = document.createElement('div');
-            p.className = 'particle';
-            const size = Math.random() * 20 + 10;
-            p.style.width = size + 'px';
-            p.style.height = size + 'px';
-            p.style.left = Math.random() * 100 + 'vw';
-            p.style.animationDuration = (Math.random() * 20 + 10) + 's';
-            container.appendChild(p);
-        }
+    /* Floating particles */
+const bg = document.getElementById('floating-bg');
+
+function particle() {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    
+    const s = Math.random() * 20 + 10;
+    p.style.width = s + 'px';
+    p.style.height = s + 'px';
+    p.style.left = Math.random() * 100 + 'vw';
+    p.style.animationDuration = (Math.random() * 20 + 10) + 's';
+    
+    bg.appendChild(p);
+    
+    setTimeout(() => p.remove(), 30000);
+}
+
+setInterval(particle, 800);
+
 
 
 
