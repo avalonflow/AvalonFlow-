@@ -731,9 +731,11 @@ function particle() {
 setInterval(particle, 800);
 
 
-        function logout() {
-            window.location.href = "https://membership.avalonflow.site/signin";
-        }
+                                                        function logout(){
+    localStorage.removeItem("avalon_logged_in");
+    localStorage.removeItem("avalon_seen_dashboard");
+    window.location.href = 'https://membership.avalonflow.site/signin';
+}
 
     // ==========================================
 // 🕒 DYNAMIC DATA SYNCHRONIZATION WITH REAL-TIME TICKER
