@@ -1507,9 +1507,17 @@ window.addEventListener("load", () => {
         message = `Welcome back${nameString}`;
     }
 
+    // Set text and show
     notification.textContent = message;
     notification.classList.add("show");
+
+    // Clear any existing hide timer & set auto-hide (3 seconds)
+    clearTimeout(notification.hideTimer);
+    notification.hideTimer = setTimeout(() => {
+        notification.classList.remove("show");
+    }, 3000); // Pass your desired duration here (e.g. 3000ms = 3s)
 });
+
 
 
 // ==========================================
