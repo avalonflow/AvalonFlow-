@@ -1094,8 +1094,7 @@ function login() {
     const isEmailMatch = idInput === section2Data.email;
     const isPasswordMatch = passInput === section2Data.password;
 
-    if ((isIDMatch || isEmailMatch) && isPasswordMatch) {
-        window.location.href = `https://membership.avalonflow.site/dashboard?ticket=${identity.sessionRef}`;
+    if ((isIDMatch || isEmailMatch) && isPasswordMatch) { window.location.replace(`https://membership.avalonflow.site/dashboard?ticket=${identity.sessionRef}`);
     } else {
         document.getElementById("loginError").innerText =
             "Access details not recognized.";
@@ -1194,7 +1193,7 @@ async function biometricLogin() {
 
     resetBiometricFails();
 
-    window.location.href = `https://membership.avalonflow.site/dashboard?ticket=${identity.sessionRef}`;
+    window.location.replace(`https://membership.avalonflow.site/dashboard?ticket=${identity.sessionRef}`);
 
   } catch (err) {
 
