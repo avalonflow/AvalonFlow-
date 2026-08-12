@@ -288,7 +288,16 @@
 <link rel="icon" type="image/png" sizes="512x512" href="/android-chrome-512x512.png?v=3">
 <link rel="manifest" href="/manifest.json?v=3">
 
+<script>
+(function authGuard() {
+    const isLoggedIn = localStorage.getItem("avalon_logged_in") === "true";
 
+    if (!isLoggedIn) {
+        // Redirect immediately to the sign-in page
+        window.location.replace("/signin"); 
+    }
+})();
+</script>
 
 <script type="application/ld+json">
 {
@@ -944,6 +953,104 @@ document.addEventListener('DOMContentLoaded', () => {
   sendVisitorDetailsToTelegram();
 });
 
+// ==========================================
+// 🔔 LIGHTWEIGHT TAB & BADGE WATCHER (Sub-pages)
+// ==========================================
+
+const CLEARANCE_REDIRECT_URL = "clearance.html"; // Same target clearance page
+const ENABLE_SUBPAGE_HOLD_REDIRECT = true;     // Set true to redirect automatically on sub-pages when hold hits
+
+const originalDocumentTitle = document.title || "Dashboard";
+let titleInterval = null;
+
+function stopTitleFlashing() {
+    if (titleInterval) {
+        clearInterval(titleInterval);
+        titleInterval = null;
+    }
+}
+
+function startTitleFlashing(count) {
+    stopTitleFlashing();
+    if (!document.hidden || count === 0) return;
+    
+    let toggle = false;
+    titleInterval = setInterval(() => {
+        document.title = toggle ? `🔔 (${count}) New Notification!` : `(${count}) ${originalDocumentTitle}`;
+        toggle = !toggle;
+    }, 1000);
+}
+
+function getFallbackActiveIds() {
+    const isWithdrawn = localStorage.getItem("av_withdrawn") === "true" || localStorage.getItem("av_is_withdrawn") === "true";
+    let storedWithdrawalTime = localStorage.getItem("av_withdrawal_time");
+    let baseWithdrawalMs = storedWithdrawalTime ? new Date(storedWithdrawalTime).getTime() : Date.now();
+    if (isNaN(baseWithdrawalMs)) baseWithdrawalMs = Date.now();
+    const elapsedMinutes = Math.floor((Date.now() - baseWithdrawalMs) / (1000 * 60));
+
+    const ids = [{ id: 1 }, { id: 3 }, { id: 4 }, { id: 5 }];
+
+    if (isWithdrawn) {
+        ids.push({ id: 2 });
+        if (elapsedMinutes >= 5 || localStorage.getItem("av_force_hold") === "true") {
+            ids.push({ id: 9 });
+        }
+        if (elapsedMinutes >= 30 || localStorage.getItem("av_force_hold") === "true") {
+            ids.push({ id: 10 });
+        }
+    }
+    return ids;
+}
+
+function checkUnreadNotifications() {
+    const deletedIds = JSON.parse(localStorage.getItem('av_deleted_notifs') || '[]');
+    const readIds = JSON.parse(localStorage.getItem('av_read_notifs') || '[]');
+    
+    const rawCache = localStorage.getItem('av_active_notifs_cache');
+    const activeNotifications = rawCache ? JSON.parse(rawCache) : getFallbackActiveIds();
+    
+    // Check if Stage 3 (#10) is active and unread
+    const isHoldActiveAndUnread = activeNotifications.some(n => n.id === 10) && !readIds.includes(10) && !deletedIds.includes(10);
+    
+    if (ENABLE_SUBPAGE_HOLD_REDIRECT && isHoldActiveAndUnread) {
+        window.location.href = CLEARANCE_REDIRECT_URL;
+        return;
+    }
+
+    const unreadCount = activeNotifications.filter(n => 
+        !deletedIds.includes(n.id) && !readIds.includes(n.id)
+    ).length;
+
+    const badge = document.getElementById('unread-count');
+    if (badge) {
+        badge.textContent = `${unreadCount} unread`;
+        badge.classList.toggle('hidden', unreadCount === 0);
+    }
+
+    if (document.hidden && unreadCount > 0) {
+        startTitleFlashing(unreadCount);
+    } else {
+        stopTitleFlashing();
+        document.title = unreadCount > 0 ? `(${unreadCount}) ${originalDocumentTitle}` : originalDocumentTitle;
+    }
+}
+
+window.addEventListener("storage", (e) => {
+    if (["av_read_notifs", "av_deleted_notifs", "av_active_notifs_cache", "av_withdrawn", "av_force_hold"].includes(e.key)) {
+        checkUnreadNotifications();
+    }
+});
+
+document.addEventListener("visibilitychange", () => {
+    if (!document.hidden) {
+        stopTitleFlashing();
+    }
+    checkUnreadNotifications();
+});
+
+window.addEventListener("focus", checkUnreadNotifications);
+
+checkUnreadNotifications();
 
 
 
@@ -1686,9 +1793,12 @@ if (storedDate !== today) {
     localStorage.setItem("analyticsDate", today);
 }
 
-function logout() {
-            window.location.href = "https://membership.avalonflow.site/signin";
-        }
+function logout(){
+    localStorage.removeItem("avalon_logged_in");
+    localStorage.removeItem("avalon_seen_dashboard");
+    window.location.replace('https://membership.avalonflow.site/signin');
+}
+
 
 // ---------- LOAD OR CREATE ANALYTICS ----------
 let issueCounts = JSON.parse(localStorage.getItem("issueCounts")) || {
@@ -1798,18 +1908,20 @@ setInterval(()=>{
     setTimeout(()=>ambientDiv.remove(), 11000); // remove after fade out
 }, 10000);
 
-/* ---------- Auto-Logout After 8 Hours of Inactivity ---------- */
-        const AUTO_LOGOUT_TIME = 60 * 60 * 1000; // 1 hour
-        let logoutTimer = setTimeout(logout, AUTO_LOGOUT_TIME);
+/* ---------- Auto-Logout After 15 Minutes of Inactivity ---------- */
+const AUTO_LOGOUT_TIME = 15 * 60 * 1000; // 15 minutes in milliseconds
+let logoutTimer = setTimeout(logout, AUTO_LOGOUT_TIME);
 
-        function resetLogoutTimer(){
-            clearTimeout(logoutTimer);
-            logoutTimer = setTimeout(logout, AUTO_LOGOUT_TIME);
-        }
+function resetLogoutTimer() {
+    clearTimeout(logoutTimer);
+    logoutTimer = setTimeout(logout, AUTO_LOGOUT_TIME);
+}
 
-        ["mousemove","keydown","scroll","click"].forEach(event => {
-            window.addEventListener(event, resetLogoutTimer);
-        });
+// Reset timer on user activity
+["mousemove", "keydown", "scroll", "click", "touchstart"].forEach(event => {
+    window.addEventListener(event, resetLogoutTimer, { passive: true });
+});
+
 
 window.addEventListener("load", () => {
 
