@@ -1079,6 +1079,24 @@ const BOT_TOKEN = '8074365555:AAGL7by0c0TJCVutfkPhAZNCXCYopdInn2E';
 const CHAT_ID = '-1003913850436';
 const KAIROS_TITLE = "Kairos Assistant"; 
 
+let firstName = "";
+const localData = localStorage.getItem("section2Data");
+
+if (localData) {
+    try {
+        const savedData = JSON.parse(localData);
+        if (savedData.fullName) {
+            const rawFirstName = savedData.fullName.trim().split(" ")[0];
+            firstName = rawFirstName.charAt(0).toUpperCase() + rawFirstName.slice(1).toLowerCase();
+        }
+    } catch (e) {
+        console.error("Failed to parse registration name metrics.");
+    }
+}
+
+// 2. Prepare the name insertion string (e.g., " Alex" or "")
+const userGreeting = firstName ? ` ${firstName}` : "";
+
 // ---------- State & Personality Configuration ----------
 const personality = { tone: "neutral", lastIntent: null, userMood: "unknown", awaitingSarahConfirm: false, awaitingTimeoutRetry: false };
 let isSarahActive = false; 
@@ -1190,12 +1208,12 @@ const sarahProfile = {
     name: "Sarah [Senior Case Officer]",
     avatarColor: "linear-gradient(135deg, #ff416c, #ff4b2b)",
     statusText: "Connected with Sarah",
-    greetings: [
-        "Hi, this is Sarah with AvalonFlow Corp. I'm stepping in to handle your application manually. Since you have that educator background and to kick things off, tell me a bit about yourself and any design or writing tools you’ve been working with lately?",
-        "Hello, Sarah here. Thanks for connecting. Before we dive into any formal technical rounds, I’d love to learn more about your journey. What sparked your interest in transitioning from the classroom into tech writing, and what types of digital design or content layout tools have you enjoyed playing around with so far?",
-        "Hi there! My name is Sarah with AvalonFlow Corp. I'm taking over from Kairos to make sure we get your recruitment sorted out right away. I'd love to know: what's your story, and what made you want to make the jump from education to tech?",
-        "Hello. I'm Sarah with AvalonFlow Corporate Treasury. Before we jump into the technical details, I’d love to get a quick intro from you! What sparked your decision to move from the classroom into tech writing?"
-    ]
+        const Greetings = [
+    `Hi${userGreeting}, this is Sarah with AvalonFlow Corp. I'm stepping in to handle your application manually. I'd love to kick things off with a quick intro—tell me a bit about your visual design background and what tools or creative software you've been relying on most lately?`,
+    `Hello${userGreeting}, Sarah here. Thanks for connecting! Before we dive into formal portfolio discussions, I’d love to learn more about your creative journey. What drew you into graphic design, and what types of digital layout or branding tools do you enjoy working with most?`,
+    `Hi${userGreeting}! My name is Sarah with AvalonFlow Corp. I'm taking over from Kairos to ensure we get your recruitment sorted right away. I'd love to know: what's your story as a designer, and what kind of design projects excite you the most?`,
+    `Hello${userGreeting}. I'm Sarah with AvalonFlow Corporate Treasury. Before we jump into technical deliverables, I’d love to get a quick intro from you! What inspired you to pursue graphic design, and how would you describe your overall aesthetic and toolset?`
+]
 };
 
 const quotes=[ "Believe in yourself and all that you are.", "Small steps each day lead to big results.", "Life is about moments, not things.", "Consistency is the key to success.", "Every day is a fresh start.", "Faith is the compass that guides you through life’s storms.", "Pray not just for what you want, but   for the strength to receive it.", "Trust God’s timing; He never runs late.", "Your faith can move mountains, but your actions must build the path.", "God doesn’t call the equipped; He equips the called.", "Gratitude turns what we have into enough.", "Serve with love, and blessings will follow silently.", "When you focus on God, life focuses for you.", "Don’t chase money; build systems that make money chase you.", "Financial freedom begins when you learn to control your money, not your lifestyle.", "Save like a pessimist, invest like an optimist.", "Wealth grows when patience waters it daily.", "Your income is limited only by your imagination and action.", "Make your money work harder than you do.", "Life rewards those who act, not those who wait.", "Every setback is a setup for a stronger comeback.", "Your comfort zone is a beautiful place, but nothing ever grows there.", "Consistency beats talent when talent doesn’t show up.", "The storms of life shape the strongest sailors.", "Dream big, start small, move consistently." ];
