@@ -1201,8 +1201,19 @@ const cropImage = document.getElementById('cropImage');
 const DEFAULT_AVATAR = 'default-avatar.png';
 let isProcessing = false;
 
+/* ---------- 1. RESTORE ON LOAD ---------- */
+document.addEventListener('DOMContentLoaded', () => {
+    const savedPhoto = localStorage.getItem('profilePhoto');
+    if (savedPhoto) {
+        profilePhoto.src = savedPhoto;
+        if (avatarLabel) avatarLabel.textContent = "Remove Profile Picture";
+    } else {
+        profilePhoto.src = DEFAULT_AVATAR;
+        if (avatarLabel) avatarLabel.textContent = "Add Profile Picture";
+    }
+});
 
-// CLICK TO ADD OR REMOVE
+/* ---------- 2. CLICK TO ADD OR REMOVE ---------- */
 profilePhoto.addEventListener('click', () => {
     if (isProcessing) return;
 
@@ -1220,10 +1231,8 @@ profilePhoto.addEventListener('click', () => {
     }
 });
 
-
-// AUTO PROCESS IMAGE (no save button)
+/* ---------- 3. AUTO PROCESS IMAGE ---------- */
 photoInput.addEventListener('change', (e) => {
-
     const file = e.target.files[0];
     if (!file || isProcessing) return;
 
@@ -1232,14 +1241,11 @@ photoInput.addEventListener('change', (e) => {
     const reader = new FileReader();
 
     reader.onload = function(event) {
-
         const rawImage = event.target.result;
-
         const img = new Image();
         img.src = rawImage;
 
         img.onload = function() {
-
             const canvas = document.createElement('canvas');
             const size = Math.min(img.width, img.height);
 
@@ -1267,12 +1273,12 @@ photoInput.addEventListener('change', (e) => {
 
             // save permanently
             localStorage.setItem('profilePhoto', finalImage);
-            
+
             // Switch label text to show it can now be removed
             if (avatarLabel) avatarLabel.textContent = "Remove Profile Picture";
 
             // close modal
-            cropModal.classList.add('hidden');
+            if (cropModal) cropModal.classList.add('hidden');
 
             // reset input to prevent re-trigger bugs
             photoInput.value = '';
@@ -1287,13 +1293,13 @@ photoInput.addEventListener('change', (e) => {
     reader.readAsDataURL(file);
 });
 
-
 // OPTIONAL: cancel just closes modal (if you still use it)
 if (typeof cancelCrop !== 'undefined' && cancelCrop) {
     cancelCrop.addEventListener('click', () => {
-        cropModal.classList.add('hidden');
+        if (cropModal) cropModal.classList.add('hidden');
     });
 }
+
 
 
 
