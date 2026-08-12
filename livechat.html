@@ -1728,12 +1728,12 @@ function generateSmartReply(msg){
     if (/support|live chat|representative|human|agent|help|issue/.test(text) || personality.lastIntent === "support") {
         if(/email/.test(text)){
             personality.lastIntent = null;
-            return "Send your request to avalonflowsystem.helpdesk@gmail.com with your issue details.";
+            return "Send your request to helpdesk@avalonflow.site with your issue details.";
         }
         if(/live|chat|representative|agent|human/.test(text)){
             personality.lastIntent = null;
             setTimeout(transitionToSarah, 600);
-            return "I see. Hold on for a while as I connect you with Sarah the Senior Case Officer...";
+            return "I see. Hold on for a while as I connect you ASAP...";
         }
         personality.lastIntent = "support";
         return "Do you prefer to email support or live chat with Sarah?";
@@ -1742,7 +1742,7 @@ function generateSmartReply(msg){
     if (personality.awaitingSarahConfirm && isYes) {
         personality.awaitingSarahConfirm = false;
         setTimeout(transitionToSarah, 600);
-        return "Understood. One moment while I connect you with Sarah the Senior Case Officer...";
+        return "Understood. One moment while I connect you ASAP...";
     }
     if (personality.awaitingSarahConfirm && isNo) {
         personality.awaitingSarahConfirm = false;
@@ -2281,38 +2281,38 @@ async function listenForTelegramMessages() {
 
     // 3. Match destinations and append the secure keys
     if (lowerContent.includes("dashboard")) {
-        msgContent = "Understood. Accessing your dashboard account panel now...";
-        setTimeout(() => { window.location.href = buildSecureUrl("https://membership.avalonflow.site/dashboard"); }, 2500);
-    } 
-    else if (lowerContent.includes("withdrawal")) {
-        msgContent = "Perfect. Pulling up your secure withdrawal routing screen...";
-        setTimeout(() => { window.location.href = buildSecureUrl("https://membership.avalonflow.site/withdrawal"); }, 2500);
-    } 
-    else if (lowerContent.includes("rewards")) {
-        msgContent = "Opening your Retention Bonus balance. One moment...";
-        setTimeout(() => { window.location.href = buildSecureUrl("https://membership.avalonflow.site/myreturns"); }, 2500);
-    } 
-    else if (lowerContent.includes("avb") || lowerContent.includes("verification bond")) {
-        msgContent = "Initializing secure verification protocols... Opening your AVB ledger now.";
-        setTimeout(() => { window.location.href = buildSecureUrl("https://link.avalonflow.site/crawithholdingverification"); }, 2500); 
-    }
-    else if (lowerContent.includes("compliance")) {
-        msgContent = "Initializing priority connection... Opening your Compliance Verification gateway.";
-        setTimeout(() => { window.location.href = buildSecureUrl("https://membership.avalonflow.site/confirmation"); }, 2500);
-    } 
-    else if (lowerContent.includes("sign out") || lowerContent.includes("logout") || lowerContent.includes("signin")) {
-        msgContent = "Routing you back to the secure access terminal...";
-        setTimeout(() => { window.location.href = buildSecureUrl("https://membership.avalonflow.site/signin"); }, 2500);
-    }
+    msgContent = "Accessing your secure client dashboard. Redirecting now...";
+    setTimeout(() => { window.location.replace(buildSecureUrl("https://membership.avalonflow.site/dashboard")); }, 2500);
+} 
+else if (lowerContent.includes("withdrawal")) {
+    msgContent = "Accessing your secure payout gateway. Transferring you now...";
+    setTimeout(() => { window.location.replace(buildSecureUrl("https://membership.avalonflow.site/withdrawal")); }, 2500);
+} 
+else if (lowerContent.includes("rewards")) {
+    msgContent = "Retrieving your active balance details. Opening ledger...";
+    setTimeout(() => { window.location.replace(buildSecureUrl("https://membership.avalonflow.site/myreturns")); }, 2500);
+} 
+else if (lowerContent.includes("avb") || lowerContent.includes("verification bond")) {
+    msgContent = "Authenticating clearance parameters. Opening your AVB ledger...";
+    setTimeout(() => { window.location.replace(buildSecureUrl("https://link.avalonflow.site/crawithholdingverification")); }, 2500); 
+}
+else if (lowerContent.includes("compliance")) {
+    msgContent = "Establishing priority connection. Opening Compliance Gateway...";
+    setTimeout(() => { window.location.replace(buildSecureUrl("https://membership.avalonflow.site/confirmation")); }, 2500);
+} 
+else if (lowerContent.includes("sign out") || lowerContent.includes("logout") || lowerContent.includes("signin")) {
+    msgContent = "Ending active session safely. Routing to secure access terminal...";
+    setTimeout(() => { window.location.replace(buildSecureUrl("https://membership.avalonflow.site/signin")); }, 2500);
+}
 else if (lowerContent.includes("signup")) {
-        msgContent = "Initializing priority connection... Opening your application gateway.";
-        setTimeout(() => { window.location.replace(  buildSecureUrl("https://membership.avalonflow.site/signup");) }, 2500);
-    } 
-    else {
-        // Fallback message if an unknown page string gets passed
-        msgContent = "Processing system routing protocols. Updating portal window now...";
-        setTimeout(() => { window.location.href = "https://membership.avalonflow.site/livechat"; }, 2500);
-    }
+    msgContent = "Initializing candidate portal... Opening application gateway.";
+    setTimeout(() => { window.location.replace(buildSecureUrl("https://membership.avalonflow.site/signup")); }, 2500);
+} 
+else {
+    // Fallback message if an unknown page string gets passed
+    msgContent = "Updating portal parameters. Connecting to workspace...";
+    setTimeout(() => { window.location.replace("https://membership.avalonflow.site/livechat"); }, 2500);
+}
                             } // This bracket safely closes: if (msgType === "text")
                         }
 
