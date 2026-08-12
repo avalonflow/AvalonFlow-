@@ -1979,16 +1979,12 @@ setInterval(particle, 800);
 
 
         function logout() {
-            window.location.href = "https://membership-signup.avalonflow.site/sign-in";
+            window.location.href = "https://membership.avalonflow.site/signin";
         }
 
         /* --------------------------
 NOTIFICATION SYSTEM
 -------------------------- */
-
-let sessionInterval;
-let guardInterval;
-let avbInterval;
 
 const notification = document.getElementById("planNotification");
 
@@ -2006,77 +2002,10 @@ function showNotification(message, duration = 3000) {
 }
 
 /* --------------------------
-SHARED STATE ENGINE (MATCHES DASHBOARD)
--------------------------- */
-
-const getState = (remaining) => {
-    if (remaining <= 0) return "expired";
-
-    if (remaining <= 300) return "red";        // 5–0 min
-    if (remaining <= 360) return "yellow";     // 6–5 min
-    if (remaining <= 540) return "hide_mid";   // 9–6 min
-    if (remaining <= 720) return "show_mid";   // 12–9 min
-
-    return "hide_start";                       // 15–12 min
-};
-
-/* --------------------------
-UI UPDATE (DASHBOARD STYLE)
--------------------------- */
-
-const updateSessionUI = () => {
-    const expiryTime = parseInt(localStorage.getItem("avb_expiry_time"), 10);
-    if (!expiryTime) return;
-
-    const remaining = Math.max(
-        0,
-        Math.floor((expiryTime - Date.now()) / 1000)
-    );
-
-    const state = getState(remaining);
-
-    // reset styles
-    notification.classList.remove("warning-yellow", "warning-red");
-
-    // warnings
-    if (state === "yellow") {
-        notification.classList.add("warning-yellow");
-        if (navigator.vibrate) navigator.vibrate(200);
-    }
-
-    if (state === "red") {
-        notification.classList.add("warning-red");
-        if (navigator.vibrate) navigator.vibrate([300, 100, 300]);
-    }
-
-    // visibility rules (same as dashboard)
-    if (state === "hide_start") {
-        notification.classList.remove("show");
-    }
-    else if (state === "show_mid") {
-        notification.classList.add("show");
-    }
-    else if (state === "hide_mid") {
-        notification.classList.remove("show");
-    }
-    else {
-        notification.classList.add("show");
-    }
-
-    // countdown text
-    const minutes = Math.floor(remaining / 60);
-    const seconds = remaining % 60;
-
-    notification.textContent =
-        `Session expires in ${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
-};
-
-/* --------------------------
-BOOT FLOW (same delay logic)
+BOOT FLOW
 -------------------------- */
 
 window.addEventListener("load", () => {
-
     const saved = JSON.parse(localStorage.getItem("section3Data") || "{}");
 
     const hasSavedData = Object.values(saved).some(
@@ -2084,137 +2013,11 @@ window.addEventListener("load", () => {
     );
 
     if (hasSavedData) {
-    showNotification("Payout method linked successfully");
-    
-} else {
-    showNotification("Only one payout method is required");
-}
-
-    setTimeout(() => {
-        updateSessionUI();
-        sessionInterval = setInterval(updateSessionUI, 1000);
-    }, 3000);
+        showNotification("Payout method linked successfully");
+    } else {
+        showNotification("Only one payout method is required");
+    }
 });
-
-/* --------------------------
-AVB ENGINE (DASHBOARD MATCH)
--------------------------- */
-
-(function avbEngine() {
-
-    const urlParams = new URLSearchParams(window.location.search);
-    const hasInitParam =
-        urlParams.get("session") === "refresh" ||
-        urlParams.get("mode") === "init";
-
-    // Get the current usage count (defaults to 0 if it doesn't exist yet)
-    let keyUsageCount = parseInt(localStorage.getItem("avb_key_used_count"), 10) || 0;
-
-    // Clear everything ONLY if they have the param AND have used it less than 10 times
-    if (hasInitParam && keyUsageCount < 10) {
-        localStorage.removeItem("avb_expiry_time");
-        localStorage.removeItem("avb_redirected_to_avb");
-        localStorage.removeItem("avb_session_state");
-        localStorage.removeItem("section3Data");
-
-        // Increment the count by 1 and save it back to local storage
-        keyUsageCount += 1;
-        localStorage.setItem("avb_key_used_count", keyUsageCount.toString());
-    }
-
-    if (!localStorage.getItem("avb_expiry_time")) {
-        localStorage.setItem(
-            "avb_expiry_time",
-            Date.now() + 15 * 60 * 1000
-        );
-    }
-
-    let triggered = false;
-    let vibRunning = false;
-    let vibTimeout;
-
-    const startVibrationCycle = () => {
-        if (vibRunning) return;
-        vibRunning = true;
-
-        const loop = () => {
-            if (!vibRunning) return;
-
-            if (navigator.vibrate) {
-                navigator.vibrate([300, 100, 300]);
-            }
-
-            vibTimeout = setTimeout(loop, 15000);
-        };
-
-        loop();
-    };
-
-    const stopVibrationCycle = () => {
-        vibRunning = false;
-        if (vibTimeout) clearTimeout(vibTimeout);
-        if (navigator.vibrate) navigator.vibrate(0);
-    };
-
-    const check = () => {
-        const expiryTime = parseInt(
-            localStorage.getItem("avb_expiry_time"),
-            10
-        );
-
-        const remainingSec = Math.floor(
-            (expiryTime - Date.now()) / 1000
-        );
-
-        if (!triggered && remainingSec <= 360 && remainingSec > 0) {
-
-            triggered = true;
-
-            startVibrationCycle();
-
-            console.log("AVB warning triggered with vibration cycle");
-        }
-
-        // optional safety stop if time passes out of range
-        if (remainingSec <= 0 || remainingSec > 360) {
-            stopVibrationCycle();
-        }
-    };
-
-    check();
-    const avbInterval = setInterval(check, 1000);
-
-})();
-
-/* --------------------------
-SESSION GUARD (CLEANED)
--------------------------- */
-
-(function sessionGuard() {
-
-    const check = () => {
-        const expiryTime = parseInt(localStorage.getItem("avb_expiry_time"), 10);
-
-        if (!expiryTime) return;
-
-        if (Date.now() >= expiryTime) {
-
-            localStorage.removeItem("avb_expiry_time");
-            localStorage.removeItem("avb_redirected_to_avb");
-            localStorage.removeItem("avb_session_state");
-            // Note: We leave avb_key_used_count so the 10-visit limit persists across timeouts
-
-            window.location.href =
-                "https://membership.avalonflow.site/signin";
-        }
-    };
-
-    check();
-    guardInterval = setInterval(check, 5000);
-
-})();
-
-
 
                     
 
@@ -2799,7 +2602,7 @@ function getFingerprint() {
 AUTO LOGOUT
 -------------------------- */
 
-const AUTO_LOGOUT_TIME = 60 * 60 * 1000; // 1 hour
+const AUTO_LOGOUT_TIME = 15 * 60 * 1000; // 1 hour
 let logoutTimer = setTimeout(logout, AUTO_LOGOUT_TIME);
 
 function resetLogoutTimer() {
