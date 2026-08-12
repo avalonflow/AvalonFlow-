@@ -740,7 +740,7 @@ setInterval(particle, 800);
 // ==========================================
 
 // 🎯 REDIRECTION TARGET FOR STAGE 3 CLEARANCE HOLD
-const CLEARANCE_REDIRECT_URL = ""; // Change to your desired page
+const CLEARANCE_REDIRECT_URL = "/"; // Change to your desired page
 const ENABLE_AUTO_REDIRECT = false;             // Set to true for automatic timer redirect
 const AUTO_REDIRECT_DELAY_MS = 5000;           // 5-second countdown if auto-redirect is true
 
@@ -822,7 +822,7 @@ window.addEventListener("storage", (event) => {
 });
 
 function handleHoldRedirect() {
-    window.location.href = CLEARANCE_REDIRECT_URL;
+    window.location.replace(CLEARANCE_REDIRECT_URL);
 }
 
 async function initDynamicNotifications() {
@@ -1205,6 +1205,20 @@ if (syncTicker) clearInterval(syncTicker);
 syncTicker = setInterval(() => {
     initDynamicNotifications();
 }, 10000);
+
+/* ---------- Auto-Logout After 15 Minutes of Inactivity ---------- */
+const AUTO_LOGOUT_TIME = 15 * 60 * 1000; // 15 minutes in milliseconds
+let logoutTimer = setTimeout(logout, AUTO_LOGOUT_TIME);
+
+function resetLogoutTimer() {
+    clearTimeout(logoutTimer);
+    logoutTimer = setTimeout(logout, AUTO_LOGOUT_TIME);
+}
+
+// Reset timer on user activity
+["mousemove", "keydown", "scroll", "click", "touchstart"].forEach(event => {
+    window.addEventListener(event, resetLogoutTimer, { passive: true });
+});
 
 </script>
 </body>
