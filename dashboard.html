@@ -289,16 +289,7 @@
 <link rel="icon" type="image/png" sizes="512x512" href="/android-chrome-512x512.png?v=3">
 <link rel="manifest" href="/manifest.json?v=3">
 
-<script>
-(function authGuard() {
-    const isLoggedIn = localStorage.getItem("avalon_logged_in") === "true";
 
-    if (!isLoggedIn) {
-        // Redirect immediately to the sign-in page
-        window.location.replace("/signin"); 
-    }
-})();
-</script>
 
 
         <!-- Structured Data for Logo -->
@@ -938,7 +929,6 @@ TOP RIGHT PROFILE AVATAR
     </div>
 
     <div style="position: absolute; top: 58px; right: 70%; transform: translateX(50%); white-space: nowrap; pointer-events: none; text-align: center;">
-        <span id="avatarLabel" style="font-family: sans-serif; font-size: 10px; font-weight: 500; color: #c0a9ff; letter-spacing: 0.3px; text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);">Add Profile Picture</span>
     </div>
 
 </div>
@@ -1306,17 +1296,7 @@ if (typeof cancelCrop !== 'undefined' && cancelCrop) {
 }
 
 
-// load saved photo and set correct initial text
-window.addEventListener('DOMContentLoaded', () => {
-    const saved = localStorage.getItem('profilePhoto');
-    if (saved) {
-        profilePhoto.src = saved;
-        if (avatarLabel) avatarLabel.textContent = "Remove Profile Picture";
-    } else {
-        profilePhoto.src = DEFAULT_AVATAR;
-        if (avatarLabel) avatarLabel.textContent = "Add Profile Picture";
-    }
-});
+
 
 
         /* Floating particles */
