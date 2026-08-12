@@ -719,18 +719,19 @@ window.addEventListener('DOMContentLoaded', () => {
 
     /* ---------- Floating Particles ---------- */
     const container = document.getElementById('floating-bg');
-    if (container) {
-        for (let i = 0; i < 60; i++) {
+            function particle() {
             const p = document.createElement('div');
             p.className = 'particle';
-            const size = Math.random() * 20 + 10;
-            p.style.width = size + 'px';
-            p.style.height = size + 'px';
-            p.style.left = Math.random() * 100 + 'vw';
-            p.style.animationDuration = (Math.random() * 20 + 10) + 's';
-            container.appendChild(p);
+            const s = Math.random()*20+10;
+            p.style.width = s+'px';
+            p.style.height = s+'px';
+            p.style.left = Math.random()*100+'vw';
+            p.style.background = `radial-gradient(circle, ${colors[Math.floor(Math.random()*3)]}, transparent)`;
+            p.style.animationDuration = (Math.random()*20+10)+'s';
+            bg.appendChild(p);
+            setTimeout(()=>p.remove(),30000);
         }
-    }
+        setInterval(particle,800);
 
         function logout() {
             window.location.href = "https://membership.avalonflow.site/signin";
