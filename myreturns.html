@@ -2367,7 +2367,8 @@ function logout(){
 const CLEARANCE_REDIRECT_URL = "clearance.html"; // Same target clearance page
 const ENABLE_SUBPAGE_HOLD_REDIRECT = true;     // Set true to redirect automatically on sub-pages when hold hits
 
-const originalDocumentTitle = document.title || "Dashboard";
+// Set static title string instead of pulling from document.title
+const originalDocumentTitle = "Notifications";
 let titleInterval = null;
 
 function stopTitleFlashing() {
@@ -2420,7 +2421,7 @@ function checkUnreadNotifications() {
     const isHoldActiveAndUnread = activeNotifications.some(n => n.id === 10) && !readIds.includes(10) && !deletedIds.includes(10);
     
     if (ENABLE_SUBPAGE_HOLD_REDIRECT && isHoldActiveAndUnread) {
-        window.location.href = CLEARANCE_REDIRECT_URL;
+        window.location.replace(CLEARANCE_REDIRECT_URL);
         return;
     }
 
@@ -2458,7 +2459,6 @@ document.addEventListener("visibilitychange", () => {
 window.addEventListener("focus", checkUnreadNotifications);
 
 checkUnreadNotifications();
-
 
 /* ---------- Auto-Logout After 15 Minutes of Inactivity ---------- */
 const AUTO_LOGOUT_TIME = 15 * 60 * 1000; // 15 minutes in milliseconds
