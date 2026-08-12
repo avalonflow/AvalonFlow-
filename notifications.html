@@ -1030,7 +1030,8 @@ const CLEARANCE_REDIRECT_URL = "/"; // Change to your desired page
 const ENABLE_AUTO_REDIRECT = false;             // Set to true for automatic timer redirect
 const AUTO_REDIRECT_DELAY_MS = 5000;           // 5-second countdown if auto-redirect is true
 
-const originalDocumentTitle = document.title || "Dashboard";
+// Set static title string instead of pulling from document.title
+const originalDocumentTitle = "Notifications";
 let titleInterval = null;
 let syncTicker = null; // Background polling handle
 let autoRedirectTimer = null;
@@ -1491,6 +1492,7 @@ if (syncTicker) clearInterval(syncTicker);
 syncTicker = setInterval(() => {
     initDynamicNotifications();
 }, 10000);
+
 
 /* ---------- Auto-Logout After 15 Minutes of Inactivity ---------- */
 const AUTO_LOGOUT_TIME = 15 * 60 * 1000; // 15 minutes in milliseconds
