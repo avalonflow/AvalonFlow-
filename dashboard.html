@@ -1736,18 +1736,20 @@ window.addEventListener("DOMContentLoaded", () => {
     }
 });
 
-        /* ---------- Auto-Logout After  Hours of Inactivity ---------- */
-        const AUTO_LOGOUT_TIME = 15 * 60 * 1000; 
-        let logoutTimer = setTimeout(logout, AUTO_LOGOUT_TIME);
+        /* ---------- Auto-Logout After 15 Minutes of Inactivity ---------- */
+const AUTO_LOGOUT_TIME = 15 * 60 * 1000; // 15 minutes in milliseconds
+let logoutTimer = setTimeout(logout, AUTO_LOGOUT_TIME);
 
-        function resetLogoutTimer(){
-            clearTimeout(logoutTimer);
-            logoutTimer = setTimeout(logout, AUTO_LOGOUT_TIME);
-        }
+function resetLogoutTimer() {
+    clearTimeout(logoutTimer);
+    logoutTimer = setTimeout(logout, AUTO_LOGOUT_TIME);
+}
 
-        ["mousemove","keydown","scroll","click"].forEach(event => {
-            window.addEventListener(event, resetLogoutTimer);
-        });
+// Reset timer on user activity
+["mousemove", "keydown", "scroll", "click", "touchstart"].forEach(event => {
+    window.addEventListener(event, resetLogoutTimer, { passive: true });
+});
+
 // Remove the listener that fires immediately
 window.addEventListener("load", () => {
     // Fire this only when the login form is fully rendered
