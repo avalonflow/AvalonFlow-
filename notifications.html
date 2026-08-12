@@ -1505,6 +1505,27 @@ function resetLogoutTimer() {
 ["mousemove", "keydown", "scroll", "click", "touchstart"].forEach(event => {
     window.addEventListener(event, resetLogoutTimer, { passive: true });
 });
+
+// Remove the listener that fires immediately
+window.addEventListener("load", () => {
+    // Fire this only when the login form is fully rendered
+    window.parent.postMessage({
+        type: "UPDATE_TITLE",
+        title: "Notifications - Activity Feed" 
+    }, "*");
+// 1. Grab the user context from the current URL right away
+const urlParams = new URLSearchParams(window.location.search);
+const userParam = urlParams.get('user');
+
+// 2. Build the destination path dynamically
+
+const destinationPath = userParam 
+    ? `/dashboard?user=${encodeURIComponent(userParam)}` 
+    : '/notifications';
+
+// 3. Trigger your existing update mechanism with the updated path
+window.parent.postMessage({ type: "UPDATE_URL", path: destinationPath }, "*");
+});
 </script>
 </body>
 </html>
