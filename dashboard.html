@@ -1346,8 +1346,9 @@ function navigateTo(page){
                                                 function logout(){
     localStorage.removeItem("avalon_logged_in");
     localStorage.removeItem("avalon_seen_dashboard");
-    window.location.href = 'https://membership.avalonflow.site/signin';
+    window.location.replace('https://membership.avalonflow.site/signin');
 }
+
 
 // ================================
 // 🔐 PLAN CONFIG
