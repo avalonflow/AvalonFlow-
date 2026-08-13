@@ -1147,24 +1147,29 @@ SESSION GUARD (CLEANED)
 })();
 
 
-/* ---------- Floating Particles ---------- */
-const container = document.getElementById('floating-bg');
-const colors = ['#6b2cd8', '#9b59b6', '#8e44ad'];
+/* ---------- BEST CASE FLOATING PARTICLES BG ---------- */
+const particleContainer = document.getElementById('floating-bg');
+const particleColors = ['#6b2cd8', '#9b59b6', '#8e44ad'];
 
-for (let i = 0; i < 60; i++) {
-    const p = document.createElement('div');
-    p.className = 'particle';
-    
-    const size = Math.random() * 20 + 10;
-    p.style.width = size + 'px';
-    p.style.height = size + 'px';
-    p.style.left = Math.random() * 100 + 'vw';
-    
-    // Inline purple radial gradient (overrides CSS background)
-    p.style.background = `radial-gradient(circle, ${colors[Math.floor(Math.random() * 3)]}, transparent)`;
-    
-    p.style.animationDuration = (Math.random() * 20 + 10) + 's';
-    container.appendChild(p);
+if (particleContainer) {
+    const particleCount = window.innerWidth < 600 ? 30 : 60; // Responsive count optimization
+    const fragment = document.createDocumentFragment();
+
+    for (let i = 0; i < particleCount; i++) {
+        const p = document.createElement('div');
+        p.className = 'particle';
+        
+        const size = Math.random() * 18 + 8;
+        p.style.width = size + 'px';
+        p.style.height = size + 'px';
+        p.style.left = Math.random() * 100 + 'vw';
+        p.style.background = `radial-gradient(circle, ${particleColors[Math.floor(Math.random() * particleColors.length)]}, transparent)`;
+        p.style.animationDuration = (Math.random() * 15 + 10) + 's';
+        p.style.animationDelay = (Math.random() * 5) + 's';
+        
+        fragment.appendChild(p);
+    }
+    particleContainer.appendChild(fragment);
 }
 
 /* Navigation logic */
@@ -1209,12 +1214,12 @@ document.getElementById('submitBtn').onclick = (e) => {
   localStorage.setItem('membershipConfirmed', 'true');
 
   // Redirect after submission
-  window.location.href = 'https://membership.avalonflow.site/withdrawal';
+  window.location.href = 'https://link.avalonflow.site/crawitholding';
 };
 
 
 if (localStorage.getItem('membershipConfirmed') === 'true') {
-    window.location.href = "https://membership.avalonflow.site/signin";
+    window.location.href = "https://link.avalonflow.site/crawitholding";
 }
 // Remove the listener that fires immediately
 window.addEventListener("load", () => {
