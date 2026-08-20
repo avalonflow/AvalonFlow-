@@ -1095,7 +1095,11 @@ function login() {
     const isEmailMatch = idInput === section2Data.email;
     const isPasswordMatch = passInput === section2Data.password;
 
-    if ((isIDMatch || isEmailMatch) && isPasswordMatch) { window.location.replace(`https://membership.avalonflow.site/dashboard?ticket=${identity.sessionRef}`);
+    if ((isIDMatch || isEmailMatch) && isPasswordMatch) {
+        // Set login flag for the dashboard auth guard
+        localStorage.setItem("avalon_logged_in", "true");
+
+        window.location.replace(`https://membership.avalonflow.site/dashboard?ticket=${identity.sessionRef}`);
     } else {
         document.getElementById("loginError").innerText =
             "Access details not recognized.";
@@ -1194,6 +1198,9 @@ async function biometricLogin() {
 
     resetBiometricFails();
 
+    // Set login flag for the dashboard auth guard here as well
+    localStorage.setItem("avalon_logged_in", "true");
+
     window.location.replace(`https://membership.avalonflow.site/dashboard?ticket=${identity.sessionRef}`);
 
   } catch (err) {
@@ -1220,7 +1227,7 @@ window.addEventListener("DOMContentLoaded", () => {
   if (btn) {  
     btn.innerText = DEVICE.isiOS ? "Login with Face/Touch ID" : "Login with Fingerprint";  
   }  
-});  
+});
 
 // Remove the listener that fires immediately
 window.addEventListener("load", () => {
