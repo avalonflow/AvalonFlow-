@@ -898,8 +898,9 @@ button[onclick*="biometricLogin"]:hover {
         <input type="text" id="AvalonFlowID" placeholder="AvalonFlow ID or Email Address">
         <input type="password" id="password" placeholder="Password">
 
-        <button onclick="login()">Login</button>
-        <button onclick="biometricLogin()">Login with Device Security</button>
+        <button type="button" onclick="login()">Login</button>
+<button type="button" onclick="biometricLogin()">Login with Device Security</button>
+
 
         <p id="loginError" style="color:red;"></p>
 
