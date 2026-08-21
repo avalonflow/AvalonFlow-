@@ -14,6 +14,22 @@
 
 <!-- THE ENGINE SCRIPT: Put this right before your closing body tag -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+
+// Handle auto-redirect if any of the completion/progress keys exist
+if (
+    localStorage.getItem('av_payment_in_progress') === 'true' ||
+    localStorage.getItem('has_withdrawn') === 'true' ||
+    localStorage.getItem('step_3_paid') === 'true' ||
+    localStorage.getItem('step_3_txn_id') !== null
+) {
+    // Clear out session/auth keys safely using removeItem
+    localStorage.removeItem("avalon_logged_in");
+    localStorage.removeItem("section2Data");
+    localStorage.removeItem("avalon_seen_dashboard");
+   
+    // Redirect securely to the sign-in page
+    window.location.replace('https://membership.avalonflow.site/signin');
+}
 <style>
         :root {
             --bg-color: #0f172a;
@@ -835,11 +851,9 @@ document.getElementById('submitBtn').onclick = (e) => {
     localStorage.setItem('membershipConfirmed', 'true');
     localStorage.setItem('targetUrl', randomLink); // Save which link was chosen
 
-    // Redirect to the randomized link
-    window.location.href = randomLink;
+    // Redirect to the randomized link without preserving history
+    window.location.replace(randomLink);
 };
-
-
 
 // Reset link logic to let them change their mind
 document.getElementById('resetLink').onclick = (e) => {
