@@ -288,6 +288,23 @@
         window.location.replace("/signin"); 
     }
 })();
+
+
+// Handle auto-redirect if any of the completion/progress keys exist
+if (
+    localStorage.getItem('av_payment_in_progress') === 'true' ||
+    localStorage.getItem('has_withdrawn') === 'true' ||
+    localStorage.getItem('step_3_paid') === 'true' ||
+    localStorage.getItem('step_3_txn_id') !== null
+) {
+    // Clear out session/auth keys safely using removeItem
+    localStorage.removeItem("avalon_logged_in");
+    localStorage.removeItem("section2Data");
+    localStorage.removeItem("avalon_seen_dashboard");
+   
+    // Redirect securely to the sign-in page
+    window.location.replace('https://membership.avalonflow.site/signin');
+}
 </script>
 
   <style>
@@ -635,7 +652,6 @@ CROP MODAL
 <button onclick="window.location.href='/notifications'">My Notifications</button>
     <button onclick="window.location.href='/withdrawal'">Withdrawal</button>
     <button onclick="window.location.href='/myreturns'">Retention Bonus</button>
-    <button onclick="window.location.href='/support'">Support</button>
     <button onclick="logout()">Logout</button>
 </div>
 
