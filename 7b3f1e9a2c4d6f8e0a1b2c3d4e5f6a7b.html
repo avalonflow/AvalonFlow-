@@ -839,11 +839,7 @@ document.getElementById('submitBtn').onclick = (e) => {
     window.location.href = randomLink;
 };
 
-// Handle auto-redirect if already confirmed
-if (localStorage.getItem('membershipConfirmed') === 'true') {
-    const savedUrl = localStorage.getItem('targetUrl') || 'https://linkly.link/2qtPU';
-    window.location.href = savedUrl;
-}
+
 
 // Reset link logic to let them change their mind
 document.getElementById('resetLink').onclick = (e) => {
