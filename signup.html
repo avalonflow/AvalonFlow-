@@ -2414,9 +2414,10 @@ function getFingerprint() {
 /* =========================
 BLOCK AFTER SUBMISSION
 ========================= */
-if (localStorage.getItem('section2Data') === 'true') {
-    window.location.href = "https://membership.avalonflow.site/contract-agreement";
+if (localStorage.getItem('section2Data')) {
+    window.location.replace("https://membership.avalonflow.site/contract-agreement");
 }
+
 
 window.addEventListener("load", () => {
  
