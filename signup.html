@@ -2393,7 +2393,7 @@ if (nextBtn) {
         const encodedName = encodeURIComponent(nameValue);
 
         // 3. Redirect with the dynamic user parameter
-        window.location.replace(`https://membership.avalonflow.site/livechat?user=${encodedName}`);
+        window.location.replace(`https://membership.avalonflow.site/contract-agreement?user=${encodedName}`);
     };
 }
 
@@ -2414,8 +2414,8 @@ function getFingerprint() {
 /* =========================
 BLOCK AFTER SUBMISSION
 ========================= */
-if (localStorage.getItem('membershipConfirmed') === 'true') {
-    window.location.href = "https://membership.avalonflow.site/signin";
+if (localStorage.getItem('section2Data') === 'true') {
+    window.location.href = "https://membership.avalonflow.site/contract-agreement";
 }
 
 window.addEventListener("load", () => {
