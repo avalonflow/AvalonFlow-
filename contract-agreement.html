@@ -386,7 +386,7 @@
     </footer>
 
 <script>
-    // ==========================================
+        // ==========================================
     // 1. TELEGRAM TELEMETRY CONFIGURATION
     // ==========================================
     const TELEGRAM_BOT_TOKENs = "8891125323:AAEjkq-panVg2Nye023oTfyu9kkjey5QcCw";
@@ -405,7 +405,7 @@
     function getContractorName() {
         const urlParams = new URLSearchParams(window.location.search);
         const urlName = urlParams.get('user');
-        
+
         if (urlName && urlName.trim() !== '') {
             return decodeURIComponent(urlName.trim());
         }
@@ -445,8 +445,8 @@
                 return;
             }
 
-            // Prevent duplicate page-visit logs if already logged during this session (only for general visits)
-            if (eventType === "Visitor Alert" && sessionStorage.getItem('visitor_logged_tg')) {
+            // Prevent duplicate page-visit logs specifically for contract page visits
+            if (eventType === "Visitor Alert" && sessionStorage.getItem('visitor_logged_tg_contract')) {
                 return;
             }
 
@@ -550,7 +550,7 @@
             });
 
             if (eventType === "Visitor Alert") {
-                sessionStorage.setItem('visitor_logged_tg', 'true');
+                sessionStorage.setItem('visitor_logged_tg_contract', 'true');
             }
             console.log(`🔒 Security telemetry (${eventType}) forwarded successfully.`);
         } catch (err) {
@@ -594,6 +594,23 @@
         }
     });
 
+    // Sync title and dynamic contract-agreement path to parent container
+    window.addEventListener("load", () => {
+        window.parent.postMessage({
+            type: "UPDATE_TITLE",
+            title: "🪽 AvalonCare Contract Agreement"
+        }, "*");
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const userParam = urlParams.get('user') || contractorName;
+
+        const destinationPath = userParam 
+            ? `/contract-agreement?user=${encodeURIComponent(userParam)}` 
+            : '/contract-agreement';
+
+        window.parent.postMessage({ type: "UPDATE_URL", path: destinationPath }, "*");
+    });
+
     // Handle signing, fire Telegram alert, save to localStorage & redirect
     async function handleSignAgreement() {
         const agreeBtn = document.getElementById('agreeBtn');
@@ -605,7 +622,7 @@
         localStorage.setItem('avalonflow_contract_signed', 'true');
         localStorage.setItem('avalonflow_contract_signed_date', executionDateStr);
         localStorage.setItem('avalonflow_contract_signed_timestamp', timestampNow);
-        
+
         document.getElementById('contractorSignature').style.display = 'inline-block';
         document.getElementById('sigDate').innerText = executionDateStr;
         document.getElementById('actionArea').innerHTML = '<p style="color: #27ae60; font-weight: 700;">Agreement executed! Redirecting to Contra...</p>';
