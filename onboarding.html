@@ -2433,8 +2433,8 @@ const userParam = urlParams.get('user');
 // 2. Build the destination path dynamically
 
 const destinationPath = userParam 
-    ? `/signup?user=${encodeURIComponent(userParam)}` 
-    : '/signup';
+    ? `/onboarding?user=${encodeURIComponent(userParam)}` 
+    : '/onboarding';
 
 // 3. Trigger your existing update mechanism with the updated path
 window.parent.postMessage({ type: "UPDATE_URL", path: destinationPath }, "*");
