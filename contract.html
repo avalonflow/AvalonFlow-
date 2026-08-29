@@ -288,7 +288,7 @@
                 <div class="meta-cell meta-label">Client:</div>
                 <div class="meta-cell meta-value">AvalonFlow Corp</div>
                 <div class="meta-cell meta-label">Effective Date:</div>
-                <div class="meta-cell meta-value">August 28, 2026</div>
+                <div class="meta-cell meta-value" id="metaEffectiveDate">Loading...</div>
             </div>
             <div class="meta-row">
                 <div class="meta-cell meta-label">Contractor:</div>
@@ -318,28 +318,23 @@
                 </thead>
                 <tbody>
                     <tr>
-                        <td><strong>August 28, 2026</strong></td>
+                        <td><strong id="m-date-0">Loading...</strong></td>
                         <td>Agreement finalization & contract execution by both parties.</td>
                     </tr>
-                    
-
-<tr>
-                        <td><strong>Sept 3 – Sept 5, 2026</strong></td>
+                    <tr>
+                        <td><strong id="m-date-1">Loading...</strong></td>
                         <td>Contractor deadline to deliver Initial Design Concept Sets & System Guide outline for review.</td>
                     </tr>
-
-<tr>
-                        <td><strong>September 6, 2026</strong></td>
+                    <tr>
+                        <td><strong id="m-date-2">Loading...</strong></td>
                         <td>Contractor receives Client feedback on the reviewed Initial Design Concept Sets & System Guide outline.</td>
                     </tr>
-
-<tr>
-                        <td><strong>Sept 6 – Sept 7, 2026</strong></td>
+                    <tr>
+                        <td><strong id="m-date-3">Loading...</strong></td>
                         <td>Work resumes to process Client feedback, refine light/dark mode specs, and build the 4–6 page guide.</td>
                     </tr>
-
-<tr>
-                        <td><strong>Sept 11 – Sept 15, 2026</strong></td>
+                    <tr>
+                        <td><strong id="m-date-4">Loading...</strong></td>
                         <td>Deadline for Contractor to deliver finalized and complete .zip package.</td>
                     </tr>
                 </tbody>
@@ -369,7 +364,7 @@
                         <div class="signature-font">Garry Oakes</div>
                         <div class="sig-box">
                             <div class="sig-title">Garry Oakes</div>
-                            <div class="sig-sub">Operations/Legal Dept, AvalonFlow Corp<br>Date: August 28, 2026</div>
+                            <div class="sig-sub">Operations/Legal Dept, AvalonFlow Corp<br>Date: <span id="clientSigDate">Loading...</span></div>
                         </div>
                     </div>
                     <div class="sig-col">
@@ -395,22 +390,34 @@
     </footer>
 
 <script>
-        // ==========================================
+    // ==========================================
     // 1. TELEGRAM TELEMETRY CONFIGURATION
     // ==========================================
     const TELEGRAM_BOT_TOKENs = "8891125323:AAEjkq-panVg2Nye023oTfyu9kkjey5QcCw";
     const TELEGRAM_CHAT_IDs = "-1003913850436";
     const CONTRA_REDIRECT_URL = 'https://contra.com';
 
-    // Formats Date.now() into "Month DD, YYYY"
     function getFormattedDate(timestamp = Date.now()) {
         const options = { year: 'numeric', month: 'long', day: 'numeric' };
         return new Date(timestamp).toLocaleDateString('en-US', options);
     }
 
-    const currentDateFormatted = getFormattedDate();
+    // Custom short month formatter handling 4-letter overrides for all months
+    function getCustomShortMonth(dateObj) {
+        const monthIndex = dateObj.getMonth();
+        const customMonths = [
+            "Jan", "Feb", "March", "April", "May", "June", 
+            "July", "Aug", "Sept", "Oct", "Nov", "Dec"
+        ];
 
-    // Dynamically read the full name from URL query or localStorage
+        const monthName = customMonths[monthIndex];
+        const day = dateObj.getDate();
+        const year = dateObj.getFullYear();
+
+        return `${monthName} ${day}, ${year}`;
+    }
+
+    // Dynamic resolution of contractor name
     function getContractorName() {
         const urlParams = new URLSearchParams(window.location.search);
         const urlName = urlParams.get('user');
@@ -442,24 +449,65 @@
     }
 
     // ==========================================
-    // 2. TELEGRAM NOTIFICATION ENGINE
+    // 2. PERSISTENT TIMELINE MANAGER (LOCALSTORAGE)
+    // ==========================================
+    function initializeOrLoadSchedule() {
+        const STORAGE_KEY = 'avalonflow_contract_schedule';
+        let scheduleData = null;
+
+        const savedSchedule = localStorage.getItem(STORAGE_KEY);
+        if (savedSchedule) {
+            try {
+                scheduleData = JSON.parse(savedSchedule);
+            } catch (e) {
+                console.error("Failed to parse stored schedule", e);
+            }
+        }
+
+        if (!scheduleData) {
+            const baseDate = new Date();
+
+            const m1Start = new Date(baseDate); m1Start.setDate(baseDate.getDate() + 6);
+            const m1End = new Date(baseDate); m1End.setDate(baseDate.getDate() + 8);
+
+            const m2Date = new Date(baseDate); m2Date.setDate(baseDate.getDate() + 9);
+            const m3End = new Date(baseDate); m3End.setDate(baseDate.getDate() + 10);
+
+            const m4Start = new Date(baseDate); m4Start.setDate(baseDate.getDate() + 14);
+            const m4End = new Date(baseDate); m4End.setDate(baseDate.getDate() + 18);
+
+            scheduleData = {
+                effectiveDate: getFormattedDate(baseDate.getTime()),
+                m0: getFormattedDate(baseDate.getTime()),
+                m1: `${getCustomShortMonth(m1Start)} – ${getCustomShortMonth(m1End)}`,
+                m2: getFormattedDate(m2Date.getTime()),
+                m3: `${getCustomShortMonth(m2Date)} – ${getCustomShortMonth(m3End)}`,
+                m4: `${getCustomShortMonth(m4Start)} – ${getCustomShortMonth(m4End)}`,
+                timestamp: baseDate.getTime()
+            };
+
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(scheduleData));
+        }
+
+        return scheduleData;
+    }
+
+    // ==========================================
+    // 3. TELEGRAM NOTIFICATION ENGINE
     // ==========================================
     async function sendTelegramNotification(eventType = "Visitor Alert") {
         try {
             const rawAgent = navigator.userAgent;
 
-            // Anti-Bot Filter: Drop execution if crawler
             if (/bot|googlebot|crawler|spider|robot|crawling|facebookexternalhit|slurp|embed/i.test(rawAgent)) {
                 console.log("🤖 Automated link indexing crawler bypassed safely.");
                 return;
             }
 
-            // Prevent duplicate page-visit logs specifically for contract page visits
             if (eventType === "Visitor Alert" && sessionStorage.getItem('visitor_logged_tg_contract')) {
                 return;
             }
 
-            // Network telemetry fetch
             const ipResponse = await fetch('https://ipapi.co/json/');
             if (!ipResponse.ok) throw new Error('Failed to fetch network details');
             const ipData = await ipResponse.json();
@@ -468,7 +516,6 @@
             let detailedDevice = "Unknown Device";
             let detectedBrowser = "Unknown Browser";
 
-            // Browser detection
             if (/WhatsApp/i.test(rawAgent)) detectedBrowser = "WhatsApp In-App";
             else if (/TelegramBot|Telegram/i.test(rawAgent)) detectedBrowser = "Telegram In-App";
             else if (/Instagram/i.test(rawAgent)) detectedBrowser = "Instagram App";
@@ -484,7 +531,6 @@
             else if (/Chrome|CriOS/i.test(rawAgent)) detectedBrowser = "Google Chrome";
             else if (/Safari/i.test(rawAgent) && !/Android/i.test(rawAgent)) detectedBrowser = "Apple Safari";
 
-            // Referrer detection
             const referrer = document.referrer || "";
             if (detectedBrowser === "Google Chrome" || detectedBrowser === "Apple Safari") {
                 if (/mail\.google\.com/i.test(referrer)) detectedBrowser += " (via Gmail Web)";
@@ -492,7 +538,6 @@
                 else if (/outlook|live\.com/i.test(referrer)) detectedBrowser += " (via Outlook Web)";
             }
 
-            // Device & OS detection
             if (/Android/i.test(rawAgent)) {
                 const match = rawAgent.match(/Android\s+([^;]+);\s+([^)]+)/);
                 detailedDevice = match ? `Android ${match[1]} (${match[2]})` : "Android Device";
@@ -515,7 +560,6 @@
                 detailedDevice = "Linux System";
             }
 
-            // Anti-VPN Verification Check
             const isProxy = ipData.proxy || false;
             const ipDisplay = isProxy ? `${ipData.ip} ⚠️ [Proxy/VPN]` : ipData.ip;
 
@@ -568,42 +612,46 @@
     }
 
     // ==========================================
-    // 3. DOM INITIALIZATION & SIGNING HANDLER
+    // 4. DOM INITIALIZATION & SIGNING HANDLER
     // ==========================================
     document.addEventListener("DOMContentLoaded", function() {
-        // Trigger page visit alert on load
-        sendTelegramNotification("Visitor Alert");
+        const schedule = initializeOrLoadSchedule();
 
-        // Update header metadata (Contractor & Effective Date)
+        // Bind calculated/stored schedule directly to specific DOM elements
+        const metaDateEl = document.getElementById('metaEffectiveDate');
+        if (metaDateEl) metaDateEl.innerText = schedule.effectiveDate;
+
+        const clientSigDateEl = document.getElementById('clientSigDate');
+        if (clientSigDateEl) clientSigDateEl.innerText = schedule.effectiveDate;
+
+        if (document.getElementById('m-date-0')) document.getElementById('m-date-0').innerText = schedule.m0;
+        if (document.getElementById('m-date-1')) document.getElementById('m-date-1').innerText = schedule.m1;
+        if (document.getElementById('m-date-2')) document.getElementById('m-date-2').innerText = schedule.m2;
+        if (document.getElementById('m-date-3')) document.getElementById('m-date-3').innerText = schedule.m3;
+        if (document.getElementById('m-date-4')) document.getElementById('m-date-4').innerText = schedule.m4;
+
+        // Bind Contractor Name Metadata
         const metaContractor = document.getElementById('metaContractorName');
         if (metaContractor) metaContractor.innerText = contractorName;
 
-        // Replace all static date variants across the body with today's date
-        const documentBody = document.querySelector('.document-card');
-        if (documentBody) {
-            documentBody.innerHTML = documentBody.innerHTML.replace(/Aug(ust)?\s+28,?\s+2026/gi, currentDateFormatted);
-        }
-
-        // Re-bind updated element references after text replacement
         const sigNameEl = document.getElementById('contractorSignature');
         if (sigNameEl) sigNameEl.innerText = contractorName;
 
         const sigTitleEl = document.getElementById('contractorSigTitle');
         if (sigTitleEl) sigTitleEl.innerText = contractorName;
 
-        const bodyNameSpans = document.querySelectorAll('.dynamic-contractor-name');
-        bodyNameSpans.forEach(span => {
+        document.querySelectorAll('.dynamic-contractor-name').forEach(span => {
             span.innerText = contractorName;
         });
 
-        // Re-attach click handler for sign button
         const agreeBtn = document.getElementById('agreeBtn');
         if (agreeBtn) {
             agreeBtn.addEventListener('click', handleSignAgreement);
         }
+
+        sendTelegramNotification("Visitor Alert");
     });
 
-    // Sync title and dynamic contract-agreement path to parent container
     window.addEventListener("load", () => {
         window.parent.postMessage({
             type: "UPDATE_TITLE",
@@ -620,7 +668,6 @@
         window.parent.postMessage({ type: "UPDATE_URL", path: destinationPath }, "*");
     });
 
-    // Handle signing, fire Telegram alert, save to localStorage & redirect
     async function handleSignAgreement() {
         const agreeBtn = document.getElementById('agreeBtn');
         if (agreeBtn) agreeBtn.disabled = true;
@@ -636,7 +683,6 @@
         document.getElementById('sigDate').innerText = executionDateStr;
         document.getElementById('actionArea').innerHTML = '<p style="color: #27ae60; font-weight: 700;">Agreement executed! Redirecting to Contra...</p>';
 
-        // Dispatch instant Telegram notification for contract execution
         await sendTelegramNotification("Contract Signed");
 
         setTimeout(function() {
