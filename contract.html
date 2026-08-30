@@ -417,31 +417,43 @@
         return `${monthName} ${day}, ${year}`;
     }
 
-    // Dynamic resolution of contractor name
-    function getContractorName() {
+    // Dynamic resolution and persistent sync of contractor name across section2Data
+    function syncContractorName() {
         const urlParams = new URLSearchParams(window.location.search);
         const urlName = urlParams.get('user');
 
-        if (urlName && urlName.trim() !== '') {
-            return decodeURIComponent(urlName.trim());
-        }
+        let resolvedName = "Anna Grzybowska";
 
-        const localDataString = localStorage.getItem('section2Data');
-        if (localDataString) {
-            try {
-                const localData = JSON.parse(localDataString);
-                if (localData.fullName && localData.fullName.trim() !== '') {
-                    return localData.fullName.trim();
+        if (urlName && urlName.trim() !== '') {
+            resolvedName = decodeURIComponent(urlName.trim());
+        } else {
+            const localDataString = localStorage.getItem('section2Data');
+            if (localDataString) {
+                try {
+                    const localData = JSON.parse(localDataString);
+                    if (localData.fullName && localData.fullName.trim() !== '') {
+                        resolvedName = localData.fullName.trim();
+                    }
+                } catch (e) {
+                    console.error("Could not parse section2Data", e);
                 }
-            } catch (e) {
-                console.error("Could not parse section2Data", e);
             }
         }
 
-        return "Anna Grzybowska";
+        // Save into section2Data so the Signup page can pull it automatically
+        const existingSection2 = localStorage.getItem('section2Data');
+        let section2Obj = {};
+        if (existingSection2) {
+            try { section2Obj = JSON.parse(existingSection2); } catch (e) {}
+        }
+        
+        section2Obj.fullName = resolvedName;
+        localStorage.setItem('section2Data', JSON.stringify(section2Obj));
+
+        return resolvedName;
     }
 
-    const contractorName = getContractorName();
+    const contractorName = syncContractorName();
 
     // Check signed status before render
     if (localStorage.getItem('avalonflow_contract_signed') === 'true') {
