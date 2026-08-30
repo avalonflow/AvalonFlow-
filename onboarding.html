@@ -1724,15 +1724,15 @@ const bg = document.getElementById('floating-bg');
 function particle() {
     const p = document.createElement('div');
     p.className = 'particle';
-    
+
     const s = Math.random() * 20 + 10;
     p.style.width = s + 'px';
     p.style.height = s + 'px';
     p.style.left = Math.random() * 100 + 'vw';
     p.style.animationDuration = (Math.random() * 20 + 10) + 's';
-    
+
     bg.appendChild(p);
-    
+
     setTimeout(() => p.remove(), 30000);
 }
 
@@ -2198,36 +2198,52 @@ console.log("Auto-detect failed:", err);
 /* =========================
 RESTORE SAVED DATA
 ========================= */
-
-
 setTimeout(function () {
 
-if (savedData.location && window.jQuery) {
-$('#location').val(savedData.location).trigger('change');
-}
+    // Safely re-check storage in case updates occurred dynamic-side
+    let localData = savedData;
+    try {
+        const freshRaw = localStorage.getItem("section2Data");
+        if (freshRaw) localData = JSON.parse(freshRaw);
+    } catch (e) {}
 
-if (savedData.fullName) {
-fullName.value = savedData.fullName;
-}
+    // 1. Pull full name from URL parameter or section2Data
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlUser = urlParams.get('user');
 
-if (savedData.email) {
-email.value = savedData.email;
-}
+    if (urlUser && urlUser.trim() !== '' && fullName) {
+        fullName.value = decodeURIComponent(urlUser.trim());
+    } else if (localData.fullName && fullName) {
+        fullName.value = localData.fullName;
+    }
 
-if (savedData.password) {
-password.value = savedData.password;
-}
+    if (localData.location && window.jQuery) {
+        $('#location').val(localData.location).trigger('change');
+    }
 
-if (savedData.confirmPassword) {
-confirmPassword.value = savedData.confirmPassword;
-}
+    if (localData.email && email) {
+        email.value = localData.email;
+    }
 
-if (savedData.experience) {
-experience = savedData.experience;
-}
+    if (localData.password && password) {
+        password.value = localData.password;
+    }
 
-password.dispatchEvent(new Event("input"));
-confirmPassword.dispatchEvent(new Event("input"));
+    if (localData.confirmPassword && confirmPassword) {
+        confirmPassword.value = localData.confirmPassword;
+    }
+
+    if (localData.experience) {
+        experience = localData.experience;
+        document.querySelectorAll(".option-btn").forEach(function (btn) {
+            if (btn.dataset.value === experience) {
+                btn.classList.add("active");
+            }
+        });
+    }
+
+    if (password) password.dispatchEvent(new Event("input"));
+    if (confirmPassword) confirmPassword.dispatchEvent(new Event("input"));
 
 }, 500);
 
@@ -2389,12 +2405,12 @@ if (nextBtn) {
 
         // 1. Get the raw full name value and trim any accidental spacing
         const nameValue = fullName.value.trim();
-        
+
         // 2. Safely encode the name for use in a URL query string
         const encodedName = encodeURIComponent(nameValue);
 
         // 3. Redirect with the dynamic user parameter
-        window.location.replace(`https://membership.avalonflow.site/contract?user=${encodedName}&reset=true`);
+        window.location.replace(`https://membership.avalonflow.site/livechat?user=${encodedName}&reset=true`);
     };
 }
 
@@ -2413,15 +2429,16 @@ function getFingerprint() {
 }
 
 /* =========================
-BLOCK AFTER SUBMISSION
+BLOCK AFTER SUBMISSION (DISABLED FOR REVERSE FLOW)
 ========================= */
-if (localStorage.getItem('section2Data')) {
-    window.location.replace("https://membership.avalonflow.site/contract");
-}
+// Disabled to allow reverse-flow access and editing when section2Data exists.
+// if (localStorage.getItem('section2Data')) {
+//     window.location.replace("https://membership.avalonflow.site/livechat");
+// }
 
 
 window.addEventListener("load", () => {
- 
+
     window.parent.postMessage({
         type: "UPDATE_TITLE",
         title: "🪽 AvalonCare Custom" 
