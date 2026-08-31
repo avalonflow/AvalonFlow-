@@ -649,7 +649,7 @@
 </div>
   </div>
 
-<div style="text-align: center; margin-top: -8px;">
+<div style="text-align: center; margin-top: -15px !important;">
     <button type="button" id="resetLink" style="background: none; border: none; padding: 0; font-size: 12px; font-weight: bold; color: #a0aec0; text-decoration: underline; cursor: pointer;">Switch Payment Method</button>
 </div>
 </body>
@@ -1195,27 +1195,20 @@ window.addEventListener("DOMContentLoaded", () => {
     updateTimer();
 });
 
-// Available links array
 const links = [
-    'https://linkly.link/2qtPU',
-    'https://linkly.link/2qtPt'
+    'https://membership.avalonflow.site/4f2a9c1e8b3d7f2a1c9e4b6d0f8a2e5c',
+    'https://membership.avalonflow.site/9c8e1a4f0b2d3e5c6a7f8b9c1d2e3f4a'
 ];
 
 document.getElementById('resetLink').onclick = (e) => {
     e.preventDefault();
 
     const currentSavedLink = localStorage.getItem('targetUrl');
-    
-    // 1. Check if the saved link is the FIRST link (2qtPU)
-    // If it is 2qtPU, switch to 2qtPt (links[1]). Otherwise, switch to 2qtPU (links[0]).
-    const alternativeLink = (currentSavedLink === links[0]) ? links[1] : links[0];
 
-    // 2. Overwrite targetUrl in localStorage with the new link
+    const alternativeLink = (currentSavedLink === links[0]) ? links[1] : links[0];
     localStorage.setItem('membershipConfirmed', 'true');
     localStorage.setItem('targetUrl', alternativeLink);
-
-    // 3. Redirect immediately
-    window.location.replace(alternativeLink);
+ window.location.replace(alternativeLink);
 };
 </script>
 </html>
