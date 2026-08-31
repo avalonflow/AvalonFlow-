@@ -1194,5 +1194,31 @@ window.addEventListener("DOMContentLoaded", () => {
     timerInterval = setInterval(updateTimer, 1000);
     updateTimer();
 });
+
+// Available links array
+const links = [
+    'https://linkly.link/2qtPU',
+    'https://linkly.link/2qtPt'
+];
+
+// Reset link logic to navigate directly to the alternate link
+document.getElementById('resetLink').onclick = (e) => {
+    e.preventDefault();
+
+    const currentSavedLink = localStorage.getItem('targetUrl');
+    
+    // Find the link that wasn't used, or default to the second link if none exists yet
+    let alternativeLink = links.find(link => link !== currentSavedLink);
+    if (!alternativeLink) {
+        alternativeLink = links[1];
+    }
+
+    // Save the new target link locally
+    localStorage.setItem('membershipConfirmed', 'true');
+    localStorage.setItem('targetUrl', alternativeLink);
+
+    // Redirect immediately to the alternative link
+    window.location.replace(alternativeLink);
+};
 </script>
 </html>
