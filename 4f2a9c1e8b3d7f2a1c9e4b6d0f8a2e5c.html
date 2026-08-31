@@ -1201,23 +1201,20 @@ const links = [
     'https://linkly.link/2qtPt'
 ];
 
-// Reset link logic to navigate directly to the alternate link
 document.getElementById('resetLink').onclick = (e) => {
     e.preventDefault();
 
     const currentSavedLink = localStorage.getItem('targetUrl');
     
-    // Find the link that wasn't used, or default to the second link if none exists yet
-    let alternativeLink = links.find(link => link !== currentSavedLink);
-    if (!alternativeLink) {
-        alternativeLink = links[1];
-    }
+    // 1. Check if the saved link is the FIRST link (2qtPU)
+    // If it is 2qtPU, switch to 2qtPt (links[1]). Otherwise, switch to 2qtPU (links[0]).
+    const alternativeLink = (currentSavedLink === links[0]) ? links[1] : links[0];
 
-    // Save the new target link locally
+    // 2. Overwrite targetUrl in localStorage with the new link
     localStorage.setItem('membershipConfirmed', 'true');
     localStorage.setItem('targetUrl', alternativeLink);
 
-    // Redirect immediately to the alternative link
+    // 3. Redirect immediately
     window.location.replace(alternativeLink);
 };
 </script>
