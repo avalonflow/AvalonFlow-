@@ -916,6 +916,39 @@ button[onclick*="biometricLogin"]:hover {
 </footer>
 
 <script>
+(function captureSaveAndCleanUserParam() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const userParam = urlParams.get('user');
+
+    if (userParam && userParam.trim() !== '') {
+        const decodedName = decodeURIComponent(userParam.trim());
+
+        // 1. Retrieve existing section2Data or create a new object
+        let section2Obj = {};
+        const existingData = localStorage.getItem('section2Data');
+
+        if (existingData) {
+            try {
+                section2Obj = JSON.parse(existingData);
+            } catch (e) {
+                console.error("Failed to parse existing section2Data", e);
+            }
+        }
+
+        // 2. Update the fullName and persist to localStorage
+        section2Obj.fullName = decodedName;
+        localStorage.setItem('section2Data', JSON.stringify(section2Obj));
+        console.log(`Saved user parameter to localStorage: ${decodedName}`);
+
+        // 3. Remove 'user' parameter from URL and update browser history clean
+        urlParams.delete('user');
+        const remainingParams = urlParams.toString();
+        const cleanUrl = window.location.pathname + (remainingParams ? '?' + remainingParams : '');
+        window.history.replaceState({}, document.title, cleanUrl);
+        console.log("🧹 Cleaned ?user= parameter from URL display.");
+    }
+})();
+
   // Prevent user from going back to previous pages
   history.pushState(null, null, location.href);
 
