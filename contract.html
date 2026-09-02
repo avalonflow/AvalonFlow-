@@ -589,7 +589,7 @@ const updateSessionUI = () => {
     // reset styles
     notification.classList.remove("warning-yellow", "warning-red");
 
-    // warnings
+    // warnings (Uses the exact 200ms single pulse for both warning states)
     if (state === "yellow") {
         notification.classList.add("warning-yellow");
         if (navigator.vibrate) navigator.vibrate(200);
@@ -597,7 +597,7 @@ const updateSessionUI = () => {
 
     if (state === "red") {
         notification.classList.add("warning-red");
-        if (navigator.vibrate) navigator.vibrate([300, 100, 300]);
+        if (navigator.vibrate) navigator.vibrate(200);
     }
 
     // visibility rules (same as dashboard)
@@ -669,8 +669,7 @@ AVB ENGINE (DASHBOARD MATCH)
         localStorage.setItem("avb_key_used_count", keyUsageCount.toString());
     }
 
-    // Issue #2 Fix: Only initialize a new timer if mode=init or session=refresh was provided.
-    // If expired without init params, set expiry to 0 to prevent restarting the timer on reload.
+    // Only initialize a new timer if mode=init or session=refresh was provided.
     const currentExpiry = localStorage.getItem("avb_expiry_time");
     if (!currentExpiry) {
         if (hasInitParam) {
@@ -695,7 +694,7 @@ AVB ENGINE (DASHBOARD MATCH)
             if (!vibRunning) return;
 
             if (navigator.vibrate) {
-                navigator.vibrate([300, 100, 300]);
+                navigator.vibrate(200); // Uses exact 200ms vibration from 6-5min window
             }
 
             vibTimeout = setTimeout(loop, 15000);
@@ -720,7 +719,7 @@ AVB ENGINE (DASHBOARD MATCH)
             (expiryTime - Date.now()) / 1000
         );
 
-        // Issue #1 Fix: Changed to trigger vibration for ALL time from 6 min down to 0 min (360s down to >0s)
+        // Triggers 200ms vibration cycle for all remaining time from 6 min to 0 min
         if (!triggered && remainingSec <= 360 && remainingSec > 0) {
 
             triggered = true;
@@ -860,7 +859,7 @@ SESSION GUARD (WITH FADE-OUT & 15S DELAYED CLOSE)
                 </html>
             `;
 
-            // Issue #3 Fix: Extended mobile close fallback handling
+            // Mobile close fallback handling
             setTimeout(() => {
                 try { 
                     window.open('', '_self').close(); 
@@ -929,6 +928,7 @@ SESSION GUARD (WITH FADE-OUT & 15S DELAYED CLOSE)
     guardInterval = setInterval(check, 1000);
 
 })();
+
 
 
 
