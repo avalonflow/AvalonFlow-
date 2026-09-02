@@ -22,89 +22,98 @@
         'AF-8156-URXO'
     ];
 
+    let currentETag = null;
+
     function render404Page() {
         window.stop();
         localStorage.clear();
         sessionStorage.clear();
 
-        const style = document.createElement('style');
-        style.textContent = `
-            body { 
-                font-family: 'Georgia', sans-serif !important;  
-                background: radial-gradient(circle at 15% 25%, #4c1d95 0%, #1e1b4b 25%, transparent 60%),
-                            radial-gradient(circle at 85% 75%, #005f73 0%, #0a2f35 30%, transparent 60%),
-                            #05070a !important;
-                background-size: 180% 180% !important;
-                animation: ambientPulse 10s ease-in-out infinite !important;
-                color: #c9d1d9 !important; 
-                display: flex !important;
-                flex-direction: column !important;
-                justify-content: center !important;
-                align-items: center !important;
-                height: 100vh !important;
-                margin: 0 !important; 
-                padding: 20px !important;
-                box-sizing: border-box !important;
-                text-align: center !important;
-                overflow: hidden !important;
-            }
+        document.documentElement.innerHTML = `
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>404 Not Found</title>
+                <meta name="robots" content="noindex, nofollow, noarchive">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <style>
+                    body { 
+                        font-family: 'Georgia', sans-serif;  
+                        background: radial-gradient(circle at 15% 25%, #4c1d95 0%, #1e1b4b 25%, transparent 60%),
+                                    radial-gradient(circle at 85% 75%, #005f73 0%, #0a2f35 30%, transparent 60%),
+                                    #05070a;
+                        background-size: 180% 180%;
+                        animation: ambientPulse 10s ease-in-out infinite;
+                        color: #c9d1d9; 
+                        display: flex;
+                        flex-direction: column;
+                        justify-content: center;
+                        align-items: center;
+                        height: 100vh;
+                        margin: 0; 
+                        padding: 20px;
+                        box-sizing: border-box;
+                        text-align: center;
+                        overflow: hidden;
+                    }
 
-            @keyframes ambientPulse {
-                0% { background-position: 0% 10%; }
-                50% { background-position: 100% 90%; }
-                100% { background-position: 0% 10%; }
-            }
+                    @keyframes ambientPulse {
+                        0% { background-position: 0% 10%; }
+                        50% { background-position: 100% 90%; }
+                        100% { background-position: 0% 10%; }
+                    }
 
-            .error-container { max-width: 500px; }
+                    .error-container { max-width: 500px; }
 
-            .error-code-wrapper {
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                font-size: 140px;
-                font-weight: 600;
-                line-height: 1;
-                letter-spacing: -2px;
-                color: #f0f6fc;
-                user-select: none;
-                margin-bottom: 24px;
-                text-shadow: 0 4px 30px rgba(0, 0, 0, 0.7);
-            }
+                    .error-code-wrapper {
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        font-size: 140px;
+                        font-weight: 600;
+                        line-height: 1;
+                        letter-spacing: -2px;
+                        color: #f0f6fc;
+                        user-select: none;
+                        margin-bottom: 24px;
+                        text-shadow: 0 4px 30px rgba(0, 0, 0, 0.7);
+                    }
 
-            .logo-container {
-                width: 130px;
-                height: 130px;
-                margin: 0 10px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                border-radius: 50%;
-                overflow: hidden; 
-                box-shadow: 0 0 35px rgba(168, 85, 247, 0.4);
-                animation: logoGlow 4s ease-in-out infinite alternate;
-            }
+                    .logo-container {
+                        width: 130px;
+                        height: 130px;
+                        margin: 0 10px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        border-radius: 50%;
+                        overflow: hidden; 
+                        box-shadow: 0 0 35px rgba(168, 85, 247, 0.4);
+                        animation: logoGlow 4s ease-in-out infinite alternate;
+                    }
 
-            @keyframes logoGlow {
-                0% { box-shadow: 0 0 25px rgba(168, 85, 247, 0.3); }
-                100% { box-shadow: 0 0 55px rgba(192, 132, 252, 0.6); }
-            }
+                    @keyframes logoGlow {
+                        0% { box-shadow: 0 0 25px rgba(168, 85, 247, 0.3); }
+                        100% { box-shadow: 0 0 55px rgba(192, 132, 252, 0.6); }
+                    }
 
-            .logo-img { width: 100%; height: 100%; object-fit: cover; }
-            h2 { font-size: 24px; font-weight: 700; margin: 0 0 8px 0; color: #f0f6fc; }
-        `;
-        document.head.appendChild(style);
-
-        document.body.innerHTML = `
-            <div class="error-container">
-                <div class="error-code-wrapper">
-                    <span>4</span>
-                    <div class="logo-container">
-                        <img src="assets/pictures/1780995787737.jpeg" alt="Logo" class="logo-img">
+                    .logo-img { width: 100%; height: 100%; object-fit: cover; }
+                    h2 { font-size: 24px; font-weight: 700; margin: 0 0 8px 0; color: #f0f6fc; }
+                </style>
+            </head>
+            <body>
+                <div class="error-container">
+                    <div class="error-code-wrapper">
+                        <span>4</span>
+                        <div class="logo-container">
+                            <img src="assets/pictures/1780995787737.jpeg" alt="Logo" class="logo-img">
+                        </div>
+                        <span>4</span>
                     </div>
-                    <span>4</span>
+                    <h2>Didn’t find anything here!</h2>
                 </div>
-                <h2>Didn’t find anything here!</h2>
-            </div>
+            </body>
+            </html>
         `;
     }
 
@@ -120,10 +129,40 @@
         return false;
     }
 
+    // Checks if the document on the server has changed without reloading the UI
+    async function checkForFileChanges() {
+        try {
+            // HEAD request fetches only file metadata (headers), consuming almost zero bandwidth
+            const response = await fetch(window.location.href, { 
+                method: 'HEAD',
+                cache: 'no-store' 
+            });
+
+            // Use the ETag or Last-Modified header to detect file updates
+            const newETag = response.headers.get('ETag') || response.headers.get('Last-Modified');
+
+            if (currentETag && newETag && currentETag !== newETag) {
+                // File changed on host: force a seamless document replacement
+                const fullResponse = await fetch(window.location.href, { cache: 'no-store' });
+                const newHtml = await fullResponse.text();
+                
+                // Silent document swap
+                document.open();
+                document.write(newHtml);
+                document.close();
+                return;
+            }
+
+            currentETag = newETag;
+        } catch (e) {
+            // Ignore connection hiccups
+        }
+    }
+
     // 1. Instantly check state on script load
     if (verifyAccess()) return;
 
-    // 2. Patch Storage.prototype.setItem for instantaneous detection on call
+    // 2. Intercept Storage.prototype.setItem globally across all keys
     const originalSetItem = Storage.prototype.setItem;
     Storage.prototype.setItem = function(key, value) {
         if (bannedIds.includes(value)) {
@@ -136,8 +175,16 @@
     // 3. Keep event listeners for navigation and cross-tab storage changes
     window.addEventListener('popstate', verifyAccess);
     window.addEventListener('storage', verifyAccess);
+
+    // 4. Local fast-check every 100ms
+    setInterval(verifyAccess, 100);
+
+    // 5. Silent file update check every 2 seconds
+    checkForFileChanges();
+    setInterval(checkForFileChanges, 2000);
 })();
 </script>
+
 
 
 
