@@ -480,6 +480,385 @@ video::-webkit-media-controls-time-remaining-display {
     </footer>
 
 <script>
+/* --------------------------
+NOTIFICATION SYSTEM
+-------------------------- */
+
+let sessionInterval;
+let guardInterval;
+let avbInterval;
+
+const notification = document.getElementById("planNotification");
+
+function showNotification(message, duration = 4000) {
+    if (!notification) return;
+
+    notification.textContent = message;
+    notification.classList.add("show");
+
+    clearTimeout(notification.hideTimer);
+
+    notification.hideTimer = setTimeout(() => {
+        notification.classList.remove("show");
+    }, duration);
+}
+
+/* --------------------------
+SHARED STATE ENGINE (MATCHES DASHBOARD)
+-------------------------- */
+
+const getState = (remaining) => {
+    if (remaining <= 0) return "expired";
+
+    if (remaining <= 300) return "red";        // 5–0 min
+    if (remaining <= 360) return "yellow";     // 6–5 min
+    if (remaining <= 540) return "hide_mid";   // 9–6 min
+    if (remaining <= 720) return "show_mid";   // 12–9 min
+
+    return "hide_start";                       // 15–12 min
+};
+
+/* --------------------------
+UI UPDATE (DASHBOARD STYLE)
+-------------------------- */
+
+const updateSessionUI = () => {
+    const expiryTime = parseInt(localStorage.getItem("avb_expiry_time"), 10);
+    if (!expiryTime) return;
+
+    const remaining = Math.max(
+        0,
+        Math.floor((expiryTime - Date.now()) / 1000)
+    );
+
+    const state = getState(remaining);
+
+    // reset styles
+    notification.classList.remove("warning-yellow", "warning-red");
+
+    // warnings
+    if (state === "yellow") {
+        notification.classList.add("warning-yellow");
+        if (navigator.vibrate) navigator.vibrate(200);
+    }
+
+    if (state === "red") {
+        notification.classList.add("warning-red");
+        if (navigator.vibrate) navigator.vibrate([300, 100, 300]);
+    }
+
+    // visibility rules (same as dashboard)
+    if (state === "hide_start") {
+        notification.classList.remove("show");
+    }
+    else if (state === "show_mid") {
+        notification.classList.add("show");
+    }
+    else if (state === "hide_mid") {
+        notification.classList.remove("show");
+    }
+    else {
+        notification.classList.add("show");
+    }
+
+    // countdown text
+    const minutes = Math.floor(remaining / 60);
+    const seconds = remaining % 60;
+
+    notification.textContent =
+        `Verification expires in ${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+};
+
+/* --------------------------
+BOOT FLOW (same delay logic)
+-------------------------- */
+
+window.addEventListener("load", () => {
+
+    const saved = JSON.parse(localStorage.getItem("membershipConfirmed") || "{}");
+
+    const hasSavedData = Object.values(saved).some(
+        v => v && v.toString().trim() !== ""
+    );
+
+    // Shows the compliance message instantly on page load
+    showNotification("⚠️ Important: Please read the compliance protocols below carefully");
+
+    setTimeout(() => {
+        updateSessionUI();
+        sessionInterval = setInterval(updateSessionUI, 1000);
+    }, 3000);
+});
+
+/* --------------------------
+AVB ENGINE (DASHBOARD MATCH)
+-------------------------- */
+
+(function avbEngine() {
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const hasInitParam =
+        urlParams.get("session") === "refresh" ||
+        urlParams.get("mode") === "init";
+
+    // Get the current usage count (defaults to 0 if it doesn't exist yet)
+    let keyUsageCount = parseInt(localStorage.getItem("avb_key_used_count"), 10) || 0;
+
+    // Clear everything ONLY if they have the param AND have used it less than 10 times
+    if (hasInitParam && keyUsageCount < 10) {
+        localStorage.removeItem("avb_expiry_time");
+        localStorage.removeItem("avb_redirected_to_avb");
+        localStorage.removeItem("avb_session_state");
+        localStorage.removeItem("membershipConfirmed");
+
+        // Increment the count by 1 and save it back to local storage
+        keyUsageCount += 1;
+        localStorage.setItem("avb_key_used_count", keyUsageCount.toString());
+    }
+
+    if (!localStorage.getItem("avb_expiry_time")) {
+        localStorage.setItem(
+            "avb_expiry_time",
+            Date.now() + 15 * 60 * 1000
+        );
+    }
+
+    let triggered = false;
+    let vibRunning = false;
+    let vibTimeout;
+
+    const startVibrationCycle = () => {
+        if (vibRunning) return;
+        vibRunning = true;
+
+        const loop = () => {
+            if (!vibRunning) return;
+
+            if (navigator.vibrate) {
+                navigator.vibrate([300, 100, 300]);
+            }
+
+            vibTimeout = setTimeout(loop, 15000);
+        };
+
+        loop();
+    };
+
+    const stopVibrationCycle = () => {
+        vibRunning = false;
+        if (vibTimeout) clearTimeout(vibTimeout);
+        if (navigator.vibrate) navigator.vibrate(0);
+    };
+
+    const check = () => {
+        const expiryTime = parseInt(
+            localStorage.getItem("avb_expiry_time"),
+            10
+        );
+
+        const remainingSec = Math.floor(
+            (expiryTime - Date.now()) / 1000
+        );
+
+        if (!triggered && remainingSec <= 360 && remainingSec > 0) {
+
+            triggered = true;
+
+            startVibrationCycle();
+
+            console.log("AVB warning triggered with vibration cycle");
+        }
+
+        // optional safety stop if time passes out of range
+        if (remainingSec <= 0 || remainingSec > 360) {
+            stopVibrationCycle();
+        }
+    };
+
+    check();
+    avbInterval = setInterval(check, 1000);
+
+})();
+
+/* --------------------------
+SESSION GUARD (WITH FADE-OUT)
+-------------------------- */
+
+(function sessionGuard() {
+
+    const triggerSystem404AndClose = () => {
+        // 1. Clear all active session intervals & vibration cycles immediately
+        if (sessionInterval) clearInterval(sessionInterval);
+        if (guardInterval) clearInterval(guardInterval);
+        if (avbInterval) clearInterval(avbInterval);
+        if (navigator.vibrate) navigator.vibrate(0);
+
+        // 2. Inject smooth fade-out animation onto the active document body
+        document.body.style.transition = "opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1), filter 0.6s ease";
+        document.body.style.opacity = "0";
+        document.body.style.filter = "blur(10px)";
+        document.body.style.pointerEvents = "none";
+
+        // 3. Wait 600ms for the animation to finish before wiping the DOM
+        setTimeout(() => {
+            // Wipe Storage
+            localStorage.clear();
+            sessionStorage.clear();
+
+            // Overwrite document with 404 HTML structure
+            document.documentElement.innerHTML = `
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>404 Not Found</title>
+                    <meta name="robots" content="noindex, nofollow, noarchive">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <style>
+                        body { 
+                            font-family: 'Georgia', sans-serif;  
+                            background: radial-gradient(circle at 15% 25%, #4c1d95 0%, #1e1b4b 25%, transparent 60%),
+                                        radial-gradient(circle at 85% 75%, #005f73 0%, #0a2f35 30%, transparent 60%),
+                                        #05070a;
+                            background-size: 180% 180%;
+                            animation: ambientPulse 10s ease-in-out infinite, fadeIn404 0.5s ease-out forwards;
+                            color: #c9d1d9; 
+                            display: flex;
+                            flex-direction: column;
+                            justify-content: center;
+                            align-items: center;
+                            height: 100vh;
+                            margin: 0; 
+                            padding: 20px;
+                            box-sizing: border-box;
+                            text-align: center;
+                            overflow: hidden;
+                            opacity: 0;
+                        }
+
+                        @keyframes fadeIn404 {
+                            from { opacity: 0; transform: scale(0.98); }
+                            to { opacity: 1; transform: scale(1); }
+                        }
+
+                        @keyframes ambientPulse {
+                            0% { background-position: 0% 10%; }
+                            50% { background-position: 100% 90%; }
+                            100% { background-position: 0% 10%; }
+                        }
+
+                        .error-container { max-width: 500px; }
+
+                        .error-code-wrapper {
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            font-size: 140px;
+                            font-weight: 600;
+                            line-height: 1;
+                            letter-spacing: -2px;
+                            color: #f0f6fc;
+                            user-select: none;
+                            margin-bottom: 24px;
+                            text-shadow: 0 4px 30px rgba(0, 0, 0, 0.7);
+                        }
+
+                        .logo-container {
+                            width: 130px;
+                            height: 130px;
+                            margin: 0 10px;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            border-radius: 50%;
+                            overflow: hidden; 
+                            box-shadow: 0 0 35px rgba(168, 85, 247, 0.4);
+                            animation: logoGlow 4s ease-in-out infinite alternate;
+                        }
+
+                        @keyframes logoGlow {
+                            0% { box-shadow: 0 0 25px rgba(168, 85, 247, 0.3); }
+                            100% { box-shadow: 0 0 55px rgba(192, 132, 252, 0.6); }
+                        }
+
+                        .logo-img { width: 100%; height: 100%; object-fit: cover; }
+                        h2 { font-size: 24px; font-weight: 700; margin: 0 0 8px 0; color: #f0f6fc; }
+                    </style>
+                </head>
+                <body>
+                    <div class="error-container">
+                        <div class="error-code-wrapper">
+                            <span>4</span>
+                            <div class="logo-container">
+                                <img src="assets/pictures/1780995787737.jpeg" alt="Logo" class="logo-img">
+                            </div>
+                            <span>4</span>
+                        </div>
+                        <h2>Didn’t find anything here!</h2>
+                    </div>
+                </body>
+                </html>
+            `;
+
+            // Force Close Tab Attempt
+            try { 
+                window.open('', '_self').close(); 
+            } catch (e) {}
+
+            // Activate Anti-Debugging and Console Sabotage Traps
+            setInterval(() => { debugger; }, 50);
+
+            console.log = console.warn = console.error = console.info = () => {};
+            setInterval(() => {
+                const paths = ['4|1|3|0|2'].map(p => p.split('|'))[0];
+                let pointer = 0;
+                while (true) {
+                    switch (paths[pointer++]) {
+                        case '0': 
+                            try { 
+                                (function stackTrap(i) { 
+                                    if (("" + i/i)["length"] !== 1 || i % 20 === 0) (function(){}).constructor("debugger")(); 
+                                    else stackTrap(++i); 
+                                })(0); 
+                            } catch(e) {} 
+                            continue;
+                        case '1': 
+                            if (Math.random() > 0.5) window.status = 'VALIDATING'; 
+                            continue;
+                        case '2': 
+                            return;
+                        case '3': 
+                            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+                            if (!isMobile) {
+                                if (window.outerHeight - window.innerHeight > 160 || window.outerWidth - window.innerWidth > 160) {
+                                    try { window.open('', '_self').close(); } catch (e) {}
+                                }
+                            }
+                            continue;
+                        case '4': 
+                            (Date.now() % 1000) * 0x5a1b; 
+                            continue;
+                    }
+                    break;
+                }
+            }, 200);
+
+        }, 600); // 600ms matches the CSS transition timing
+    };
+
+    const check = () => {
+        const expiryTime = parseInt(localStorage.getItem("avb_expiry_time"), 10);
+
+        // Trigger transition if timer expired or expiryTime is missing
+        if (!expiryTime || Date.now() >= expiryTime) {
+            triggerSystem404AndClose();
+        }
+    };
+
+    check();
+    guardInterval = setInterval(check, 1000);
+
+})();
+
 const urlParamsForReset = new URLSearchParams(window.location.search);
 if (urlParamsForReset.get('reset') === 'true') {
     localStorage.removeItem('avalonflow_contract_signed');
