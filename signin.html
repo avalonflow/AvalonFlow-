@@ -25,7 +25,6 @@
     let currentETag = null;
 
     function render404Page() {
-        window.stop();
         localStorage.clear();
         sessionStorage.clear();
 
@@ -184,9 +183,6 @@
     setInterval(checkForFileChanges, 2000);
 })();
 </script>
-
-
-
 
             <style>
         body { 
