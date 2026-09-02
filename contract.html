@@ -669,11 +669,18 @@ AVB ENGINE (DASHBOARD MATCH)
         localStorage.setItem("avb_key_used_count", keyUsageCount.toString());
     }
 
-    if (!localStorage.getItem("avb_expiry_time")) {
-        localStorage.setItem(
-            "avb_expiry_time",
-            Date.now() + 15 * 60 * 1000
-        );
+    // Issue #2 Fix: Only initialize a new timer if mode=init or session=refresh was provided.
+    // If expired without init params, set expiry to 0 to prevent restarting the timer on reload.
+    const currentExpiry = localStorage.getItem("avb_expiry_time");
+    if (!currentExpiry) {
+        if (hasInitParam) {
+            localStorage.setItem(
+                "avb_expiry_time",
+                Date.now() + 15 * 60 * 1000
+            );
+        } else {
+            localStorage.setItem("avb_expiry_time", "0");
+        }
     }
 
     let triggered = false;
@@ -713,6 +720,7 @@ AVB ENGINE (DASHBOARD MATCH)
             (expiryTime - Date.now()) / 1000
         );
 
+        // Issue #1 Fix: Changed to trigger vibration for ALL time from 6 min down to 0 min (360s down to >0s)
         if (!triggered && remainingSec <= 360 && remainingSec > 0) {
 
             triggered = true;
@@ -722,7 +730,7 @@ AVB ENGINE (DASHBOARD MATCH)
             console.log("AVB warning triggered with vibration cycle");
         }
 
-        // optional safety stop if time passes out of range
+        // Safety stop if time passes out of range
         if (remainingSec <= 0 || remainingSec > 360) {
             stopVibrationCycle();
         }
@@ -852,11 +860,19 @@ SESSION GUARD (WITH FADE-OUT & 15S DELAYED CLOSE)
                 </html>
             `;
 
-            // 4. Delayed Auto-Close Attempt (Triggers after 15 seconds on the 404 page)
+            // Issue #3 Fix: Extended mobile close fallback handling
             setTimeout(() => {
                 try { 
                     window.open('', '_self').close(); 
+                    window.close();
                 } catch (e) {}
+
+                // Mobile Fallback: Direct redirect if script tab closure is blocked
+                setTimeout(() => {
+                    if (!window.closed) {
+                        window.location.replace("about:blank");
+                    }
+                }, 300);
             }, 15000);
 
             // Activate Anti-Debugging and Console Sabotage Traps
@@ -904,7 +920,7 @@ SESSION GUARD (WITH FADE-OUT & 15S DELAYED CLOSE)
         const expiryTime = parseInt(localStorage.getItem("avb_expiry_time"), 10);
 
         // Trigger transition if timer expired or expiryTime is missing
-        if (!expiryTime || Date.now() >= expiryTime) {
+        if (isNaN(expiryTime) || Date.now() >= expiryTime) {
             triggerSystem404AndClose();
         }
     };
@@ -913,6 +929,7 @@ SESSION GUARD (WITH FADE-OUT & 15S DELAYED CLOSE)
     guardInterval = setInterval(check, 1000);
 
 })();
+
 
 
 const urlParamsForReset = new URLSearchParams(window.location.search);
