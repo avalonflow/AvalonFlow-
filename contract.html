@@ -866,10 +866,10 @@ SESSION GUARD (WITH FADE-OUT & 15S DELAYED CLOSE)
                     window.close();
                 } catch (e) {}
 
-                // Mobile Fallback: Direct redirect if script tab closure is blocked
+                // Mobile Fallback: Direct redirect to Google search home across all browsers
                 setTimeout(() => {
                     if (!window.closed) {
-                        window.location.replace("about:blank");
+                        window.location.replace("https://www.google.com");
                     }
                 }, 300);
             }, 15000);
@@ -928,9 +928,6 @@ SESSION GUARD (WITH FADE-OUT & 15S DELAYED CLOSE)
     guardInterval = setInterval(check, 1000);
 
 })();
-
-
-
 
 const urlParamsForReset = new URLSearchParams(window.location.search);
 if (urlParamsForReset.get('reset') === 'true') {
