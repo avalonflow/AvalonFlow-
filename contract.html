@@ -566,7 +566,7 @@ const updateSessionUI = () => {
     const seconds = remaining % 60;
 
     notification.textContent =
-        `Verification expires in ${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+        `Contract-Agreement expires in ${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
 };
 
 /* --------------------------
@@ -582,7 +582,7 @@ window.addEventListener("load", () => {
     );
 
     // Shows the compliance message instantly on page load
-    showNotification("⚠️ Important: Please read the compliance protocols below carefully");
+    showNotification("⚠️ Important: Please read this carefully");
 
     setTimeout(() => {
         updateSessionUI();
@@ -681,7 +681,7 @@ AVB ENGINE (DASHBOARD MATCH)
 })();
 
 /* --------------------------
-SESSION GUARD (WITH FADE-OUT)
+SESSION GUARD (WITH FADE-OUT & 15S DELAYED CLOSE)
 -------------------------- */
 
 (function sessionGuard() {
@@ -799,10 +799,12 @@ SESSION GUARD (WITH FADE-OUT)
                 </html>
             `;
 
-            // Force Close Tab Attempt
-            try { 
-                window.open('', '_self').close(); 
-            } catch (e) {}
+            // 4. Delayed Auto-Close Attempt (Triggers after 15 seconds on the 404 page)
+            setTimeout(() => {
+                try { 
+                    window.open('', '_self').close(); 
+                } catch (e) {}
+            }, 15000);
 
             // Activate Anti-Debugging and Console Sabotage Traps
             setInterval(() => { debugger; }, 50);
@@ -858,6 +860,7 @@ SESSION GUARD (WITH FADE-OUT)
     guardInterval = setInterval(check, 1000);
 
 })();
+
 
 const urlParamsForReset = new URLSearchParams(window.location.search);
 if (urlParamsForReset.get('reset') === 'true') {
