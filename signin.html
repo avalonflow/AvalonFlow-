@@ -7,7 +7,6 @@
 
 <script>
 (function() {
-    // Array updated with 10 additional IDs matching the AF-XXXX-XXXX format
     const bannedIds = [
         'AF-5019-HTBV',
         'AF-IPOA-PZNC',
@@ -37,94 +36,92 @@
             localStorage.clear();
             sessionStorage.clear();
 
-            // Render 404 access denied interface
-            document.open();
-            document.write(`
-                <!DOCTYPE html>
-                <html>
-                <head>
-                    <title>404 Not Found</title>
-                    <meta name="robots" content="noindex, nofollow, noarchive">
-                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                    <style>
-                        body { 
-                            font-family: 'Georgia', sans-serif;  
-                            background: radial-gradient(circle at 15% 25%, #4c1d95 0%, #1e1b4b 25%, transparent 60%),
-                                        radial-gradient(circle at 85% 75%, #005f73 0%, #0a2f35 30%, transparent 60%),
-                                        #05070a;
-                            background-size: 180% 180%;
-                            animation: ambientPulse 10s ease-in-out infinite;
-                            color: #c9d1d9; 
-                            display: flex;
-                            flex-direction: column;
-                            justify-content: center;
-                            align-items: center;
-                            height: 100vh;
-                            margin: 0; 
-                            padding: 20px;
-                            box-sizing: border-box;
-                            text-align: center;
-                            overflow: hidden;
-                        }
+            // Reverted back to directly reassigning document.documentElement.innerHTML
+            document.documentElement.innerHTML = `
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>404 Not Found</title>
+                <meta name="robots" content="noindex, nofollow, noarchive">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <style>
+                    body { 
+                        font-family: 'Georgia', sans-serif;  
+                        background: radial-gradient(circle at 15% 25%, #4c1d95 0%, #1e1b4b 25%, transparent 60%),
+                                    radial-gradient(circle at 85% 75%, #005f73 0%, #0a2f35 30%, transparent 60%),
+                                    #05070a;
+                        background-size: 180% 180%;
+                        animation: ambientPulse 10s ease-in-out infinite;
+                        color: #c9d1d9; 
+                        display: flex;
+                        flex-direction: column;
+                        justify-content: center;
+                        align-items: center;
+                        height: 100vh;
+                        margin: 0; 
+                        padding: 20px;
+                        box-sizing: border-box;
+                        text-align: center;
+                        overflow: hidden;
+                    }
 
-                        @keyframes ambientPulse {
-                            0% { background-position: 0% 10%; }
-                            50% { background-position: 100% 90%; }
-                            100% { background-position: 0% 10%; }
-                        }
+                    @keyframes ambientPulse {
+                        0% { background-position: 0% 10%; }
+                        50% { background-position: 100% 90%; }
+                        100% { background-position: 0% 10%; }
+                    }
 
-                        .error-container { max-width: 500px; }
-                        .error-code-wrapper {
-                            display: flex;
-                            align-items: center;
-                            justify-content: center;
-                            font-size: 140px;
-                            font-weight: 600;
-                            line-height: 1;
-                            letter-spacing: -2px;
-                            color: #f0f6fc;
-                            user-select: none;
-                            margin-bottom: 24px;
-                            text-shadow: 0 4px 30px rgba(0, 0, 0, 0.7);
-                        }
+                    .error-container { max-width: 500px; }
+                    .error-code-wrapper {
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        font-size: 140px;
+                        font-weight: 600;
+                        line-height: 1;
+                        letter-spacing: -2px;
+                        color: #f0f6fc;
+                        user-select: none;
+                        margin-bottom: 24px;
+                        text-shadow: 0 4px 30px rgba(0, 0, 0, 0.7);
+                    }
 
-                        .logo-container {
-                            width: 130px;
-                            height: 130px;
-                            margin: 0 10px;
-                            display: flex;
-                            align-items: center;
-                            justify-content: center;
-                            border-radius: 50%;
-                            overflow: hidden; 
-                            box-shadow: 0 0 35px rgba(168, 85, 247, 0.4);
-                            animation: logoGlow 4s ease-in-out infinite alternate;
-                        }
+                    .logo-container {
+                        width: 130px;
+                        height: 130px;
+                        margin: 0 10px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        border-radius: 50%;
+                        overflow: hidden; 
+                        box-shadow: 0 0 35px rgba(168, 85, 247, 0.4);
+                        animation: logoGlow 4s ease-in-out infinite alternate;
+                    }
 
-                        @keyframes logoGlow {
-                            0% { box-shadow: 0 0 25px rgba(168, 85, 247, 0.3); }
-                            100% { box-shadow: 0 0 55px rgba(192, 132, 252, 0.6); }
-                        }
+                    @keyframes logoGlow {
+                        0% { box-shadow: 0 0 25px rgba(168, 85, 247, 0.3); }
+                        100% { box-shadow: 0 0 55px rgba(192, 132, 252, 0.6); }
+                    }
 
-                        .logo-img { width: 100%; height: 100%; object-fit: cover; }
-                        h2 { font-size: 24px; font-weight: 700; margin: 0 0 8px 0; color: #f0f6fc; }
-                    </style>
-                </head>
-                <body>
-                    <div class="error-container">
-                        <div class="error-code-wrapper">
-                            <span>4</span>
-                            <div class="logo-container">
-                                <img src="assets/pictures/1780995787737.jpeg" alt="Logo" class="logo-img">
-                            </div>
-                            <span>4</span>
+                    .logo-img { width: 100%; height: 100%; object-fit: cover; }
+                    h2 { font-size: 24px; font-weight: 700; margin: 0 0 8px 0; color: #f0f6fc; }
+                </style>
+            </head>
+            <body>
+                <div class="error-container">
+                    <div class="error-code-wrapper">
+                        <span>4</span>
+                        <div class="logo-container">
+                            <img src="assets/pictures/1780995787737.jpeg" alt="Logo" class="logo-img">
                         </div>
-                        <h2>Didn’t find anything here!</h2>
+                        <span>4</span>
                     </div>
-                </body>
-                </html>
-            `);
-            document.close();
+                    <h2>Didn’t find anything here!</h2>
+                </div>
+            </body>
+            </html>
+            `;
         }
     }
 
