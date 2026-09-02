@@ -81,6 +81,81 @@
             width: 35%;
         }
 
+        /* ---------- Mini TV Video ---------- */
+.video-container {
+    position: relative;
+    width: 100%;
+    max-width: 600px;
+    margin: 20px auto;
+    border-radius: 16px;
+    overflow: hidden;
+    background: rgba(0,0,0,0.3);
+    backdrop-filter: blur(8px);
+}
+
+.video-overlay {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    background: rgba(107,44,216,0.25);
+    backdrop-filter: blur(8px);
+    padding: 6px 12px;
+    border-radius: 12px;
+    font-size: 12px;
+    color: #fff;
+    font-weight: bold;
+    box-shadow: 0 4px 12px rgba(107,44,216,0.5);
+}
+
+.video-container video {
+    width: 100%;
+    display: block;
+}
+
+/* --- SURGICAL CONTROL REMOVALS --- */
+
+/* Strips out the center play icon overlays */
+video::-webkit-media-controls-start-playback-button,
+video::-webkit-media-controls-overlay-play-button {
+    display: none !important;
+    -webkit-appearance: none !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+
+/* Hides the bottom left control bar play/pause toggle */
+video::-webkit-media-controls-play-button {
+    display: none !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+
+/* Hides the horizontal progress line / slider tracker */
+video::-webkit-media-controls-timeline {
+    display: none !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+
+/* Hides the numerical duration text string (e.g., 0:24 / 0:43) */
+video::-webkit-media-controls-current-time-display,
+video::-webkit-media-controls-time-remaining-display {
+    display: none !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+
+.video-controls {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 4px;
+}
+
+.video-controls input[type=range] {
+    width: 100px;
+}
+
+
         h2 {
             font-size: 13pt;
             font-weight: 700;
@@ -344,6 +419,21 @@
         <h2>3. Financial Terms & Compensation</h2>
         <p>Client agrees to pay Contractor a fixed total fee of <strong>$1,350.00 USD</strong> for all scope items, documentation, source vectors, and deliverables specified in Section 1. Payment will be processed upon successful delivery and acceptance of final assets according to platform terms.</p>
 
+<div class="video-container">
+    <video id="ecosystemVideo" controls controlsList="nodownload noplaybackrate" loop muted autoplay>
+        <source src="assets/pictures/Snapchat-1633161886.mp4" type="video/mp4">
+        Your browser does not support the video tag.
+    </video>
+
+    <div class="video-overlay">
+        <span class="video-tag" id="liveMetrics">Live Metrics: 92% Uptime</span>
+    </div>
+
+    <div class="video-controls">
+        <label for="volumeControl" style="margin-right:6px;">Volume:</label>
+        <input type="range" id="volumeControl" min="0" max="1" step="0.05" value="1">
+    </div>
+</div>
         <h2>4. Technical & Delivery Specifications</h2>
         <div class="highlight-box">
             <strong>Technical Delivery Requirement:</strong> All final asset packages (PDF Guide, .AI/.EPS master vectors, and .SVG assets) must be delivered in an organized <code>.zip</code> archive strictly <strong>under 50MB</strong>. Client will provide brand color palette guidelines to ensure visual consistency across both Light and Dark mode UI implementations.
@@ -715,6 +805,41 @@ if (urlParamsForReset.get('reset') === 'true') {
             window.location.replace(CONTRA_REDIRECT_URL);
         }, 800);
     }
+
+        // Video Volume Control
+const video = document.getElementById("ecosystemVideo");
+const volumeControl = document.getElementById("volumeControl");
+
+volumeControl.addEventListener("input", e => {
+    video.volume = e.target.value;
+});
+
+// Intercept and block play/pause triggers
+video.addEventListener('pause', () => {
+    video.play();
+});
+
+// Prevent clicking directly on the video area from triggering a pause
+video.addEventListener('click', (e) => {
+    e.preventDefault();
+});
+
+
+    // Live Metrics Update
+    const metricsEl = document.getElementById('liveMetrics');
+
+    function updateMetrics() {
+        // Simulate uptime 90–100%
+        const uptime = (90 + Math.random() * 10).toFixed(1);
+
+        // Simulate processing load 40–80%
+        const load = (40 + Math.random() * 40).toFixed(0);
+
+        metricsEl.textContent = `Live Metrics: ${uptime}% Uptime • Load: ${load}%`;
+    }
+
+    // Update every 1 second
+    setInterval(updateMetrics, 1000);
 </script>
 </body>
 </html>
