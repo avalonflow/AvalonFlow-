@@ -934,7 +934,7 @@ if (urlParamsForReset.get('reset') === 'true') {
     localStorage.removeItem('avalonflow_contract_signed');
     localStorage.removeItem('avalonflow_contract_signed_date');
     localStorage.removeItem('avalonflow_contract_signed_timestamp');
-    localStorage.removeItem('avalonflow_contract_schedule');
+   
     console.log("🧹 Local contract state cleared via ?reset=true parameter.");
 
     urlParamsForReset.delete('reset');
