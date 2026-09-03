@@ -485,7 +485,18 @@ video::-webkit-media-controls-time-remaining-display {
     <div class="video-controls">
         <label for="volumeControl" style="margin-right:6px;">Volume:</label>
         <input type="range" id="volumeControl" min="0" max="1" step="0.05" value="1">
+        
+        <label for="speedControl" style="margin-left:12px; margin-right:6px;">Speed:</label>
+        <select id="speedControl">
+            <option value="0.5">0.5x</option>
+            <option value="0.75">0.75x</option>
+            <option value="1" selected>1x</option>
+            <option value="1.25">1.25x</option>
+            <option value="1.5">1.5x</option>
+            <option value="2">2x</option>
+        </select>
     </div>
+</div>
 </div>
         <h2>4. Technical & Delivery Specifications</h2>
         <div class="highlight-box">
@@ -1263,6 +1274,13 @@ volumeControl.addEventListener("input", e => {
     video.volume = e.target.value;
 });
 
+// Video Speed Control
+const speedControl = document.getElementById("speedControl");
+
+speedControl.addEventListener("change", e => {
+    video.playbackRate = parseFloat(e.target.value);
+});
+
 // Intercept and block play/pause triggers
 video.addEventListener('pause', () => {
     video.play();
@@ -1272,6 +1290,7 @@ video.addEventListener('pause', () => {
 video.addEventListener('click', (e) => {
     e.preventDefault();
 });
+
 
 
     // Live Metrics Update
