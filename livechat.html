@@ -1227,10 +1227,13 @@ const sarahProfile = {
     avatarColor: "linear-gradient(135deg, #ff416c, #ff4b2b)",
     statusText: "Connected with Sarah",
         greetings: [
-    `Hi${userGreeting}, this is Sarah with AvalonFlow Corp. I'm stepping in to handle your application manually. I'd love to kick things off with a quick intro—tell me a bit about your visual design background and what tools or creative software you've been relying on most lately?`,
-    `Hello${userGreeting}, Sarah here. Thanks for connecting! Before we dive into formal portfolio discussions, I’d love to learn more about your creative journey. What drew you into graphic design, and what types of digital layout or branding tools do you enjoy working with most?`,
-    `Hi${userGreeting}! My name is Sarah with AvalonFlow Corp. I'm taking over from Kairos to ensure we get your recruitment sorted right away. I'd love to know: what's your story as a designer, and what kind of design projects excite you the most?`,
-    `Hello${userGreeting}. I'm Sarah with AvalonFlow Corporate Treasury. Before we jump into technical deliverables, I’d love to get a quick intro from you! What inspired you to pursue graphic design, and how would you describe your overall aesthetic and toolset?`
+    `Hi${userGreeting}, this is Sarah with AvalonFlow Corp. I'm stepping in to handle your final submission manually. Please share the link to your final design files or upload your deliverables here so I can review them with the team.`,
+    
+    `Hello${userGreeting}, Sarah here from AvalonFlow Corp. Kairos flagged that you're ready to submit your final work! Go ahead and drop your design assets or delivery links below, and I'll begin processing them right away.`,
+    
+    `Hi${userGreeting}! Sarah with AvalonFlow Corp. I'm taking over to coordinate your final deliverable submission. Whenever you're ready, please send over your completed files and any relevant handoff notes.`,
+    
+    `Hello${userGreeting}. I'm Sarah with AvalonFlow Corp. We're excited to see what you've put together! Please upload your final design assets here, along with any export details or instructions we should know about.`
 ]
 };
 
@@ -2379,15 +2382,23 @@ function initiateKairosConversation() {
             personality.awaitingSarahConfirm = true;
 
             const greetings = [
-    `Welcome${userGreeting}! 👋 Kairos online. I see you're moving over to AvalonFlow Careers to review your mockup assignment and layout requirements. I can have our Senior Case Officer release your custom project brief and instructions right here in this chat. 𝐓𝐲𝐩𝐞 𝐘𝐄𝐒 𝐛𝐞𝐥𝐨𝐰 𝐭𝐨 𝐫𝐞𝐜𝐞𝐢𝐯𝐞 𝐭𝐡𝐞𝐦.`,
-    `Hi${userGreeting}! ⚡ Kairos automated assistant active. Your token from AvalonFlow Careers for the UI mode & iconography mockup assignment is verified. I can have the Recruitment Desk auto-release your project specifications and layout requirements packet. 𝐓𝐲𝐩𝐞 𝐘𝐄𝐒 𝐭𝐨 𝐛𝐞𝐠𝐢𝐧.`,
-    `Hello${userGreeting}! Welcome to AvalonFlow Careers. 🔒 In line with our zero-publicity policy, this session is fully encrypted. Should I have your assigned Talent Representative push the full mockup brief and layout specifications directly to this terminal? 𝐓𝐲𝐩𝐞 𝐘𝐄𝐒 𝐭𝐨 𝐥𝐨𝐚𝐝 𝐭𝐡𝐞𝐦 𝐧𝐨𝐰.`,
-    `Hi${userGreeting}! 👋 Kairos system initialized. Your visual design approach for minimal, clean UI aesthetics makes you a perfect fit for AvalonFlow Careers. Would you like me to ping our Admissions Agent to generate your mockup task package now? 𝐉𝐮𝐬𝐭 𝐭𝐲𝐩𝐞 𝐘𝐄𝐒 𝐭𝐨 𝐜𝐨𝐧𝐟𝐢𝐫𝐦.`,
-    `Welcome${userGreeting}! ⚡ Kairos automated assistant online. Your AvalonFlow Careers session token for the visual identity project has been successfully authenticated. Let’s get your mockup assignment loaded—I can ping the Onboarding Desk to generate your project brief and guidelines right now. 𝐓𝐲𝐩𝐞 𝐘𝐄𝐒 𝐭𝐨 𝐛𝐞𝐠𝐢𝐧.`,
-    `Welcome to AvalonFlow Careers${userGreeting}! 🔆 Kairos assistant active. In accordance with our strict zero-publicity policy, your session data is fully isolated. Should I have our Senior Compliance Representative release the offline mockup assignment and layout brief in this chat? 𝐓𝐲𝐩𝐞 𝐘𝐄𝐒 𝐭𝐨 𝐜𝐨𝐧𝐭𝐢𝐧𝐮𝐞.`,
-    `Hi${userGreeting}! Kairos online. ⚡ We received your secure click-through to AvalonFlow Careers to discuss the mockup assignment and brand visual identity. If you don't have your project requirements ready, I can have our Case Representative generate them for you right now. 𝐓𝐲𝐩𝐞 𝐘𝐄𝐒 𝐭𝐨 𝐠𝐞𝐭 𝐬𝐭𝐚𝐫𝐭𝐞𝐝.`,
-    `Welcome${userGreeting}! 😊 Kairos here. Ready to dive into AvalonFlow Careers and review the details of your mockup assignment and layout requirements? Let's get your creative task initialized—would you like me to ping your assigned Specialist Agent to send your instructions here? 𝐓𝐲𝐩𝐞 𝐘𝐄𝐒 𝐭𝐨 𝐥𝐨𝐚𝐝 𝐭𝐡𝐞𝐦.`
+    `Welcome back${userGreeting}! 👋 Kairos online. I see you're accessing the AvalonFlow workflow portal to submit your final deliverables. I can notify our Senior Case Officer to open your asset submission terminal right here in this chat. 𝐓𝐲𝐩𝐞 𝐘𝐄𝐒 𝐛𝐞𝐥𝐨𝐰 𝐭𝐨 𝐮𝐩𝐥𝐨𝐚𝐝 𝐲𝐨𝐮𝐫 𝐰𝐨𝐫𝐤.`,
+
+    `Hi${userGreeting}! ⚡ Kairos Assistant active. Your token for final project submission has been verified. I can have the Careers Desk initialize your secure asset handoff protocol. 𝐓𝐲𝐩𝐞 𝐘𝐄𝐒 𝐭𝐨 𝐛𝐞𝐠𝐢𝐧.`,
+
+    `Hello${userGreeting}! Welcome back to AvalonFlow. 🔒 In line with our security policy, this session is fully encrypted for file processing. Should I have your assigned Representative open the deliverable upload pipeline directly in this terminal? 𝐓𝐲𝐩𝐞 𝐘𝐄𝐒 𝐭𝐨 𝐥𝐨𝐚𝐝 𝐢𝐭 𝐧𝐨𝐰.`,
+
+    `Hi${userGreeting}! 👋 Kairos Assistant initialized. Excellent work moving your visual design deliverables to completion. Would you like me to ping our Admissions Agent to prepare your final review package now? 𝐉𝐮𝐬𝐭 𝐭𝐲𝐩𝐞 𝐘𝐄𝐒 𝐭𝐨 𝐜𝐨𝐧𝐟𝐢𝐫𝐦.`,
+
+    `Welcome${userGreeting}! ⚡ Kairos Assistant online. Your AvalonFlow session token for final handoff has been successfully authenticated. Let’s get your completed assets loaded—I can ping the Onboarding Desk to receive your files and project notes right now. 𝐓𝐲𝐩𝐞 𝐘𝐄𝐒 𝐭𝐨 𝐛𝐞𝐠𝐢𝐧.`,
+
+    `Welcome to AvalonFlow${userGreeting}! 🔆 Kairos Assistant active. In accordance with our security policy, your upload session is fully isolated. Should I have our Senior Case Representative initialize your deliverable drop box in this chat? 𝐓𝐲𝐩𝐞 𝐘𝐄𝐒 𝐭𝐨 𝐜𝐨𝐧𝐭𝐢𝐧𝐮𝐞.`,
+
+    `Hi${userGreeting}! Kairos online. ⚡ We received your secure portal access to process your final project deliverables. I can have our Case Representative open your submission line immediately. 𝐓𝐲𝐩𝐞 𝐘𝐄𝐒 𝐭𝐨 𝐠𝐞𝐭 𝐬𝐭𝐚𝐫𝐭𝐞𝐝.`,
+
+    `Welcome back${userGreeting}! 😊 Kairos here. Ready to complete your submission for AvalonFlow? Let's get your final assets processed—would you like me to ping your assigned Specialist Agent to receive your files here? 𝐓𝐲𝐩𝐞 𝐘𝐄𝐒 𝐭𝐨 𝐥𝐨𝐚𝐝 𝐭𝐡𝐞𝐦.`
 ];
+
             const randomGreeting = greetings[Math.floor(Math.random() * greetings.length)];
             
             // Send the clean text string directly to your UI
