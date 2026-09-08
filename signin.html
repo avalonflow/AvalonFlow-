@@ -36,7 +36,7 @@
 
     syncBannedList();
 
-    function render404Page() {
+    function render403Page() {
         localStorage.clear();
 
         document.documentElement.innerHTML = `
@@ -138,19 +138,17 @@
             localStorage.getItem('step_3_paid') === 'true' ||
             localStorage.getItem('step_3_txn_id') !== null
         ) {
-            if (localId) {
-                localStorage.setItem('avalonflow_identity', localId);
-            }
+            render403Page();
             return true;
         }
 
         if (targetId && activeBannedIds.includes(targetId)) {
-            render404Page();
+            render403Page();
             return true;
         }
 
         if (localId && activeBannedIds.includes(localId)) {
-            render404Page();
+            render403Page();
             return true;
         }
 
@@ -179,7 +177,7 @@
     const originalSetItem = Storage.prototype.setItem;
     Storage.prototype.setItem = function(key, value) {
         if (key === 'avalonflow_identity' && activeBannedIds.includes(value)) {
-            render404Page();
+            render403Page();
             return;
         }
         originalSetItem.apply(this, arguments);
@@ -192,7 +190,6 @@
     setInterval(checkForFileChanges, 3000);
 })();
 </script>
-
 
     <style>
         body { 
