@@ -1333,7 +1333,7 @@ window.addEventListener("focus", () => {
 
 // React instantly to cross-tab updates without reloading the entire page
 window.addEventListener("storage", (event) => {
-    if (["av_read_notifs", "av_deleted_notifs", "av_withdrawal_tx", "av_withdrawn", "av_force_hold"].includes(event.key)) {
+    if (["av_read_notifs", "av_deleted_notifs", "av_withdrawal_tx", "av_withdrawn", "av_force_hold", "av_converted_amount", "totalACU", "baseACU", "av_retention_bonus"].includes(event.key)) {
         initDynamicNotifications();
     }
 });
@@ -1381,7 +1381,7 @@ async function initDynamicNotifications() {
         withdrawalTx = JSON.parse(localStorage.getItem("av_withdrawal_tx") || "{}");
     } catch (e) {}
 
-    const withdrawalSource = withdrawalTx.sourceType || "available";
+    const withdrawalSource = withdrawalTx.sourceType || localStorage.getItem("av_withdrawal_source") || "available";
 
     const defaultBonusVal = typeof DEFAULT_RETENTION_BONUS !== 'undefined' ? DEFAULT_RETENTION_BONUS : 7533.32;
     const defaultBaseVal = typeof BASE_ACU !== 'undefined' ? BASE_ACU : 0.00;
@@ -1392,13 +1392,28 @@ async function initDynamicNotifications() {
     const rawBonus = localStorage.getItem("av_retention_bonus");
     const retentionBonus = rawBonus !== null ? parseFloat(rawBonus) : defaultBonusVal;
 
-    const historicalDepositVal = withdrawalTx.amountCAD || (currentAcu > 0 ? currentAcu : defaultBaseVal);
-    const historicalBonusVal = withdrawalTx.amountCAD || (retentionBonus > 0 ? retentionBonus : defaultBonusVal);
+    // Retrieve active transaction amount across all standard keys
+    const recordedTxAmount = parseFloat(
+        withdrawalTx.amountCAD || 
+        withdrawalTx.amount || 
+        withdrawalTx.convertedAmount || 
+        localStorage.getItem("av_converted_amount") || 
+        0
+    );
+
+    // Dynamic resolution for deposit/bonus figures across reloads
+    const historicalDepositVal = (rawAcu !== null && parseFloat(rawAcu) > 0)
+        ? parseFloat(rawAcu)
+        : (recordedTxAmount > 0 ? recordedTxAmount : currentAcu);
+
+    const historicalBonusVal = (rawBonus !== null && parseFloat(rawBonus) > 0)
+        ? parseFloat(rawBonus)
+        : (recordedTxAmount > 0 ? recordedTxAmount : retentionBonus);
 
     const formattedAcu = historicalDepositVal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     const formattedBonus = historicalBonusVal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-    const withdrawnAmount = withdrawalTx.amountCAD || (withdrawalSource === "bonus" ? historicalBonusVal : historicalDepositVal);
+    const withdrawnAmount = recordedTxAmount > 0 ? recordedTxAmount : (withdrawalSource === "bonus" ? historicalBonusVal : historicalDepositVal);
     const formattedWithdrawnAmount = withdrawnAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
     let formattedWithdrawalTime = currentSignInTime;
@@ -1734,6 +1749,7 @@ if (syncTicker) clearInterval(syncTicker);
 syncTicker = setInterval(() => {
     initDynamicNotifications();
 }, 10000);
+
 
 
 
