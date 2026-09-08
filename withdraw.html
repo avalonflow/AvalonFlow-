@@ -911,22 +911,22 @@ const bg = document.getElementById('floating-bg');
 function particle() {
     const p = document.createElement('div');
     p.className = 'particle';
-    
+
     const s = Math.random() * 20 + 10;
     p.style.width = s + 'px';
     p.style.height = s + 'px';
     p.style.left = Math.random() * 100 + 'vw';
     p.style.animationDuration = (Math.random() * 20 + 10) + 's';
-    
+
     bg.appendChild(p);
-    
+
     setTimeout(() => p.remove(), 30000);
 }
 
 setInterval(particle, 800);
 
 
-                                function generateRandomHash() {
+function generateRandomHash() {
     const chars = '0123456789ABCDEFabcdef';
     let result = '';
     for (let i = 0; i < 8; i++) {
@@ -955,9 +955,11 @@ function getLiveLocalStorageBalance() {
 }
 
 function getLiveRetentionBonus() {
+    // Falls back to saved backup key if active key has been zeroed out by withdrawal script
     const rawBonus = localStorage.getItem("av_retention_bonus") 
                   ?? localStorage.getItem("retentionBonus") 
-                  ?? localStorage.getItem("av_bonus");
+                  ?? localStorage.getItem("av_bonus")
+                  ?? localStorage.getItem("av_original_retention_bonus");
     if (rawBonus === null) return 0.00;
     const parsed = parseFloat(rawBonus);
     return isNaN(parsed) ? 0.00 : parsed;
@@ -971,8 +973,8 @@ const activeMethod = localStorage.getItem("av_selected_method_title") || "Chase 
 let runtimeSessionData = {
     region: activeRegion.toUpperCase(), 
     selectedAssetOrBank: activeMethod,
-    baseAmountCAD: getLiveRetentionBonus(), 
-    availableBalanceCAD: getLiveLocalStorageBalance(),
+    baseAmountUSD: getLiveRetentionBonus(), 
+    availableBalanceUSD: getLiveLocalStorageBalance(),
     balanceUnlockedFlag: isAlreadyWithdrawn
 };
 
@@ -1027,8 +1029,8 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 async function initiateLiveTransaction(sessionData) {
-    sessionData.availableBalanceCAD = getLiveLocalStorageBalance();
-    sessionData.baseAmountCAD = getLiveRetentionBonus();
+    sessionData.availableBalanceUSD = getLiveLocalStorageBalance();
+    sessionData.baseAmountUSD = getLiveRetentionBonus();
     sessionData.balanceUnlockedFlag = localStorage.getItem('av_is_withdrawn') === 'true' || localStorage.getItem('av_withdrawn') === 'true';
 
     const config = regionConfig[sessionData.region];
@@ -1117,12 +1119,12 @@ async function initiateLiveTransaction(sessionData) {
     document.getElementById("receipt-beneficiary").innerText = `${renderedName} (${renderedDetails})`;
 
     let liveRate = 1.0; 
-    if (config.currency === "USD") liveRate = 0.72;
-    if (config.currency === "GBP") liveRate = 0.53;
+    if (config.currency === "CAD") liveRate = 1.38;
+    if (config.currency === "GBP") liveRate = 0.76;
 
-    if (config.currency !== "CAD") {
+    if (config.currency !== "USD") {
         try {
-            const primaryResponse = await fetch('https://open.er-api.com/v6/latest/CAD');
+            const primaryResponse = await fetch('https://open.er-api.com/v6/latest/USD');
             if (primaryResponse.ok) {
                 const data = await primaryResponse.json();
                 liveRate = data.rates[config.currency] || liveRate;
@@ -1132,7 +1134,7 @@ async function initiateLiveTransaction(sessionData) {
         } catch (primaryError) {
             console.warn(primaryError.message);
             try {
-                const secondaryResponse = await fetch(`https://api.frankfurter.dev/v2/rates?base=CAD&quotes=${config.currency}`);
+                const secondaryResponse = await fetch(`https://api.frankfurter.dev/v2/rates?base=USD&quotes=${config.currency}`);
                 if (secondaryResponse.ok) {
                     const data = await secondaryResponse.json();
                     liveRate = data.rates[config.currency] || liveRate;
@@ -1155,10 +1157,10 @@ async function initiateLiveTransaction(sessionData) {
 
     document.getElementById("receipt-hash").innerText = sessionActiveHash;
 
-    const targetAmountCAD = isSecurityOpen ? sessionData.availableBalanceCAD : sessionData.baseAmountCAD;
+    const targetAmountUSD = isSecurityOpen ? sessionData.availableBalanceUSD : sessionData.baseAmountUSD;
 
     const confirmBtn = document.getElementById("confirm-btn");
-    if (targetAmountCAD <= 0) {
+    if (targetAmountUSD <= 0) {
         if (confirmBtn) {
             confirmBtn.disabled = true;
             confirmBtn.style.opacity = "0.5";
@@ -1186,8 +1188,8 @@ async function initiateLiveTransaction(sessionData) {
 
         document.getElementById("balance-lock").style.display = "none";
         document.getElementById("balance-unit-symbol").innerText = "$";
-        document.getElementById("balance-amount").innerText = sessionData.availableBalanceCAD.toLocaleString('en-US', { minimumFractionDigits: 2 });
-        document.getElementById("balance-currency-tag").innerText = "CAD";
+        document.getElementById("balance-amount").innerText = sessionData.availableBalanceUSD.toLocaleString('en-US', { minimumFractionDigits: 2 });
+        document.getElementById("balance-currency-tag").innerText = "USD";
     } else {
         balanceBox.className = "amount-box locked order-1";
         sendBox.className = "amount-box order-2";
@@ -1195,27 +1197,28 @@ async function initiateLiveTransaction(sessionData) {
 
         document.getElementById("balance-lock").style.display = "inline-flex";
         document.getElementById("balance-unit-symbol").innerText = "$";
-        document.getElementById("balance-amount").innerText = sessionData.availableBalanceCAD.toLocaleString('en-US', { minimumFractionDigits: 2 });
-        document.getElementById("balance-currency-tag").innerText = "CAD";
+        document.getElementById("balance-amount").innerText = sessionData.availableBalanceUSD.toLocaleString('en-US', { minimumFractionDigits: 2 });
+        document.getElementById("balance-currency-tag").innerText = "USD";
 
         document.getElementById("send-lock").style.display = "none";
         document.getElementById("send-currency-symbol").innerText = "$";
-        document.getElementById("send-amount").innerText = sessionData.baseAmountCAD.toLocaleString('en-US', { minimumFractionDigits: 2 });
-        document.getElementById("send-currency-tag").innerText = "CAD";
+        document.getElementById("send-amount").innerText = sessionData.baseAmountUSD.toLocaleString('en-US', { minimumFractionDigits: 2 });
+        document.getElementById("send-currency-tag").innerText = "USD";
     }
 
-    const feeCAD = targetAmountCAD * 0.04;
-    const cadNet = targetAmountCAD - feeCAD;
-    const finalCalculatedReceive = cadNet * liveRate;
+    const feeUSD = targetAmountUSD * 0.04;
+    const usdNet = targetAmountUSD - feeUSD;
+    const finalCalculatedReceive = usdNet * liveRate;
+    localStorage.setItem("av_converted_amount", finalCalculatedReceive.toFixed(2));
 
-    document.getElementById("fee-display").innerText = `-$${feeCAD.toLocaleString('en-US', { minimumFractionDigits: 2 })} CAD`;
-    document.getElementById("net-cad-display").innerText = `$${cadNet.toLocaleString('en-US', { minimumFractionDigits: 2 })} CAD`;
+    document.getElementById("fee-display").innerText = `-$${feeUSD.toLocaleString('en-US', { minimumFractionDigits: 2 })} USD`;
+    document.getElementById("net-cad-display").innerText = `$${usdNet.toLocaleString('en-US', { minimumFractionDigits: 2 })} USD`;
     document.getElementById("receive-amount").innerText = finalCalculatedReceive.toLocaleString('en-US', { 
         minimumFractionDigits: 2,
         maximumFractionDigits: 2 
     });
 
-    document.getElementById("receipt-fee").innerText = `-$${feeCAD.toLocaleString('en-US', { minimumFractionDigits: 2 })} CAD`;
+    document.getElementById("receipt-fee").innerText = `-$${feeUSD.toLocaleString('en-US', { minimumFractionDigits: 2 })} USD`;
     document.getElementById("receipt-payout").innerText = `${config.symbol}${finalCalculatedReceive.toLocaleString('en-US', { 
         minimumFractionDigits: 2,
         maximumFractionDigits: 2 
@@ -1269,7 +1272,7 @@ function setupEventHandlers() {
 
             const txData = {
                 txHash: sessionActiveHash,
-                amountCAD: withdrawnAmount,
+                amountUSD: withdrawnAmount,
                 method: runtimeSessionData.selectedAssetOrBank,
                 sourceType: sourceType,
                 time: timestampString,
@@ -1279,11 +1282,14 @@ function setupEventHandlers() {
 
             localStorage.removeItem("av_temp_session_hash");
 
-            // Fixed key selection: Clearing baseACU cleanly instead of relying on ambiguous keys
+            // Save original bonus value to backup key before zeroing out, keeping dashboard zeroes intact
             if (sourceType === "available") {
                 localStorage.setItem("baseACU", "0.00");
                 localStorage.setItem("totalACU", "0.00");
             } else {
+                if (liveBonus > 0) {
+                    localStorage.setItem("av_original_retention_bonus", liveBonus.toString());
+                }
                 localStorage.setItem("av_retention_bonus", "0.00");
                 localStorage.setItem("retentionBonus", "0.00");
                 localStorage.setItem("av_bonus", "0.00");
