@@ -1468,6 +1468,19 @@ const displayAmount = storedConvertedAmount
 
 const displayCurrency = storedConvertedAmount ? currentCurrency : "USD";
 
+// Retrieve the converted amount and selected currency, falling back to original values if unavailable
+const storedConvertedAmount = localStorage.getItem("av_converted_amount");
+const currentCurrency = (typeof regionConfig !== "undefined" && runtimeSessionData?.region && regionConfig[runtimeSessionData.region]) 
+  ? regionConfig[runtimeSessionData.region].currency 
+  : "USD";
+
+// Format the display string (uses converted amount if present, else falls back to USD withdrawn amount)
+const displayAmount = storedConvertedAmount 
+  ? parseFloat(storedConvertedAmount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+  : formattedWithdrawnAmount;
+
+const displayCurrency = storedConvertedAmount ? currentCurrency : "USD";
+
 generatedNotifications.push({
   id: 2, 
   type: "withdrawal", 
@@ -1475,6 +1488,8 @@ generatedNotifications.push({
   title: "Funds Withdrawal Processing",
   description: `Your withdrawal request of <strong>${displayAmount} ${displayCurrency}</strong> is being routed to your destination wallet/bank.`
 });
+`
+
 
         timestamp: formattedWithdrawalTime, isRead: elapsedMinutes >= 5, txRef: withdrawalTx.txHash || "av_tx_unknown"
       });
