@@ -141,8 +141,6 @@
             if (localId) {
                 localStorage.setItem('avalonflow_identity', localId);
             }
-            render404Page();
-            window.location.replace('https://membership.avalonflow.site/signin');
             return true;
         }
 
@@ -194,6 +192,7 @@
     setInterval(checkForFileChanges, 3000);
 })();
 </script>
+
 
     <style>
         body { 
