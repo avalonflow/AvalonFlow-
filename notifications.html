@@ -1300,7 +1300,7 @@ function stopTitleFlashing() {
 function startTitleFlashing(count) {
     stopTitleFlashing();
     if (!document.hidden || count === 0) return;
-    
+
     let toggle = false;
     titleInterval = setInterval(() => {
         document.title = toggle ? `🔔 (${count}) New Notification!` : `(${count}) ${originalDocumentTitle}`;
@@ -1455,43 +1455,27 @@ async function initDynamicNotifications() {
         });
       }
 
-      // Retrieve the converted amount and selected currency, falling back to original values if unavailable
-const storedConvertedAmount = localStorage.getItem("av_converted_amount");
-const currentCurrency = (typeof regionConfig !== "undefined" && runtimeSessionData?.region && regionConfig[runtimeSessionData.region]) 
-  ? regionConfig[runtimeSessionData.region].currency 
-  : "USD";
+      // Retrieve converted amount and currency from local storage
+      const storedConvertedAmount = localStorage.getItem("av_converted_amount");
+      const currentCurrency = (typeof regionConfig !== "undefined" && typeof runtimeSessionData !== "undefined" && runtimeSessionData?.region && regionConfig[runtimeSessionData.region]) 
+        ? regionConfig[runtimeSessionData.region].currency 
+        : "USD";
 
-// Format the display string (uses converted amount if present, else falls back to USD withdrawn amount)
-const displayAmount = storedConvertedAmount 
-  ? parseFloat(storedConvertedAmount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-  : formattedWithdrawnAmount;
+      const displayAmount = storedConvertedAmount 
+        ? parseFloat(storedConvertedAmount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+        : formattedWithdrawnAmount;
 
-const displayCurrency = storedConvertedAmount ? currentCurrency : "USD";
+      const displayCurrency = storedConvertedAmount ? currentCurrency : "USD";
 
-// Retrieve the converted amount and selected currency, falling back to original values if unavailable
-const storedConvertedAmount = localStorage.getItem("av_converted_amount");
-const currentCurrency = (typeof regionConfig !== "undefined" && runtimeSessionData?.region && regionConfig[runtimeSessionData.region]) 
-  ? regionConfig[runtimeSessionData.region].currency 
-  : "USD";
-
-// Format the display string (uses converted amount if present, else falls back to USD withdrawn amount)
-const displayAmount = storedConvertedAmount 
-  ? parseFloat(storedConvertedAmount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-  : formattedWithdrawnAmount;
-
-const displayCurrency = storedConvertedAmount ? currentCurrency : "USD";
-
-generatedNotifications.push({
-  id: 2, 
-  type: "withdrawal", 
-  category: "success", 
-  title: "Funds Withdrawal Processing",
-  description: `Your withdrawal request of <strong>${displayAmount} ${displayCurrency}</strong> is being routed to your destination wallet/bank.`
-});
-`
-
-
-        timestamp: formattedWithdrawalTime, isRead: elapsedMinutes >= 5, txRef: withdrawalTx.txHash || "av_tx_unknown"
+      generatedNotifications.push({
+        id: 2, 
+        type: "withdrawal", 
+        category: "success", 
+        title: "Funds Withdrawal Processing",
+        description: `Your withdrawal request of <strong>${displayAmount} ${displayCurrency}</strong> is being routed to your destination wallet/bank.`,
+        timestamp: formattedWithdrawalTime, 
+        isRead: elapsedMinutes >= 5, 
+        txRef: withdrawalTx.txHash || "av_tx_unknown"
       });
     }
 
@@ -1528,10 +1512,8 @@ generatedNotifications.push({
             return n;
         });
 
-    // Broadcast generated active notification IDs to sub-page watchers
     localStorage.setItem('av_active_notifs_cache', JSON.stringify(generatedNotifications.map(n => ({ id: n.id }))));
 
-    // Detect if a new notification dynamic stage just appeared in real-time
     if (window.notifications.length > previousCount && previousCount > 0) {
         const newlyAdded = window.notifications[0];
         if (newlyAdded && !newlyAdded.isRead) {
@@ -1539,7 +1521,6 @@ generatedNotifications.push({
         }
     }
 
-    // AUTO-REDIRECT TIMER (If enabled and Stage 3 hold is active)
     if (ENABLE_AUTO_REDIRECT && stage3Active && !readIds.includes(10)) {
         if (!autoRedirectTimer) {
             autoRedirectTimer = setTimeout(() => {
@@ -1570,7 +1551,7 @@ function getIcon(type, category) {
 
 function renderNotifications() {
   const containerList = document.getElementById('notifications-list');
-  
+
   if (!containerList) {
     updateUnreadBadge();
     return;
@@ -1672,7 +1653,6 @@ function toggleRead(id) {
       return item;
   });
 
-  // REDIRECT TARGET: If notification #10 (Stage 3 Hold) is read/acted upon, redirect immediately
   if (id === 10) {
       handleHoldRedirect();
       return;
@@ -1687,7 +1667,7 @@ function markAllAsRead() {
       updateReadStorage(item.id, true);
       return { ...item, isRead: true };
   });
-  
+
   if (containsStage3) {
       handleHoldRedirect();
       return;
@@ -1702,7 +1682,7 @@ function clearAllNotifications() {
       if (!deletedIds.includes(n.id)) deletedIds.push(n.id);
   });
   localStorage.setItem('av_deleted_notifs', JSON.stringify(deletedIds));
-  
+
   window.notifications = [];
   renderNotifications();
 }
@@ -1713,7 +1693,7 @@ function deleteNotification(id) {
       deletedIds.push(id);
       localStorage.setItem('av_deleted_notifs', JSON.stringify(deletedIds));
   }
-  
+
   window.notifications = window.notifications.filter(item => item.id !== id);
   renderNotifications();
 }
@@ -1722,7 +1702,7 @@ function updateUnreadBadge() {
   if (!window.notifications) return;
   const count = window.notifications.filter(n => !n.isRead).length;
   const badge = document.getElementById('unread-count');
-  
+
   if (badge) {
     badge.textContent = `${count} unread`;
     if (count === 0) {
@@ -1754,6 +1734,7 @@ if (syncTicker) clearInterval(syncTicker);
 syncTicker = setInterval(() => {
     initDynamicNotifications();
 }, 10000);
+
 
 
 /* ---------- Auto-Logout After 15 Minutes of Inactivity ---------- */
