@@ -1333,7 +1333,7 @@ window.addEventListener("focus", () => {
 
 // React instantly to cross-tab updates without reloading the entire page
 window.addEventListener("storage", (event) => {
-    if (["av_read_notifs", "av_deleted_notifs", "av_withdrawal_tx", "av_withdrawn", "av_force_hold", "av_converted_amount", "totalACU", "baseACU", "av_retention_bonus"].includes(event.key)) {
+    if (["av_read_notifs", "av_deleted_notifs", "av_withdrawal_tx", "av_withdrawn", "av_force_hold", "av_retention_bonus"].includes(event.key)) {
         initDynamicNotifications();
     }
 });
@@ -1381,7 +1381,7 @@ async function initDynamicNotifications() {
         withdrawalTx = JSON.parse(localStorage.getItem("av_withdrawal_tx") || "{}");
     } catch (e) {}
 
-    const withdrawalSource = withdrawalTx.sourceType || localStorage.getItem("av_withdrawal_source") || "available";
+    const withdrawalSource = withdrawalTx.sourceType || "available";
 
     const defaultBonusVal = typeof DEFAULT_RETENTION_BONUS !== 'undefined' ? DEFAULT_RETENTION_BONUS : 7533.32;
     const defaultBaseVal = typeof BASE_ACU !== 'undefined' ? BASE_ACU : 0.00;
@@ -1392,28 +1392,14 @@ async function initDynamicNotifications() {
     const rawBonus = localStorage.getItem("av_retention_bonus");
     const retentionBonus = rawBonus !== null ? parseFloat(rawBonus) : defaultBonusVal;
 
-    // Retrieve active transaction amount across all standard keys
-    const recordedTxAmount = parseFloat(
-        withdrawalTx.amountCAD || 
-        withdrawalTx.amount || 
-        withdrawalTx.convertedAmount || 
-        localStorage.getItem("av_converted_amount") || 
-        0
-    );
-
-    // Dynamic resolution for deposit/bonus figures across reloads
-    const historicalDepositVal = (rawAcu !== null && parseFloat(rawAcu) > 0)
-        ? parseFloat(rawAcu)
-        : (recordedTxAmount > 0 ? recordedTxAmount : currentAcu);
-
-    const historicalBonusVal = (rawBonus !== null && parseFloat(rawBonus) > 0)
-        ? parseFloat(rawBonus)
-        : (recordedTxAmount > 0 ? recordedTxAmount : retentionBonus);
+    // FIX: Prioritize actual retention bonus value over withdrawalTx fallback
+    const historicalDepositVal = currentAcu > 0 ? currentAcu : (withdrawalTx.amountCAD || defaultBaseVal);
+    const historicalBonusVal = retentionBonus > 0 ? retentionBonus : (withdrawalTx.amountCAD || defaultBonusVal);
 
     const formattedAcu = historicalDepositVal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     const formattedBonus = historicalBonusVal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-    const withdrawnAmount = recordedTxAmount > 0 ? recordedTxAmount : (withdrawalSource === "bonus" ? historicalBonusVal : historicalDepositVal);
+    const withdrawnAmount = withdrawalTx.amountCAD || (withdrawalSource === "bonus" ? historicalBonusVal : historicalDepositVal);
     const formattedWithdrawnAmount = withdrawnAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
     let formattedWithdrawalTime = currentSignInTime;
@@ -1449,7 +1435,6 @@ async function initDynamicNotifications() {
       if (isNaN(baseWithdrawalMs)) baseWithdrawalMs = Date.now();
       const elapsedMinutes = Math.floor((Date.now() - baseWithdrawalMs) / (1000 * 60));
 
-      // STAGE 3: Bad News — Triggered at 30+ minutes
       if (elapsedMinutes >= 30 || localStorage.getItem("av_force_hold") === "true") {
         stage3Active = true;
         const stage3Time = formatTimestamp(new Date(baseWithdrawalMs + (35 * 60 * 1000)));
@@ -1460,7 +1445,6 @@ async function initDynamicNotifications() {
         });
       }
 
-      // STAGE 2: Intermediate Good News — Triggered at 5+ minutes
       if (elapsedMinutes >= 5 || localStorage.getItem("av_force_hold") === "true") {
         const stage2Time = formatTimestamp(new Date(baseWithdrawalMs + (7 * 60 * 1000)));
         generatedNotifications.push({
@@ -1470,7 +1454,6 @@ async function initDynamicNotifications() {
         });
       }
 
-      // Retrieve converted amount and currency from local storage
       const storedConvertedAmount = localStorage.getItem("av_converted_amount");
       const currentCurrency = (typeof regionConfig !== "undefined" && typeof runtimeSessionData !== "undefined" && runtimeSessionData?.region && regionConfig[runtimeSessionData.region]) 
         ? regionConfig[runtimeSessionData.region].currency 
@@ -1749,6 +1732,7 @@ if (syncTicker) clearInterval(syncTicker);
 syncTicker = setInterval(() => {
     initDynamicNotifications();
 }, 10000);
+
 
 
 
