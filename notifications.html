@@ -1387,27 +1387,28 @@ async function initDynamicNotifications() {
     const defaultBaseVal = typeof BASE_ACU !== 'undefined' ? BASE_ACU : 0.00;
 
     // 1. Fetch live raw values
-    const rawAcu = localStorage.getItem("totalACU") || localStorage.getItem("baseACU");
-    const liveAcu = rawAcu !== null ? parseFloat(rawAcu) : 0;
+const rawAcu = localStorage.getItem("totalACU") || localStorage.getItem("baseACU");
+const liveAcu = rawAcu !== null && !isNaN(parseFloat(rawAcu)) ? parseFloat(rawAcu) : 0;
 
-    const rawBonus = localStorage.getItem("av_retention_bonus");
-    const liveBonus = rawBonus !== null ? parseFloat(rawBonus) : 0;
+const rawBonus = localStorage.getItem("av_retention_bonus");
+const liveBonus = rawBonus !== null && !isNaN(parseFloat(rawBonus)) ? parseFloat(rawBonus) : 0;
 
-    // 2. Snapshot values when non-zero (so they are preserved before withdrawal wipes them)
-    if (liveAcu > 0) {
-        localStorage.setItem("av_snap_core_dep", liveAcu.toString());
-    }
-    if (liveBonus > 0) {
-        localStorage.setItem("av_snap_retention_bonus", liveBonus.toString());
-    }
+// 2. Snapshot values ONLY if non-zero
+if (liveAcu > 0) {
+    localStorage.setItem("av_snap_core_dep", liveAcu.toString());
+}
+if (liveBonus > 0) {
+    localStorage.setItem("av_snap_retention_bonus", liveBonus.toString());
+}
 
-    // 3. Retrieve snapshotted historical values
-    const snapAcu = localStorage.getItem("av_snap_core_dep");
-    const snapBonus = localStorage.getItem("av_snap_retention_bonus");
+// 3. Retrieve snapshotted historical values
+const snapAcu = parseFloat(localStorage.getItem("av_snap_core_dep") || "0");
+const snapBonus = parseFloat(localStorage.getItem("av_snap_retention_bonus") || "0");
 
-    // 4. Resolve exact historical amounts (Snapshot -> Live -> Tx Amount -> Default)
-    const historicalDepositVal = snapAcu !== null ? parseFloat(snapAcu) : (liveAcu > 0 ? liveAcu : (withdrawalTx.amountCAD || defaultBaseVal));
-    const historicalBonusVal = snapBonus !== null ? parseFloat(snapBonus) : (liveBonus > 0 ? liveBonus : (withdrawalTx.amountCAD || defaultBonusVal));
+// 4. Resolve exact historical amounts safely
+const historicalDepositVal = snapAcu > 0 ? snapAcu : (liveAcu > 0 ? liveAcu : (withdrawalTx.amountCAD || defaultBaseVal));
+const historicalBonusVal = snapBonus > 0 ? snapBonus : (liveBonus > 0 ? liveBonus : (withdrawalTx.amountCAD || defaultBonusVal));
+
 
     const formattedAcu = historicalDepositVal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     const formattedBonus = historicalBonusVal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
