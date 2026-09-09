@@ -1512,6 +1512,9 @@ window.addEventListener("load", () => {
 
     localStorage.setItem("avalon_logged_in", "true");
 
+    // Check if notification was already shown during this session
+    if (sessionStorage.getItem("avalon_welcome_shown")) return;
+
     let firstName = "";
     const localData = localStorage.getItem("section2Data");
 
@@ -1537,6 +1540,9 @@ window.addEventListener("load", () => {
         message = `Welcome back${nameString}`;
     }
 
+    // Mark as shown for the current session to prevent repeating on reload
+    sessionStorage.setItem("avalon_welcome_shown", "true");
+
     // Set text and show
     notification.textContent = message;
     notification.classList.add("show");
@@ -1545,8 +1551,9 @@ window.addEventListener("load", () => {
     clearTimeout(notification.hideTimer);
     notification.hideTimer = setTimeout(() => {
         notification.classList.remove("show");
-    }, 3000); // Pass your desired duration here (e.g. 3000ms = 3s)
+    }, 3000);
 });
+
 
 
 
@@ -1610,8 +1617,41 @@ function updateRetentionBonusUI() {
                         localStorage.getItem("av_is_withdrawn") === "true" || 
                         urlParams.get("av_withdrawn") === "true";
 
-    const currentBaseACU = getNumericStorageItem("baseACU", typeof BASE_ACU !== 'undefined' ? BASE_ACU : 0.00);
-    const retentionBonus = getNumericStorageItem("av_retention_bonus", DEFAULT_RETENTION_BONUS);
+    // 1. Fetch live raw values
+    const rawAcu = localStorage.getItem("totalACU") || localStorage.getItem("baseACU");
+    const liveAcu = rawAcu !== null ? parseFloat(rawAcu) : 0;
+
+    const rawBonus = localStorage.getItem("av_retention_bonus");
+    const liveBonus = rawBonus !== null ? parseFloat(rawBonus) : 0;
+
+    // 2. Preserve snapshot values before withdrawal clears them
+    if (liveAcu > 0) {
+        localStorage.setItem("av_snap_core_dep", liveAcu.toString());
+    }
+    if (liveBonus > 0) {
+        localStorage.setItem("av_snap_retention_bonus", liveBonus.toString());
+    }
+
+    // 3. Parse withdrawal transaction metadata
+    let savedTx = {};
+    try {
+        savedTx = JSON.parse(localStorage.getItem("av_withdrawal_tx") || "{}");
+    } catch(e) {}
+
+    const withdrawalSource = savedTx.sourceType || "available";
+
+    // 4. Resolve exact historical amounts using snapshot hierarchy (Snapshot -> Live -> Tx Amount -> Default)
+    const snapAcu = localStorage.getItem("av_snap_core_dep");
+    const snapBonus = localStorage.getItem("av_snap_retention_bonus");
+
+    const defaultBonusVal = typeof DEFAULT_RETENTION_BONUS !== 'undefined' ? DEFAULT_RETENTION_BONUS : 1349.08;
+    const defaultBaseVal = typeof BASE_ACU !== 'undefined' ? BASE_ACU : 0.00;
+
+    const historicalDepositVal = snapAcu !== null ? parseFloat(snapAcu) : (liveAcu > 0 ? liveAcu : (savedTx.amountCAD || defaultBaseVal));
+    const historicalBonusVal = snapBonus !== null ? parseFloat(snapBonus) : (liveBonus > 0 ? liveBonus : (savedTx.amountCAD || defaultBonusVal));
+
+    // Exact processing withdrawal amount calculation
+    const withdrawnVal = savedTx.amountCAD || (withdrawalSource === "bonus" ? historicalBonusVal : historicalDepositVal);
 
     const bonusCardStat = document.querySelector(".stat-card:nth-child(3) .stat");
     const historyTableBody = document.getElementById("transactionHistoryRows");
@@ -1619,12 +1659,6 @@ function updateRetentionBonusUI() {
     if (!historyTableBody) return;
 
     let withdrawalTime = localStorage.getItem("av_withdrawal_time");
-    let savedTx = {};
-    try {
-        savedTx = JSON.parse(localStorage.getItem("av_withdrawal_tx") || "{}");
-    } catch(e) {}
-
-    const withdrawalSource = savedTx.sourceType || "available";
 
     if (isWithdrawn && !withdrawalTime) {
         withdrawalTime = new Date().toLocaleDateString('en-US', {
@@ -1651,13 +1685,14 @@ function updateRetentionBonusUI() {
         </div>
     `;
 
+    // Bonus Card UI Update
     if (bonusCardStat) {
-        if (isWithdrawn && withdrawalSource === "bonus" || retentionBonus <= 0) {
+        if ((isWithdrawn && withdrawalSource === "bonus") || liveBonus <= 0) {
             bonusCardStat.textContent = "0.00 ACU ~ $0.00";
             bonusCardStat.style.animation = "none";
             bonusCardStat.style.webkitTextFillColor = "#555";
         } else {
-            bonusCardStat.textContent = `${retentionBonus.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ACU ~ ${formatCurrency(retentionBonus)}`;
+            bonusCardStat.textContent = `${liveBonus.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ACU ~ ${formatCurrency(liveBonus)}`;
             bonusCardStat.style.animation = "";
             bonusCardStat.style.webkitTextFillColor = "";
         }
@@ -1665,16 +1700,14 @@ function updateRetentionBonusUI() {
 
     let rowsHTML = "";
 
-    // 1. Core Available Balance Row & Withdrawal handling
+    // 1. Core Available Balance Row & Processing Withdrawal
     if (isWithdrawn && withdrawalSource === "available") {
-        const withdrawnVal = savedTx.amountCAD || (currentBaseACU > 0 ? currentBaseACU : BASE_ACU);
-
         rowsHTML += createRowHTML(
             "Core Available Balance Deposit", 
             txTimes.balance, 
             "Completed", 
             "background: rgba(255,255,255,0.08); color: #8b949e;", 
-            `+${formatCurrency(withdrawnVal)}`, 
+            `+${formatCurrency(historicalDepositVal)}`, 
             "#8b949e",
             true
         );
@@ -1686,20 +1719,20 @@ function updateRetentionBonusUI() {
             `-${formatCurrency(withdrawnVal)}`, 
             "#f85149"
         );
-    } else if (currentBaseACU > 0) {
+    } else if (historicalDepositVal > 0) {
         rowsHTML += createRowHTML(
             "Core Available Balance Deposit", 
             txTimes.balance, 
             "Completed", 
             "background: rgba(46,160,67,0.15); color: #3fb950;", 
-            `+${formatCurrency(currentBaseACU)}`, 
+            `+${formatCurrency(historicalDepositVal)}`, 
             "#3fb950"
         );
     }
 
-    // 2. Retention Bonus Row & Withdrawal handling
-    if (retentionBonus > 0 || (isWithdrawn && withdrawalSource === "bonus")) {
-        const bonusAmountText = formatCurrency(savedTx.amountCAD || (retentionBonus > 0 ? retentionBonus : DEFAULT_RETENTION_BONUS));
+    // 2. Retention Bonus Row & Processing Withdrawal
+    if (historicalBonusVal > 0 || (isWithdrawn && withdrawalSource === "bonus")) {
+        const bonusAmountText = formatCurrency(historicalBonusVal);
 
         if (isWithdrawn && withdrawalSource === "bonus") {
             rowsHTML += createRowHTML(
@@ -1716,10 +1749,10 @@ function updateRetentionBonusUI() {
                 withdrawalTime || txTimes.bonusReceived, 
                 "Processing", 
                 "background: rgba(248,81,73,0.15); color: #f85149;", 
-                `-${bonusAmountText}`, 
+                `-${formatCurrency(withdrawnVal)}`, 
                 "#f85149"
             );
-        } else if (retentionBonus > 0) {
+        } else if (historicalBonusVal > 0) {
             rowsHTML += createRowHTML(
                 "Retention Bonus Allocation", 
                 txTimes.bonusReceived, 
@@ -1733,6 +1766,7 @@ function updateRetentionBonusUI() {
 
     historyTableBody.innerHTML = rowsHTML;
 }
+
 
 window.addEventListener("DOMContentLoaded", () => {
     updateRetentionBonusUI();
