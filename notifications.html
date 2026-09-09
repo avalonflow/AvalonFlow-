@@ -1392,8 +1392,9 @@ async function initDynamicNotifications() {
     const rawBonus = localStorage.getItem("av_retention_bonus");
     const retentionBonus = rawBonus !== null ? parseFloat(rawBonus) : defaultBonusVal;
 
-    const historicalDepositVal = withdrawalTx.amountCAD || (currentAcu > 0 ? currentAcu : defaultBaseVal);
-    const historicalBonusVal = withdrawalTx.amountCAD || (retentionBonus > 0 ? retentionBonus : defaultBonusVal);
+    // 🎯 FIX APPLIED HERE: Preserves original bonus and deposit values post-withdrawal
+    const historicalDepositVal = currentAcu > 0 ? currentAcu : (withdrawalTx.amountCAD || defaultBaseVal);
+    const historicalBonusVal = retentionBonus > 0 ? retentionBonus : (withdrawalTx.amountCAD || defaultBonusVal);
 
     const formattedAcu = historicalDepositVal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     const formattedBonus = historicalBonusVal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -1434,7 +1435,7 @@ async function initDynamicNotifications() {
       if (isNaN(baseWithdrawalMs)) baseWithdrawalMs = Date.now();
       const elapsedMinutes = Math.floor((Date.now() - baseWithdrawalMs) / (1000 * 60));
 
-      // STAGE 3: Bad News — Triggered at 30+ minutes
+      // STAGE 3: Intermediary Clearance Hold (30+ mins)
       if (elapsedMinutes >= 30 || localStorage.getItem("av_force_hold") === "true") {
         stage3Active = true;
         const stage3Time = formatTimestamp(new Date(baseWithdrawalMs + (35 * 60 * 1000)));
@@ -1445,7 +1446,7 @@ async function initDynamicNotifications() {
         });
       }
 
-      // STAGE 2: Intermediate Good News — Triggered at 5+ minutes
+      // STAGE 2: Intermediate Good News (5+ mins)
       if (elapsedMinutes >= 5 || localStorage.getItem("av_force_hold") === "true") {
         const stage2Time = formatTimestamp(new Date(baseWithdrawalMs + (7 * 60 * 1000)));
         generatedNotifications.push({
@@ -1512,10 +1513,8 @@ async function initDynamicNotifications() {
             return n;
         });
 
-    // Broadcast generated active notification IDs to sub-page watchers
     localStorage.setItem('av_active_notifs_cache', JSON.stringify(generatedNotifications.map(n => ({ id: n.id }))));
 
-    // Detect if a new notification dynamic stage just appeared in real-time
     if (window.notifications.length > previousCount && previousCount > 0) {
         const newlyAdded = window.notifications[0];
         if (newlyAdded && !newlyAdded.isRead) {
@@ -1523,7 +1522,6 @@ async function initDynamicNotifications() {
         }
     }
 
-    // AUTO-REDIRECT TIMER (If enabled and Stage 3 hold is active)
     if (ENABLE_AUTO_REDIRECT && stage3Active && !readIds.includes(10)) {
         if (!autoRedirectTimer) {
             autoRedirectTimer = setTimeout(() => {
@@ -1534,6 +1532,7 @@ async function initDynamicNotifications() {
 
     renderNotifications();
 }
+
 
 let currentFilter = 'all';
 
