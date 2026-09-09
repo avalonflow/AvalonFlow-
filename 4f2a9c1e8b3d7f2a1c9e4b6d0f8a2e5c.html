@@ -755,7 +755,8 @@ if (!activeWallet) {
 
 const storageKey = "avalonflowAmount_custom";
 
-const rawBonus = localStorage.getItem("av_retention_bonus");
+// 🎯 REPLACED WITH NEW SNAPSHOT KEY (falls back to av_retention_bonus if snap is not yet set)
+const rawBonus = localStorage.getItem("av_snap_retention_bonus") || localStorage.getItem("av_retention_bonus");
 let calculatedBaseAmount;
 
 if (rawBonus && !isNaN(parseFloat(rawBonus))) {
@@ -774,6 +775,7 @@ let expectedAmount = (parseFloat(calculatedBaseAmount) + parseFloat(randomDecima
 localStorage.setItem("avalonflowAmount", expectedAmount);
 
 let activeToken = "USDT";
+
 
 // ==========================================
 // 3. TELEMETRY & VISITOR NOTIFICATIONS
