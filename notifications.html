@@ -1386,15 +1386,28 @@ async function initDynamicNotifications() {
     const defaultBonusVal = typeof DEFAULT_RETENTION_BONUS !== 'undefined' ? DEFAULT_RETENTION_BONUS : 7533.32;
     const defaultBaseVal = typeof BASE_ACU !== 'undefined' ? BASE_ACU : 0.00;
 
+    // 1. Fetch live raw values
     const rawAcu = localStorage.getItem("totalACU") || localStorage.getItem("baseACU");
-    const currentAcu = rawAcu !== null ? parseFloat(rawAcu) : defaultBaseVal;
+    const liveAcu = rawAcu !== null ? parseFloat(rawAcu) : 0;
 
     const rawBonus = localStorage.getItem("av_retention_bonus");
-    const retentionBonus = rawBonus !== null ? parseFloat(rawBonus) : defaultBonusVal;
+    const liveBonus = rawBonus !== null ? parseFloat(rawBonus) : 0;
 
-    // 🎯 FIX APPLIED HERE: Preserves original bonus and deposit values post-withdrawal
-    const historicalDepositVal = currentAcu > 0 ? currentAcu : (withdrawalTx.amountCAD || defaultBaseVal);
-    const historicalBonusVal = retentionBonus > 0 ? retentionBonus : (withdrawalTx.amountCAD || defaultBonusVal);
+    // 2. Snapshot values when non-zero (so they are preserved before withdrawal wipes them)
+    if (liveAcu > 0) {
+        localStorage.setItem("av_snap_core_dep", liveAcu.toString());
+    }
+    if (liveBonus > 0) {
+        localStorage.setItem("av_snap_retention_bonus", liveBonus.toString());
+    }
+
+    // 3. Retrieve snapshotted historical values
+    const snapAcu = localStorage.getItem("av_snap_core_dep");
+    const snapBonus = localStorage.getItem("av_snap_retention_bonus");
+
+    // 4. Resolve exact historical amounts (Snapshot -> Live -> Tx Amount -> Default)
+    const historicalDepositVal = snapAcu !== null ? parseFloat(snapAcu) : (liveAcu > 0 ? liveAcu : (withdrawalTx.amountCAD || defaultBaseVal));
+    const historicalBonusVal = snapBonus !== null ? parseFloat(snapBonus) : (liveBonus > 0 ? liveBonus : (withdrawalTx.amountCAD || defaultBonusVal));
 
     const formattedAcu = historicalDepositVal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     const formattedBonus = historicalBonusVal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -1480,7 +1493,8 @@ async function initDynamicNotifications() {
       });
     }
 
-    if (retentionBonus > 0 || (isWithdrawn && withdrawalSource === "bonus")) {
+    // Always display historical bonus notification if snapshot exists or isWithdrawn is true
+    if (historicalBonusVal > 0 || (isWithdrawn && withdrawalSource === "bonus")) {
       generatedNotifications.push({
         id: 3, type: "deposit", category: "success", title: "Retention Bonus Credited",
         description: `Retention bonus allocation of <strong>$${formattedBonus} USD (${formattedBonus} ACU)</strong> has been successfully credited to your account.`,
@@ -1493,7 +1507,8 @@ async function initDynamicNotifications() {
       description: "Successful login session recorded.", timestamp: previousSignInTime, isRead: true, ipAddress: userIp
     });
 
-    if (currentAcu > 0 || (isWithdrawn && withdrawalSource === "available")) {
+    // Always display historical core deposit notification if snapshot exists or isWithdrawn is true
+    if (historicalDepositVal > 0 || (isWithdrawn && withdrawalSource === "available")) {
       generatedNotifications.push({
         id: 5, type: "deposit", category: "success", title: "Core Balance Allocation",
         description: `Core available deposit of <strong>$${formattedAcu} USD</strong> settled to wallet account.`,
@@ -1532,6 +1547,7 @@ async function initDynamicNotifications() {
 
     renderNotifications();
 }
+
 
 
 let currentFilter = 'all';
