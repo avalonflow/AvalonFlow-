@@ -655,7 +655,7 @@ window.addEventListener("load", () => {
 });
 
 /* --------------------------
-AVB ENGINE (DASHBOARD MATCH)
+AVB ENGINE (FIXED DEFAULT EXPIRY)
 -------------------------- */
 
 (function avbEngine() {
@@ -665,32 +665,25 @@ AVB ENGINE (DASHBOARD MATCH)
         urlParams.get("session") === "refresh" ||
         urlParams.get("mode") === "init";
 
-    // Get the current usage count (defaults to 0 if it doesn't exist yet)
+    // Get current usage count
     let keyUsageCount = parseInt(localStorage.getItem("avb_key_used_count"), 10) || 0;
 
-    // Clear everything ONLY if they have the param AND have used it less than 10 times
-    if (hasInitParam && keyUsageCount < 10) {
+    // Clear session data if init param exists and key usage < 10
+    if (hasInitParam && keyUsageCount < 1) {
         localStorage.removeItem("avb_expiry_time");
         localStorage.removeItem("avb_redirected_to_avb");
         localStorage.removeItem("avb_session_state");
         localStorage.removeItem("membershipConfirmed");
 
-        // Increment the count by 1 and save it back to local storage
         keyUsageCount += 1;
         localStorage.setItem("avb_key_used_count", keyUsageCount.toString());
     }
 
-    // Only initialize a new timer if mode=init or session=refresh was provided.
+    // Set standard 30-minute expiry for ALL fresh visitors (with or without init params)
     const currentExpiry = localStorage.getItem("avb_expiry_time");
     if (!currentExpiry) {
-        if (hasInitParam) {
-            localStorage.setItem(
-                "avb_expiry_time",
-                Date.now() + 30 * 60 * 1000
-            );
-        } else {
-            localStorage.setItem("avb_expiry_time", "0");
-        }
+        const defaultExpiry = Date.now() + 30 * 60 * 1000; // 30 minutes in ms
+        localStorage.setItem("avb_expiry_time", defaultExpiry.toString());
     }
 
     let triggered = false;
@@ -705,7 +698,7 @@ AVB ENGINE (DASHBOARD MATCH)
             if (!vibRunning) return;
 
             if (navigator.vibrate) {
-                navigator.vibrate(200); // Uses exact 200ms vibration from 6-5min window
+                navigator.vibrate(200);
             }
 
             vibTimeout = setTimeout(loop, 15000);
@@ -730,17 +723,11 @@ AVB ENGINE (DASHBOARD MATCH)
             (expiryTime - Date.now()) / 1000
         );
 
-        // Triggers 200ms vibration cycle for all remaining time from 6 min to 0 min
         if (!triggered && remainingSec <= 360 && remainingSec > 0) {
-
             triggered = true;
-
             startVibrationCycle();
-
-            console.log("AVB warning triggered with vibration cycle");
         }
 
-        // Safety stop if time passes out of range
         if (remainingSec <= 0 || remainingSec > 360) {
             stopVibrationCycle();
         }
@@ -750,6 +737,7 @@ AVB ENGINE (DASHBOARD MATCH)
     avbInterval = setInterval(check, 1000);
 
 })();
+
 
 /* --------------------------
 SESSION GUARD (WITH FADE-OUT & 15S DELAYED CLOSE)
