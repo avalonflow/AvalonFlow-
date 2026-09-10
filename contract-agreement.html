@@ -8,13 +8,6 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600&display=swap" rel="stylesheet">
-
-<script>
-if (localStorage.getItem('avalonflow_contract_signed') === 'true') {
-    window.location.replace(getContraRedirectUrl());
-    return; 
-}
-</script>
        <style>
         *, *::before, *::after {
             box-sizing: border-box;
@@ -1027,7 +1020,9 @@ if (urlParamsForReset.get('reset') === 'true') {
         return BASE_CONTRA_REDIRECT_URL + encodeURIComponent(contractorName);
     }
 
-
+if (localStorage.getItem('avalonflow_contract_signed') === 'true') {
+    window.location.replace(getContraRedirectUrl());
+}
     // ==========================================
     // 2. PERSISTENT TIMELINE MANAGER (LOCALSTORAGE)
     // ==========================================
