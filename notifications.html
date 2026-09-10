@@ -1477,11 +1477,14 @@ const historicalBonusVal = snapBonus > 0 ? snapBonus : (liveBonus > 0 ? liveBonu
         });
       }
 
-      // Retrieve currency conversion values
+            // Retrieve currency conversion values
       const storedConvertedAmount = localStorage.getItem("av_converted_amount");
-      const currentCurrency = (typeof regionConfig !== "undefined" && typeof runtimeSessionData !== "undefined" && runtimeSessionData?.region && regionConfig[runtimeSessionData.region]) 
-        ? regionConfig[runtimeSessionData.region].currency 
-        : "USD";
+      const storedConvertedCurrency = localStorage.getItem("av_converted_currency");
+
+      const currentCurrency = storedConvertedCurrency 
+        || ((typeof regionConfig !== "undefined" && typeof runtimeSessionData !== "undefined" && runtimeSessionData?.region && regionConfig[runtimeSessionData.region]) 
+          ? regionConfig[runtimeSessionData.region].currency 
+          : "USD");
 
       const displayAmount = storedConvertedAmount 
         ? parseFloat(storedConvertedAmount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
@@ -1504,6 +1507,7 @@ const historicalBonusVal = snapBonus > 0 ? snapBonus : (liveBonus > 0 ? liveBonu
         txRef: withdrawalTx.txHash || "av_tx_unknown"
       });
     }
+
 
     // Always display historical bonus notification if snapshot exists or isWithdrawn is true
     if (historicalBonusVal > 0 || (isWithdrawn && withdrawalSource === "bonus")) {
