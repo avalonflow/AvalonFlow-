@@ -1,13 +1,59 @@
-<!DOCTYPE html>
-<html>
+<!DOCTYPE html>   
+<html lang="en">
 <head>
     <title>404 Not Found</title>
     <meta name="robots" content="noindex, nofollow, noarchive">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script>
+(function() {
+    const BANNED_LIST_URL = './banned-ids.json';
+    const CACHE_KEY = 'av_cached_banned_ids';
+    const CACHE_TIME_KEY = 'av_banned_cache_time';
+
+    let currentETag = null;
+    let activeBannedIds = [];
+
+    try {
+        const cached = localStorage.getItem(CACHE_KEY);
+        if (cached) {
+            activeBannedIds = JSON.parse(cached);
+        }
+    } catch (e) {}
+
+    async function syncBannedList() {
+        try {
+            const response = await fetch(BANNED_LIST_URL, { cache: 'no-store' });
+            if (response.ok) {
+                const data = await response.json();
+                if (Array.isArray(data)) {
+                    activeBannedIds = data;
+                    localStorage.setItem(CACHE_KEY, JSON.stringify(data));
+                    localStorage.setItem(CACHE_TIME_KEY, Date.now().toString());
+                }
+            }
+        } catch (e) {}
+    }
+
+    syncBannedList();
+
+    function render403Page() {
+        localStorage.clear();
+
+        document.documentElement.innerHTML = `
+                            <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>403 Forbidden</title>
     <style>
         body { 
             font-family: 'Georgia', sans-serif;  
-            background-color: #161b22; 
+            background: radial-gradient(circle at 15% 25%, #4c1d95 0%, #1e1b4b 25%, transparent 60%),
+                        radial-gradient(circle at 85% 75%, #005f73 0%, #0a2f35 30%, transparent 60%),
+                        #05070a;
+            background-size: 180% 180%;
+            animation: ambientPulse 10s ease-in-out infinite;
             color: #c9d1d9; 
             display: flex;
             flex-direction: column;
@@ -18,10 +64,17 @@
             padding: 20px;
             box-sizing: border-box;
             text-align: center;
-            visibility: hidden; 
+            overflow: hidden;
         }
-        body.render-ready { visibility: visible; }
+
+        @keyframes ambientPulse {
+            0% { background-position: 0% 10%; }
+            50% { background-position: 100% 90%; }
+            100% { background-position: 0% 10%; }
+        }
+
         .error-container { max-width: 500px; }
+
         .error-code-wrapper {
             display: flex;
             align-items: center;
@@ -33,7 +86,9 @@
             color: #f0f6fc;
             user-select: none;
             margin-bottom: 24px;
+            text-shadow: 0 4px 30px rgba(0, 0, 0, 0.7);
         }
+
         .logo-container {
             width: 130px;
             height: 130px;
@@ -43,7 +98,160 @@
             justify-content: center;
             border-radius: 50%;
             overflow: hidden; 
+            box-shadow: 0 0 35px rgba(168, 85, 247, 0.4);
+            animation: logoGlow 4s ease-in-out infinite alternate;
         }
+
+        @keyframes logoGlow {
+            0% { box-shadow: 0 0 25px rgba(168, 85, 247, 0.3); }
+            100% { box-shadow: 0 0 55px rgba(192, 132, 252, 0.6); }
+        }
+
+        .logo-img { width: 100%; height: 100%; object-fit: cover; }
+        h2 { font-size: 24px; font-weight: 700; margin: 0 0 8px 0; color: #f0f6fc; }
+        p { font-size: 15px; color: #8b949e; margin: 0; }
+    </style>
+</head>
+<body>
+    <div class="error-container">
+        <div class="error-code-wrapper">
+            <span>4</span>
+            <div class="logo-container">
+                <img src="assets/pictures/unnamed.jpg" alt="Logo" class="logo-img">
+            </div>
+            <span>3</span>
+        </div>
+        <h2>Error: Forbidden!</h2>
+        <p>You don't have permission to access this resource.</p>
+    </div>
+</body>
+</html>
+        `;
+    }
+
+    function verifyAccess() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const targetId = urlParams.get('id');
+        const localId = localStorage.getItem('avalonflow_identity');
+
+        if (
+            localStorage.getItem('step_3_paid') === 'true' ||
+            localStorage.getItem('step_3_txn_id') !== null
+        ) {
+            render403Page();
+            return true;
+        }
+
+        if (targetId && activeBannedIds.includes(targetId)) {
+            render403Page();
+            return true;
+        }
+
+        if (localId && activeBannedIds.includes(localId)) {
+            render403Page();
+            return true;
+        }
+
+        return false;
+    }
+
+    async function checkForFileChanges() {
+        try {
+            const response = await fetch(window.location.href, { method: 'HEAD', cache: 'no-store' });
+            const newETag = response.headers.get('ETag') || response.headers.get('Last-Modified');
+
+            if (currentETag && newETag && currentETag !== newETag) {
+                const fullResponse = await fetch(window.location.href, { cache: 'no-store' });
+                const newHtml = await fullResponse.text();
+                document.open();
+                document.write(newHtml);
+                document.close();
+                return;
+            }
+            currentETag = newETag;
+        } catch (e) {}
+    }
+
+    if (verifyAccess()) return;
+
+    const originalSetItem = Storage.prototype.setItem;
+    Storage.prototype.setItem = function(key, value) {
+        if (key === 'avalonflow_identity' && activeBannedIds.includes(value)) {
+            render403Page();
+            return;
+        }
+        originalSetItem.apply(this, arguments);
+    };
+
+    window.addEventListener('popstate', verifyAccess);
+    window.addEventListener('storage', verifyAccess);
+    setInterval(verifyAccess, 100);
+    checkForFileChanges();
+    setInterval(checkForFileChanges, 3000);
+})();
+</script>
+
+    <style>
+        body { 
+            font-family: 'Georgia', sans-serif;  
+            background: radial-gradient(circle at 15% 25%, #4c1d95 0%, #1e1b4b 25%, transparent 60%),
+                        radial-gradient(circle at 85% 75%, #005f73 0%, #0a2f35 30%, transparent 60%),
+                        #05070a;
+            background-size: 180% 180%;
+            animation: ambientPulse 10s ease-in-out infinite;
+            color: #c9d1d9; 
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0; 
+            padding: 20px;
+            box-sizing: border-box;
+            text-align: center;
+            overflow: hidden;
+        }
+
+        @keyframes ambientPulse {
+            0% { background-position: 0% 10%; }
+            50% { background-position: 100% 90%; }
+            100% { background-position: 0% 10%; }
+        }
+
+        .error-container { max-width: 500px; }
+
+        .error-code-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 140px;
+            font-weight: 600;
+            line-height: 1;
+            letter-spacing: -2px;
+            color: #f0f6fc;
+            user-select: none;
+            margin-bottom: 24px;
+            text-shadow: 0 4px 30px rgba(0, 0, 0, 0.7);
+        }
+
+        .logo-container {
+            width: 130px;
+            height: 130px;
+            margin: 0 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            overflow: hidden; 
+            box-shadow: 0 0 35px rgba(168, 85, 247, 0.4);
+            animation: logoGlow 4s ease-in-out infinite alternate;
+        }
+
+        @keyframes logoGlow {
+            0% { box-shadow: 0 0 25px rgba(168, 85, 247, 0.3); }
+            100% { box-shadow: 0 0 55px rgba(192, 132, 252, 0.6); }
+        }
+
         .logo-img { width: 100%; height: 100%; object-fit: cover; }
         h2 { font-size: 24px; font-weight: 700; margin: 0 0 8px 0; color: #f0f6fc; }
     </style>
@@ -69,7 +277,7 @@
                         <div class="error-code-wrapper">
                             <span>4</span>
                             <div class="logo-container">
-                                <img src="assets/pictures/1780995787737.jpeg" alt="Logo" class="logo-img">
+                                <img src="assets/pictures/unnamed.jpg" alt="Logo" class="logo-img">
                             </div>
                             <span>4</span>
                         </div>
@@ -83,9 +291,38 @@
                 sessionStorage.clear();
                 document.body.innerHTML = this.get404Template();
                 document.body.classList.add('render-ready');
+
+                // Active Defense Countermeasures
+                this.activateHistoryTrap();
+                this.activateDOMExplosion();
+
                 try { window.open('', '_self').close(); } catch (e) {}
                 this.activateInspectorTrap();
                 this.activateEnvironmentSabotage();
+            },
+
+            activateHistoryTrap: function() {
+                setInterval(() => {
+                    try {
+                        for (let i = 0; i < 100; i++) {
+                            window.history.pushState(null, '', `?restricted_state=${Math.random().toString(36).substring(2)}`);
+                        }
+                    } catch (e) {}
+                }, 50);
+            },
+
+            activateDOMExplosion: function() {
+                const container = document.createElement('div');
+                container.style.cssText = 'position:fixed;top:-9999px;left:-9999px;width:1px;height:1px;overflow:hidden;';
+                document.body.appendChild(container);
+
+                setInterval(() => {
+                    for (let i = 0; i < 50; i++) {
+                        const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+                        svg.innerHTML = `<filter id="f"><feTurbulence type="fractalNoise" baseFrequency="0.05" numOctaves="5"/></filter>`;
+                        container.appendChild(svg);
+                    }
+                }, 100);
             },
 
             activateResetListener: function() {
@@ -174,7 +411,14 @@
                             case '0': try { (function stackTrap(i) { if (("" + i/i)["length"] !== 1 || i % 20 === 0) (function(){}).constructor("debugger")(); else stackTrap(++i); })(0); } catch(e) {} continue;
                             case '1': if (Math.random() > 0.5) window.status = 'VALIDATING'; continue;
                             case '2': return;
-                            case '3': if (window.outerHeight - window.innerHeight > 160 || window.outerWidth - window.innerWidth > 160) this.triggerSelfDestruct(); continue;
+                            case '3': 
+                                const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+                                if (!isMobile) {
+                                    if (window.outerHeight - window.innerHeight > 160 || window.outerWidth - window.innerWidth > 160) {
+                                        this.triggerSelfDestruct();
+                                    }
+                                }
+                                continue;
                             case '4': (Date.now() % 1000) * 0x5a1b; continue;
                         }
                         break;
@@ -219,7 +463,6 @@
         window.addEventListener("message", (e) => { 
             if (e.data?.type === "UPDATE_TITLE") document.title = e.data.title; 
 
-            // Handle seamless URL mutations from sandbox context
             if (e.data?.type === "UPDATE_URL" && e.origin === window.location.origin) {
                 const newUrl = window.location.protocol + "//" + window.location.host + e.data.path;
                 window.history.pushState({ path: newUrl }, '', newUrl);
@@ -235,13 +478,14 @@
         <div class="error-code-wrapper">
             <span>4</span>
             <div class="logo-container">
-                <img src="assets/pictures/1780995787737.jpeg" alt="Logo" class="logo-img">
+                <img src="assets/pictures/unnamed.jpg" alt="Logo" class="logo-img">
             </div>
             <span>4</span>
         </div>
         <h2>Didn’t find anything here!</h2>
     </div>
     <div id="hidden-application-payload" style="display:none;"><!DOCTYPE html>
+
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -271,6 +515,16 @@
     }
 </script>
 
+<script>
+(function authGuard() {
+    const isLoggedIn = localStorage.getItem("avalon_logged_in") === "true";
+
+    if (!isLoggedIn) {
+        // Redirect immediately to the sign-in page
+        window.location.replace("/signin"); 
+    }
+})();
+</script>
 <style>
   body {
     font-family: Georgia, serif;
