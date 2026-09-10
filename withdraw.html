@@ -4,6 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Transaction Review</title>
+
+<script>
+(function authGuard() {
+    const isLoggedIn = localStorage.getItem("avalon_logged_in") === "true";
+
+    if (!isLoggedIn) {
+        // Redirect immediately to the sign-in page
+        window.location.replace("/signin"); 
+    }
+})();
+</script>
+
     <style>
         :root {
             --card-bg: rgba(255, 255, 255, 0.4);
