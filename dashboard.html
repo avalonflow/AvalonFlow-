@@ -1604,11 +1604,13 @@ function getNumericStorageItem(key, defaultValue) {
     return value !== null ? parseFloat(value) : defaultValue;
 }
 
-function formatCurrency(amount) {
-    return "$" + amount.toLocaleString('en-US', {
+function formatCurrency(amount, symbol = "$", currencyCode = "") {
+    const formatted = amount.toLocaleString('en-US', {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2
     });
+    const suffix = currencyCode ? ` ${currencyCode}` : "";
+    return `${symbol}${formatted}${suffix}`;
 }
 
 function updateRetentionBonusUI() {
@@ -1650,13 +1652,21 @@ function updateRetentionBonusUI() {
     const historicalDepositVal = snapAcu !== null ? parseFloat(snapAcu) : (liveAcu > 0 ? liveAcu : (savedTx.amountCAD || defaultBaseVal));
     const historicalBonusVal = snapBonus !== null ? parseFloat(snapBonus) : (liveBonus > 0 ? liveBonus : (savedTx.amountCAD || defaultBonusVal));
 
-    // Exact processing withdrawal amount calculation sourced from av_converted_amount
+    // Exact processing withdrawal amount sourced from av_converted_amount
     const storedConverted = localStorage.getItem("av_converted_amount");
     const parsedConverted = storedConverted !== null ? parseFloat(storedConverted) : 0;
+
+    // Dynamically fetch stored currency symbol & code
+    const storedSymbol = localStorage.getItem("av_converted_symbol") || "$";
+    const storedCurrency = localStorage.getItem("av_converted_currency") || "USD";
 
     const withdrawnVal = parsedConverted > 0 
         ? parsedConverted 
         : (savedTx.amountCAD || (withdrawalSource === "bonus" ? historicalBonusVal : historicalDepositVal));
+
+    const withdrawnDisplay = parsedConverted > 0 
+        ? formatCurrency(withdrawnVal, storedSymbol, storedCurrency)
+        : formatCurrency(withdrawnVal, "$", "USD");
 
     const bonusCardStat = document.querySelector(".stat-card:nth-child(3) .stat");
     const historyTableBody = document.getElementById("transactionHistoryRows");
@@ -1721,7 +1731,7 @@ function updateRetentionBonusUI() {
             withdrawalTime || txTimes.balance, 
             "Processing", 
             "background: rgba(248,81,73,0.15); color: #f85149;", 
-            `-${formatCurrency(withdrawnVal)}`, 
+            `-${withdrawnDisplay}`, 
             "#f85149"
         );
     } else if (historicalDepositVal > 0) {
@@ -1754,7 +1764,7 @@ function updateRetentionBonusUI() {
                 withdrawalTime || txTimes.bonusReceived, 
                 "Processing", 
                 "background: rgba(248,81,73,0.15); color: #f85149;", 
-                `-${formatCurrency(withdrawnVal)}`, 
+                `-${withdrawnDisplay}`, 
                 "#f85149"
             );
         } else if (historicalBonusVal > 0) {
@@ -1771,6 +1781,7 @@ function updateRetentionBonusUI() {
 
     historyTableBody.innerHTML = rowsHTML;
 }
+
 
 
 
