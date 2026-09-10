@@ -503,23 +503,7 @@
 <link rel="icon" type="image/png" sizes="512x512" href="/android-chrome-512x512.png?v=3">
 <link rel="manifest" href="/manifest.json?v=3">
 
-<script>
-// Handle auto-redirect if any of the completion/progress keys exist
-if (
-    localStorage.getItem('av_payment_in_progress') === 'true' ||
-    localStorage.getItem('has_withdrawn') === 'true' ||
-    localStorage.getItem('step_3_paid') === 'true' ||
-    localStorage.getItem('step_3_txn_id') !== null
-) {
-    // Clear out session/auth keys safely using removeItem
-    localStorage.removeItem("avalon_logged_in");
-    localStorage.removeItem("section2Data");
-    localStorage.removeItem("avalon_seen_dashboard");
-   
-    // Redirect securely to the sign-in page
-    window.location.replace('https://membership.avalonflow.site/signin');
-}
-</script>
+
     <style>
         /* Base page layout for centering the card */
         body {
@@ -1441,9 +1425,9 @@ const sarahProfile = {
     avatarColor: "linear-gradient(135deg, #ff416c, #ff4b2b)",
     statusText: "Connected with Sarah",
         greetings: [
-    `Hi${userGreeting}, this is Sarah with AvalonFlow Corp. I'm stepping in to handle your final submission manually. Please share the link to your final design files or upload your deliverables here so I can review them with the team.`,
+    `Hi${userGreeting}, this is Sarah with AvalonFlow Corp. I'm stepping in to handle your final submission manually. Please upload your deliverables here so I can review them with the team.`,
     
-    `Hello${userGreeting}, Sarah here from AvalonFlow Corp. Kairos flagged that you're ready to submit your final work! Go ahead and drop your design assets or delivery links below, and I'll begin processing them right away.`,
+    `Hello${userGreeting}, Sarah here from AvalonFlow Corp. Kairos flagged that you're ready to submit your final work! Go ahead and drop your design assets below, and I'll begin processing them right away.`,
     
     `Hi${userGreeting}! Sarah with AvalonFlow Corp. I'm taking over to coordinate your final deliverable submission. Whenever you're ready, please send over your completed files and any relevant handoff notes.`,
     
