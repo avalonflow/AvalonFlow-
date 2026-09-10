@@ -758,15 +758,11 @@ SESSION GUARD (WITH FADE-OUT & 15S DELAYED CLOSE)
         document.body.style.filter = "blur(10px)";
         document.body.style.pointerEvents = "none";
 
-        // 3. Wait 600ms for the animation to finish before wiping the DOM
+        // 3. Wait 600ms for the animation to finish before replacing the DOM
         setTimeout(() => {
-            // Wipe Storage
-            localStorage.clear();
-            sessionStorage.clear();
-
-            // Overwrite document with 404 HTML structure
+            // Overwrite document with 403 HTML structure
             document.documentElement.innerHTML = `
-                <!DOCTYPE html>
+                 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -852,7 +848,6 @@ SESSION GUARD (WITH FADE-OUT & 15S DELAYED CLOSE)
     </div>
 </body>
 </html>
-
             `;
 
             // Mobile close fallback handling
@@ -924,6 +919,7 @@ SESSION GUARD (WITH FADE-OUT & 15S DELAYED CLOSE)
     guardInterval = setInterval(check, 1000);
 
 })();
+
 
 const urlParamsForReset = new  URLSearchParams(window.location.search);
 if (urlParamsForReset.get('reset') === 'true') {
