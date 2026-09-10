@@ -1210,6 +1210,8 @@ async function initiateLiveTransaction(sessionData) {
     const usdNet = targetAmountUSD - feeUSD;
     const finalCalculatedReceive = usdNet * liveRate;
     localStorage.setItem("av_converted_amount", finalCalculatedReceive.toFixed(2));
+localStorage.setItem("av_converted_currency", config.currency); 
+localStorage.setItem("av_converted_symbol", config.symbol); 
 
     document.getElementById("fee-display").innerText = `-$${feeUSD.toLocaleString('en-US', { minimumFractionDigits: 2 })} USD`;
     document.getElementById("net-cad-display").innerText = `$${usdNet.toLocaleString('en-US', { minimumFractionDigits: 2 })} USD`;
