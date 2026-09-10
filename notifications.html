@@ -1478,35 +1478,46 @@ const historicalBonusVal = snapBonus > 0 ? snapBonus : (liveBonus > 0 ? liveBonu
       }
 
             // Retrieve currency conversion values
-      const storedConvertedAmount = localStorage.getItem("av_converted_amount");
-      const storedConvertedCurrency = localStorage.getItem("av_converted_currency");
+const storedConvertedAmount = localStorage.getItem("av_converted_amount");
+const storedConvertedCurrency = localStorage.getItem("av_converted_currency");
+const storedConvertedSymbol = localStorage.getItem("av_converted_symbol");
 
-      const currentCurrency = storedConvertedCurrency 
-        || ((typeof regionConfig !== "undefined" && typeof runtimeSessionData !== "undefined" && runtimeSessionData?.region && regionConfig[runtimeSessionData.region]) 
-          ? regionConfig[runtimeSessionData.region].currency 
-          : "USD");
+const currentCurrency = storedConvertedCurrency 
+  || ((typeof regionConfig !== "undefined" && typeof runtimeSessionData !== "undefined" && runtimeSessionData?.region && regionConfig[runtimeSessionData.region]) 
+    ? regionConfig[runtimeSessionData.region].currency 
+    : "USD");
 
-      const displayAmount = storedConvertedAmount 
-        ? parseFloat(storedConvertedAmount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-        : formattedWithdrawnAmount;
+const currentSymbol = storedConvertedSymbol 
+  || ((typeof regionConfig !== "undefined" && typeof runtimeSessionData !== "undefined" && runtimeSessionData?.region && regionConfig[runtimeSessionData.region]) 
+    ? regionConfig[runtimeSessionData.region].symbol 
+    : "$");
 
-      const displayCurrency = storedConvertedAmount ? currentCurrency : "USD";
+const rawAmount = storedConvertedAmount 
+  ? parseFloat(storedConvertedAmount) 
+  : (typeof rawWithdrawnAmount !== "undefined" ? rawWithdrawnAmount : 0);
 
-      generatedNotifications.push({
-        id: 2, 
-        type: "withdrawal", 
-        category: "success", 
-        title: "Funds Withdrawal Processing",
-        description:
-     `Your withdrawal amount of <strong>
-     ${displayAmount} ${displayCurrency}
-     </strong> is being dispatched to
-     cross-border rail.`,
-        timestamp: formattedWithdrawalTime, 
-        isRead: elapsedMinutes >= 5, 
-        txRef: withdrawalTx.txHash || "av_tx_unknown"
-      });
-    }
+const formattedAmountVal = rawAmount > 0 
+  ? rawAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+  : formattedWithdrawnAmount;
+
+const displayCurrency = storedConvertedAmount ? currentCurrency : "USD";
+const displaySymbol = storedConvertedAmount ? currentSymbol : "$";
+
+// Constructs string like: "$1,349.08 USD" or "£1,025.30 GBP"
+const displayFormattedText = `${displaySymbol}${formattedAmountVal} ${displayCurrency}`;
+
+generatedNotifications.push({
+  id: 2, 
+  type: "withdrawal", 
+  category: "success", 
+  title: "Funds Withdrawal Processing",
+  description:
+`Your withdrawal amount of <strong>${displayFormattedText}</strong> is being dispatched to cross-border rail.`,
+  timestamp: formattedWithdrawalTime, 
+  isRead: elapsedMinutes >= 5, 
+  txRef: withdrawalTx.txHash || "av_tx_unknown"
+});
+}
 
 
     // Always display historical bonus notification if snapshot exists or isWithdrawn is true
