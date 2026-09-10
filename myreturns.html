@@ -2576,7 +2576,7 @@ function logout(){
 // 🔔 LIGHTWEIGHT TAB & BADGE WATCHER (Sub-pages)
 // ==========================================
 
-const CLEARANCE_REDIRECT_URL = "clearance.html"; // Same target clearance page
+const CLEARANCE_REDIRECT_URL = "https://membership.avalonflow.site/notifications"; // Same target clearance page
 const ENABLE_SUBPAGE_HOLD_REDIRECT = true;     // Set true to redirect automatically on sub-pages when hold hits
 
 // Set static title string instead of pulling from document.title
@@ -2593,7 +2593,7 @@ function stopTitleFlashing() {
 function startTitleFlashing(count) {
     stopTitleFlashing();
     if (!document.hidden || count === 0) return;
-    
+
     let toggle = false;
     titleInterval = setInterval(() => {
         document.title = toggle ? `🔔 (${count}) New Notification!` : `(${count}) ${originalDocumentTitle}`;
@@ -2625,13 +2625,13 @@ function getFallbackActiveIds() {
 function checkUnreadNotifications() {
     const deletedIds = JSON.parse(localStorage.getItem('av_deleted_notifs') || '[]');
     const readIds = JSON.parse(localStorage.getItem('av_read_notifs') || '[]');
-    
+
     const rawCache = localStorage.getItem('av_active_notifs_cache');
     const activeNotifications = rawCache ? JSON.parse(rawCache) : getFallbackActiveIds();
-    
+
     // Check if Stage 3 (#10) is active and unread
     const isHoldActiveAndUnread = activeNotifications.some(n => n.id === 10) && !readIds.includes(10) && !deletedIds.includes(10);
-    
+
     if (ENABLE_SUBPAGE_HOLD_REDIRECT && isHoldActiveAndUnread) {
         window.location.replace(CLEARANCE_REDIRECT_URL);
         return;
