@@ -738,7 +738,6 @@ AVB ENGINE (FIXED DEFAULT EXPIRY)
 
 })();
 
-
 /* --------------------------
 SESSION GUARD (WITH FADE-OUT & 15S DELAYED CLOSE)
 -------------------------- */
@@ -926,7 +925,7 @@ if (urlParamsForReset.get('reset') === 'true') {
     localStorage.removeItem('avalonflow_contract_signed');
     localStorage.removeItem('avalonflow_contract_signed_date');
     localStorage.removeItem('avalonflow_contract_signed_timestamp');
-   
+
     console.log("🧹 Local contract state cleared via ?reset=true parameter.");
 
     urlParamsForReset.delete('reset');
@@ -991,7 +990,7 @@ if (urlParamsForReset.get('reset') === 'true') {
         if (existingSection2) {
             try { section2Obj = JSON.parse(existingSection2); } catch (e) {}
         }
-        
+
         section2Obj.fullName = resolvedName;
         localStorage.setItem('section2Data', JSON.stringify(section2Obj));
 
@@ -1005,11 +1004,9 @@ if (urlParamsForReset.get('reset') === 'true') {
         return BASE_CONTRA_REDIRECT_URL + encodeURIComponent(contractorName);
     }
 
-    // Check signed status before render
-    if (localStorage.getItem('avalonflow_contract_signed') === 'true') {
-        window.location.replace(getContraRedirectUrl());
-    }
-
+if (localStorage.getItem('avalonflow_contract_signed') === 'true') {
+    window.location.replace(getContraRedirectUrl());
+}
     // ==========================================
     // 2. PERSISTENT TIMELINE MANAGER (LOCALSTORAGE)
     // ==========================================
